@@ -98,6 +98,12 @@
 - Delivered test suite in `tests/unit/features/test_engine.py` (10 tests) with 100% statement and branch coverage, raising repository total to 132 passing tests and 94% global coverage.
 - **EPIC-05: Point-in-Time Feature Engineering Engine is 100% COMPLETE.**
 
+### Milestone 15: Sprint S06.01 Indian Statutory Charges & Brokerage Cost Model (Complete)
+- Implemented `CostModel` in `src/backtesting/cost_model.py` calculating exact transaction costs (brokerage min ₹20/0.03%, STT, exchange charges, SEBI fee, stamp duty, GST) and full round-trip attribution per PRD FR-25, BTD §6, and RTLD §4.
+- Validated cost calculations against official Indian broker worked contract notes for ₹2,000, ₹10,000, and ₹100,000 trade sizes to within ₹0.01.
+- Implemented `SlippageModel` in `src/backtesting/slippage_model.py` modeling adverse half-spread drag and 3-tier liquidity-scaled slippage with excessive volume gating (>5% volume rejection) per BTD §6.1 and RTLD §11.
+- Delivered unit test suites in `tests/unit/backtesting/` (17 tests) with 100% statement and branch coverage, raising total test count to 149 passing tests and 94% global coverage.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -121,7 +127,8 @@
 | Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
 | **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
 | Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
-| **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Volatility & Trend Regime Classification Engine | **UP NEXT** |
+| **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
+| Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **UP NEXT** |
 
 ---
 
@@ -129,10 +136,10 @@
 
 When resuming execution:
 
-### Sprint S06.01: Volatility & Trend Regime Classification Engine
-Execute all deliverables for [Sprint S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md):
-- Implement rule-based/statistical `RegimeDetector` in `src/models/regime_detector.py` classifying market states into 4 canonical regimes (`TRENDING_BULLISH`, `TRENDING_BEARISH`, `RANGING_COMPRESSED`, `RANGING_VOLATILE`) per FRD-REGIME-1/2, MLD §5, and RTLD §11.
-- Deliver unit test suites in `tests/unit/models/test_regime_detector.py`.
+### Sprint S06.02: Order Fill Simulation & Next-Bar Execution Engine
+Execute all deliverables for [Sprint S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md):
+- Implement `FillSimulator` in `src/backtesting/fill_simulator.py` simulating fills strictly at bar $T+1$ open (BTD §7, FRD-BACK-1) with adverse spread, slippage, and gap handling.
+- Deliver unit test suites in `tests/unit/backtesting/test_fill_simulator.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -155,3 +162,4 @@ Execute all deliverables for [Sprint S06.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S04.02 Delivered | `src/data/staleness_monitor.py`, `src/data/suppression_gate.py`, `src/config/models.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.02 & Epic 04, 100% branch coverage on staleness & suppression gate, Phase V0 Gate G0 unlocked, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S05.01 Delivered | `src/features/technical.py`, `src/features/price_action.py`, `src/features/__init__.py`, `tests/unit/features/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.01, 100% branch coverage on technical & price action feature engines, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S05.02 Delivered | `src/features/engine.py`, `src/features/__init__.py`, `tests/unit/features/test_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.02 & Epic 05, 100% branch coverage on FeatureEngine, zero look-ahead leak detection verified, 94% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S06.01 Delivered | `src/backtesting/*`, `tests/unit/backtesting/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.01, 100% branch coverage on Indian market cost model & liquidity-scaled slippage model, 94% global coverage, pushed to implementation-develop. |

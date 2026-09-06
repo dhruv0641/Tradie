@@ -63,6 +63,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-008** | 2026-09-06 | 15:45:00 | `S04.02` | Staleness Detection, Quarantine & Suppression Gate | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Staleness & Suppression, 93% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-009** | 2026-09-06 | 15:55:00 | `S05.01` | Technical Indicator & Price Action Feature Engine | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Features, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-010** | 2026-09-06 | 16:05:00 | `S05.02` | Point-in-Time Calculation Guarantees & Versioning | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Engine, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-011** | 2026-09-06 | 16:15:00 | `S06.01` | Indian Statutory Charges & Brokerage Cost Model | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Cost & Slippage, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -533,9 +534,58 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-011: Sprint S06.01 — Indian Statutory Charges & Brokerage Cost Model
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:15:00 IST` (10:45:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 09 (Risk & Safety) / Agent 05 (Backtest) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `CostModel` in `src/backtesting/cost_model.py` calculating exact Indian statutory transaction drag per executed leg and full round-trip attribution per PRD FR-25, BTD §6, and RTLD §4:
+  - Brokerage: $\min(₹20.00, 0.03\% \text{ turnover})$ per executed leg (BTD-1).
+  - Securities Transaction Tax (STT): 0.1% on both legs for delivery, 0.025% on sell leg only for intraday (BTD-2/3).
+  - Exchange Turnover Charges: 0.00297% (NSE) of turnover (BTD-4).
+  - SEBI Turnover Fee: 0.0001% (₹10/crore) of turnover (BTD-5).
+  - Stamp Duty: 0.015% delivery / 0.003% intraday on BUY leg only (BTD-6).
+  - GST: 18% applied on (Brokerage + Exchange Charges) (BTD-7).
+  - Unit tests verified against official Indian broker worked contract notes for ₹2,000, ₹10,000, and ₹100,000 trade sizes to within ₹0.01.
+- Implemented `SlippageModel` in `src/backtesting/slippage_model.py` modeling adverse spread drag and volume-scaled execution slippage per BTD §6.1 and RTLD §11:
+  - Half-spread adverse execution drag on entry and exit (quoted spread or 5 bps proxy).
+  - Liquidity Scaling Multipliers: $1\times$ for $<1\%$ bar volume, $2\times$ for $1\%-5\%$ bar volume.
+  - Liquidity Gating & Excessive Order Rejection: Orders exceeding $5\%$ of bar volume are penalized with $4\times$ slippage or strictly rejected (`rejected=True`, `reason="EXCESSIVE_VOLUME_SHARE"`).
+  - Zero Bar Volume Protection: Unfilled rejection on illiquid bars (`reason="ZERO_BAR_VOLUME"`).
+- Exported all models in `src/backtesting/__init__.py`.
+- Authored test suites in `tests/unit/backtesting/test_cost_model.py` and `tests/unit/backtesting/test_slippage_model.py` (17 tests), achieving **100% statement and 100% branch coverage** across all backtesting cost and slippage modules.
+- Global repository test suite now stands at **149 passing tests with 94% coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `62 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 62 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `149 passed in 8.44s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `94%` code coverage (`cost_model.py`: 100% statement / 100% branch, `slippage_model.py`: 100% statement / 100% branch).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/backtesting/__init__.py` — Backtesting module initialization and public exports.
+2. `src/backtesting/cost_model.py` — Indian market statutory charges and brokerage cost model.
+3. `src/backtesting/slippage_model.py` — Bid-ask spread and liquidity-scaled slippage model.
+4. `tests/unit/backtesting/test_cost_model.py` — Unit tests and contract note validation fixtures.
+5. `tests/unit/backtesting/test_slippage_model.py` — Unit tests for adverse spread drag and volume-scaled slippage.
+
+##### Modified Files:
+1. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-011.
+2. `STORY.md` — Updated status board marking Sprint S06.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S05.02` — Point-in-Time Calculation Guarantees & Versioning
-- **Completed Epic**: `EPIC-05` — Point-in-Time Feature Engineering Engine (**100% COMPLETE**)
-- **Next Sprint Up**: `Sprint S06.01` — Volatility & Trend Regime Classification Engine ([docs/sprints/S06.01-regime-detector-classifier.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md))
-- **Next Task Up**: `TASK-06-01-001` — Implement Rule-Based Market Regime Detector (FRD-REGIME-1/2, MLD §5)
+- **Completed Sprint**: `Sprint S06.01` — Indian Statutory Charges & Brokerage Cost Model
+- **Active Epic**: `EPIC-06` — Realistic Backtesting & Indian Market Cost Engine
+- **Next Sprint Up**: `Sprint S06.02` — Order Fill Simulation & Next-Bar Execution Engine ([docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md))
+- **Next Task Up**: `TASK-06-02-001` — Implement Next-Bar Open Fill Simulator (BTD §7, FRD-BACK-1)
