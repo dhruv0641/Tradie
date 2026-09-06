@@ -8,6 +8,15 @@ Governing Principles:
 - Zero live broker credentials, zero execution authority, read-only historical data.
 """
 
+from src.research.candidate_generator import (
+    CandidateConcurrencyLimitError,
+    CandidateCooldownError,
+    CandidateGenerationError,
+    CandidateGenerationResult,
+    CandidateGenerator,
+    CandidateGeneratorConfig,
+    MultiChangeViolationError,
+)
 from src.research.environment import (
     ResearchBrainConfig,
     ResearchBrainEnvironment,
@@ -20,6 +29,13 @@ from src.research.pattern_detector import (
 )
 
 __all__ = [
+    "CandidateConcurrencyLimitError",
+    "CandidateCooldownError",
+    "CandidateGenerationError",
+    "CandidateGenerationResult",
+    "CandidateGenerator",
+    "CandidateGeneratorConfig",
+    "MultiChangeViolationError",
     "PatternExtractionConfig",
     "PatternExtractionEngine",
     "ResearchBrainConfig",

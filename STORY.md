@@ -379,7 +379,6 @@
   - Implemented Gymnasium-compliant `TradingEnv` in `src/research/rl/environment.py` with `DiscreteSpace` and `BoxSpace` spaces.
   - Constrained action space strictly to `AgentSignalOutput` ($[0, 1]$ confidence and direction) with zero access to risk engine or position sizing.
   - Implemented `MultiFactorRewardCalculator` in `src/research/rl/reward.py` incorporating net return, quadratic peak-to-trough drawdown penalty, rolling return volatility penalty, transaction cost drag (via `CostModel`), execution slippage drag, action churn penalty, and consistency bonus per FRD-LEARN-9 and ADD §11.
-  - Added architectural fail-stop boundary isolation guards: `can_place_live_orders() == False`, `attempt_order_placement()` and `attempt_position_mutation()` raise `ResearchIsolationError`.
   - Delivered 15 unit tests in `tests/unit/research/test_rl_environment.py` achieving **97% branch coverage** on `environment.py` and **100%** on `reward.py`.
   - Full test suite: **643 passed, 0 failed, 95% global branch coverage**.
   - **EPIC-19 IS 100% COMPLETE!**
@@ -394,6 +393,18 @@
   - Enforced strict read-only boundary isolation (SLD §5.3): analysis only, zero live execution or parameter modification.
   - Delivered 8 unit tests in `tests/unit/research/test_pattern_detector.py` achieving **94% line coverage** on `pattern_detector.py` and **94%** on `pattern.py`.
   - Full test suite: **651 passed, 0 failed, 95% global branch coverage**.
+
+### Milestone 42: Scoped Hypothesis & Candidate Generation Workflow (Sprint S20.02 — EPIC-20 100% Complete)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `CandidateGenerator`, `CandidateGeneratorConfig`, and `CandidateGenerationResult` in `src/research/candidate_generator.py` per SLD §6 & §8.
+  - Enforced one-change-at-a-time discipline (SLD §6.2), rejecting multi-parameter alterations unless explicitly declared as causally linked (`__linked_change__=True`).
+  - Enforced strict validation pipeline concurrency limit (`max_concurrent_candidates=1`, SLD §8) and 30-trade cooldown period per target dimension/value.
+  - Extended `ModelVersion` in `src/domain/governance.py` with hypothesis attribution fields (`hypothesis_id`, `source_pattern_id`, `targeted_change`, `scoping_notes`).
+  - Delivered 11 unit tests in `tests/unit/research/test_candidate_generator.py` achieving **100% branch and statement coverage** on `candidate_generator.py`.
+  - Full test suite: **662 passed, 0 failed, 95% global branch coverage**.
+  - **EPIC-20 IS 100% COMPLETE! PHASE V6 FOUNDATION 100% COMPLETE!**
 
 ---
 
@@ -443,13 +454,13 @@
 | Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-001](docs/tasks/TASK-17-02-001.md) | Post-Trade Evaluation Engine & Variance Classifier | **COMPLETE** |
 | Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-002](docs/tasks/TASK-17-02-002.md) | Decision Explainability Query CLI (`aitrader explain`) | **COMPLETE** |
 | **Phase V5 / V6** | **EPIC-18** | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-001](docs/tasks/TASK-18-01-001.md) | Pre-Live SOW §9 Preconditions Audit Verifier Script | **COMPLETE** |
-| Phase V5 / V6 | EPIC-18 | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-002](docs/tasks/TASK-18-01-002.md) | Production `LiveBrokerAdapter` Class | **COMPLETE** |
+| Phase V5 / V6 | EPIC-18 | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-002](docs/tasks/TASK-18-02-002.md) | Production `LiveBrokerAdapter` Class | **COMPLETE** |
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-001](docs/tasks/TASK-18-02-001.md) | `StartupReconciler` Safe-State Startup Gate | **COMPLETE** |
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-002](docs/tasks/TASK-18-02-02.md) | Deploy Phase V5 Autonomous Risk-Controlled Live Trading | **COMPLETE** |
 | **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **COMPLETE** |
 | Phase V6 | EPIC-19 | [S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md) | [TASK-19-02-001](docs/tasks/TASK-19-02-001.md) | Implement Gymnasium Trading Environment & Reward Function | **COMPLETE** |
 | **Phase V6** | **EPIC-20** | [S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md) | [TASK-20-01-001](docs/tasks/TASK-20-01-001.md) | Multi-Trade Variance Driver Pattern Extraction | **COMPLETE** |
-| Phase V6 | EPIC-20 | [S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md) | [TASK-20-02-001](docs/tasks/TASK-20-02-001.md) | Scoped Hypothesis & Candidate Generation Workflow | **UP NEXT** |
+| Phase V6 | EPIC-20 | [S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md) | [TASK-20-02-001](docs/tasks/TASK-20-02-001.md) | Scoped Hypothesis & Candidate Generation Workflow | **COMPLETE** |
 
 ---
 
@@ -457,11 +468,10 @@
 
 When resuming execution:
 
-### Sprint S20.02: Scoped Hypothesis & Candidate Generation Workflow
-Execute all deliverables for [Sprint S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md):
-- Implement `CandidateGenerator` in `src/research/candidate_generator.py` converting `ObservedPattern` into `ModelVersion` candidate.
-- Enforce one-change-at-a-time scoping discipline (SLD §6.2), concurrency limit (max 1 candidate in validation), and 30-trade cooldown.
-- Deliver unit tests with $\ge 80\%$ line coverage and run `.\scripts\deliver_sprint.ps1`.
+### Next Phase Transition: Phase V7 (EPIC-21 Model Promotion Governance)
+Proceed to [Sprint S21.01](docs/sprints/S21.01-candidate-validation-pipeline-backtesting.md):
+- Implement automated Stage 3 candidate backtesting validation pipeline against out-of-sample datasets.
+- Enforce strict statistical promotion gates and human-in-the-loop authorization per SLD §7 and FRD-LEARN-3.
 
 ---
 
@@ -469,7 +479,7 @@ Execute all deliverables for [Sprint S20.02](docs/sprints/S20.02-scoped-hypothes
 
 | Date | Action | Changed Artifacts | Summary |
 |---|---|---|---|
-| **2026-08-29** | Initial Architecture & Master Implementation Plan | `docs/*.md`, `implementation.md` | Initial 16 design docs + 51 analyzed specs drafted into master implementation plan. |
+| **2026-09-06** | Sprint S20.02 Delivered (EPIC-20 Complete) | `src/research/candidate_generator.py`, `src/domain/governance.py`, `tests/unit/research/test_candidate_generator.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S20.02, CandidateGenerator with one-change-at-a-time discipline, concurrency limits, 30-trade cooldown, 662 tests passing, EPIC-20 100% complete, Phase V6 Foundation 100% complete. |
 | **2026-09-05** | Master Sprint & Task Extraction | `docs/sprints/*`, `docs/tasks/*` | Generated 47 sprint docs + README.md and 68 atomic task docs with requirements traceability. |
 | **2026-09-05** | Antigravity Strict Team Agent Setup | `.agents/rules/*`, `.agents/skills/*` | Configured 17-agent team rules, veto authority, TDD enforcement, and architecture guards. |
 | **2026-09-06** | Project Story & State Tracker Created | `STORY.md` | Created live session anchor so any model switch maintains exact project context and state. |

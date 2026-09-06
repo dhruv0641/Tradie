@@ -90,7 +90,8 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-035** | 2026-09-06 | 20:38:00 | `S18.02` | Live Trading Activation & Startup Reconciliation Gate | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (614 tests), 100% Reconciler Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-036** | 2026-09-06 | 20:55:00 | `S19.01` | Research Brain Physical Isolation & Sandboxing | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (628 tests), 94% Environment Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-037** | 2026-09-06 | 21:05:00 | `S19.02` | RL Sandboxed Training Environment (Optional) | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (643 tests), 97% Env / 100% Reward Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
-| **DELIV-038** | 2026-09-06 | 21:15:00 | `S20.01` | Multi-Trade Variance Driver Pattern Extraction | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (651 tests), 94% Pattern Detector Coverage, Gitleaks Clean | Ready to Push |
+| **DELIV-038** | 2026-09-06 | 21:15:00 | `S20.01` | Multi-Trade Variance Driver Pattern Extraction | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (651 tests), 94% Pattern Detector Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-039** | 2026-09-06 | 21:25:00 | `S20.02` | Scoped Hypothesis & Candidate Generation Workflow | 2 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (662 tests), 100% Candidate Generator Coverage, Gitleaks Clean | Ready to Push |
 
 ---
 
@@ -1931,9 +1932,52 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-039: Sprint S20.02 — Scoped Hypothesis & Candidate Generation Workflow
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `21:25:00 IST` (15:55:00 UTC)
+- **Sprint Identifier**: `Sprint S20.02`
+- **Sprint Name**: Scoped Hypothesis & Candidate Generation Workflow
+- **Epic**: `EPIC-20` — Post-Trade Analytics & Variance Classification (Phase V6) (**100% COMPLETE**)
+- **Tasks Addressed**:
+  - `TASK-20-02-001`: Implement `CandidateGenerator` with Cooldown and Concurrency Limits (`src/research/candidate_generator.py`, `src/domain/governance.py`)
+- **Primary Agent**: `Agent 08 (Self-Learning Agent)`
+- **Approving Agents**: `Agent 07 (ML Engineering)`, `Agent 00 (Chief Architect)`, `Agent 09 (Risk & Safety Agent)` [Veto Authority]
+
+#### 1. Implementation Highlights
+- **Candidate Generator & Scoping Engine (`src/research/candidate_generator.py`)**:
+  - Converts confirmed `ObservedPattern` records into scoped `ModelVersion` candidates with status `"candidate"`.
+  - Enforces one-change-at-a-time discipline (SLD §6.2), rejecting multi-parameter adjustments unless explicitly flagged with causal linkage (`__linked_change__=True`).
+  - Enforces strict validation pipeline concurrency limit (`max_concurrent_candidates=1`, SLD §8), throttling premature candidate generation.
+  - Enforces minimum cooldown period (30 completed trades, SLD §8, §10) per target dimension/value before revision can be re-attempted.
+  - Generates immutable SHA-256 model hashes and structured `targeted_change` payloads for Stage 3 validation and audit lineage.
+- **Canonical ModelVersion Governance Schema (`src/domain/governance.py`)**:
+  - Extended `ModelVersion` with hypothesis attribution fields: `hypothesis_id`, `source_pattern_id`, `targeted_change`, and `scoping_notes`.
+- **Testing Suites**:
+  - Authored 11 unit tests in `tests/unit/research/test_candidate_generator.py` achieving **100% branch and statement coverage** on `candidate_generator.py`.
+  - Full test suite: **662 passed, 0 failed, 95% global branch coverage**.
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/research/candidate_generator.py` — `CandidateGenerator`, `CandidateGeneratorConfig`, `CandidateGenerationResult`.
+2. `tests/unit/research/test_candidate_generator.py` — 11 unit tests for candidate generation, cooldown, and scoping throttling.
+
+##### Modified Files:
+1. `src/domain/governance.py` — Added hypothesis attribution and scoping fields to `ModelVersion`.
+2. `src/research/__init__.py` — Re-exported candidate generator symbols.
+3. `docs/tasks/TASK-20-02-001.md` — Marked task as COMPLETE.
+4. `docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md` — Marked sprint as COMPLETE.
+5. `SPRINT_DELIVERY.md` — Recorded DELIV-039 in master register and chronological audit logs.
+6. `STORY.md` — Recorded Milestone 42 and marked EPIC-20 100% COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprints**: `Sprint S18.01`, `Sprint S18.02`, `Sprint S19.01`, `Sprint S19.02`, `Sprint S20.01`
-- **Active Epic**: `EPIC-20` — Hypothesis Generation & Candidate Promotion (Phase V6) (**50% COMPLETE**)
-- **Next Sprint Up**: `Sprint S20.02` — Scoped Hypothesis & Candidate Generation Workflow
-- **Next Task Up**: `TASK-20-02-001` — Scoped Hypothesis & Candidate Generation Workflow
+- **Completed Sprints**: `Sprint S18.01`, `Sprint S18.02`, `Sprint S19.01`, `Sprint S19.02`, `Sprint S20.01`, `Sprint S20.02`
+- **Completed Epics**:
+  - `EPIC-18` — Pre-Live Checklist & Execution Hardening (**100% COMPLETE**)
+  - `EPIC-19` — Research Brain Physical Isolation & Sandboxed RL (**100% COMPLETE**)
+  - `EPIC-20` — Post-Trade Analytics & Variance Classification (**100% COMPLETE**)
+- **Delivery Milestone**: Phase V6 Foundation 100% COMPLETE!
+- **Next Epic Up**: `EPIC-21` — Model Promotion Governance & Validation Pipeline (Phase V7)

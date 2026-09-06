@@ -93,7 +93,7 @@ class BoxSpace:
             sample_arr = np.random.standard_normal(self.shape)
         else:
             sample_arr = np.random.uniform(self.low, self.high, size=self.shape)
-        return cast(np.ndarray, np.asarray(sample_arr, dtype=self.dtype))
+        return cast("np.ndarray", np.asarray(sample_arr, dtype=self.dtype))
 
     def contains(self, x: Any) -> bool:
         """Check whether element x belongs to the Box space."""
@@ -443,7 +443,7 @@ class TradingEnv:
         start_idx = self._current_step - self.config.window_size
         end_idx = self._current_step
         window = self._feature_data[start_idx:end_idx]
-        return cast(np.ndarray, np.asarray(window, dtype=np.float32))
+        return cast("np.ndarray", np.asarray(window, dtype=np.float32))
 
     def render(self) -> None:
         """Render current environment state for monitoring."""
