@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Trader Autonomous Intelligent Trading System Operator Dashboard & Control Center">
+  <title>AI Trader // Operator Control Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Sticky Header Bar -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">₹</div>
+      <div>
+        <div class="brand-title">AI Trader // Control Center</div>
+        <div class="brand-subtitle">Autonomous Indian Equities Engine</div>
+      </div>
+    </div>
+
+    <div class="header-status-group">
+      <div class="phase-pill" id="badge-phase">PHASE V8: LIVE PRODUCTION</div>
+      <button id="btn-settings" class="btn-secondary" title="Configure Operator Authorization Token">🔑 Token</button>
+
+      <!-- Prominent 1-Click Emergency STOP Button (FRD-DASH-7, NFR-UX-1) -->
+      <button id="btn-emergency-stop" class="emergency-stop-btn" title="Emergency halt all trading immediately">
+        <span class="beacon"></span>
+        EMERGENCY STOP
+      </button>
+
+      <!-- Resume Button (Visible only when halted) -->
+      <button id="btn-reset-stop" class="btn-secondary" style="display:none; background:#047857; color:#fff; border-color:#10b981;">
+        ✓ RESUME TRADING
+      </button>
+    </div>
+  </header>
+
+  <!-- Top Metric Ribbon -->
+  <section class="metric-ribbon">
+    <div class="metric-card" id="card-capital">
+      <div class="metric-label">Total Capital</div>
+      <div class="metric-value" id="val-capital">₹10,000.00</div>
+      <div class="metric-sub">Base ₹10,000 Live Account</div>
+    </div>
+
+    <div class="metric-card positive" id="card-daily-pnl">
+      <div class="metric-label">Session Daily P&L</div>
+      <div class="metric-value" id="val-daily-pnl">₹0.00</div>
+      <div class="metric-sub">Trailing Session P&L</div>
+    </div>
+
+    <div class="metric-card" id="card-total-pnl">
+      <div class="metric-label">Cumulative P&L</div>
+      <div class="metric-value" id="val-total-pnl">₹0.00</div>
+      <div class="metric-sub">All-Time Realized + MTM</div>
+    </div>
+
+    <div class="metric-card warning" id="card-drawdown">
+      <div class="metric-label">Peak Drawdown</div>
+      <div class="metric-value" id="val-drawdown">₹0.00 (0.00%)</div>
+      <div class="metric-sub">Hard Halt Limit: 6.0%</div>
+    </div>
+  </section>
+
+  <!-- Main Dashboard Two-Column Grid -->
+  <main class="dashboard-grid">
+
+    <!-- Left Column: Risk, AI Regime, Subsystem Diagnostics -->
+    <div class="grid-column">
+
+      <!-- Deterministic Risk Boundaries Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🛡️ Deterministic Risk Boundaries</div>
+          <span id="badge-kill-switch" class="badge badge-success">OPERATIONAL</span>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-header">
+            <span>Portfolio Exposure Headroom</span>
+            <span id="val-exposure-pct">₹0.00 / ₹5,000.00 (0.0%)</span>
+          </div>
+          <div class="progress-track">
+            <div id="bar-exposure" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-header">
+            <span>Daily Loss Limit Headroom</span>
+            <span id="val-daily-risk-pct">₹0.00 / ₹300.00 (0.0%)</span>
+          </div>
+          <div class="progress-track">
+            <div id="bar-daily-risk" class="progress-fill warning" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding-top:0.4rem; border-top:1px solid var(--border-subtle);">
+          <span style="color:var(--text-secondary);">Consecutive Loss Tracker:</span>
+          <span id="val-streak" style="font-weight:700; font-family:var(--font-mono);">0 Losses</span>
+        </div>
+      </div>
+
+      <!-- AI Regime & Multi-Agent Consensus Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🧠 AI Market Intelligence & Consensus</div>
+          <span id="badge-model-version" class="badge badge-accent">v1.0.0</span>
+        </div>
+
+        <div style="margin-bottom:0.75rem;">
+          <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.25rem;">Active Market Regime:</div>
+          <span id="badge-regime" class="badge badge-accent" style="font-size:0.85rem;">BULLISH_TREND_LOW_VOL</span>
+        </div>
+
+        <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.5rem;">Agent Roster Signals:</div>
+        <div id="container-agent-signals">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- System Health Diagnostics Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">⚡ Subsystem Diagnostics</div>
+          <span id="badge-system-health" class="badge badge-success">HEALTHY</span>
+        </div>
+        <div class="diagnostic-grid" id="grid-diagnostics">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Active Portfolio Positions & Orders -->
+    <div class="grid-column">
+
+      <!-- Open Portfolio Positions Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">💼 Active Portfolio Positions</div>
+          <span class="badge badge-accent">MARK-TO-MARKET</span>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Avg Entry</th>
+                <th>CMP</th>
+                <th>Unrealized P&L</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-positions">
+              <tr><td colspan="6" class="empty-state">Loading portfolio positions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Working Orders & Lifecycle Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📋 Working Orders & Execution</div>
+          <span class="badge badge-accent">SUBMITTED / PENDING</span>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Limit Price</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-orders">
+              <tr><td colspan="6" class="empty-state">Loading working orders...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Emergency STOP Option Modal (FRD-DASH-8, EDD §11) -->
+  <div class="modal-overlay" id="modal-emergency-stop">
+    <div class="modal-box">
+      <div class="modal-title" style="color:var(--color-danger);">
+        ⚠️ Confirm Emergency STOP
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem;">
+          Triggering Emergency STOP activates the non-negotiable Kill Switch circuit breaker in under 2 seconds.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.25rem;">
+          <button class="btn-secondary" style="text-align:left; border-color:var(--color-warning);" onclick="triggerEmergencyStop('halt')">
+            <strong>Option 1: Halt New Entries Only</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Cancels working orders and blocks new trades. Existing open positions remain protected by deterministic hard stop losses.</div>
+          </button>
+
+          <button class="emergency-stop-btn" style="width:100%; justify-content:center;" onclick="triggerEmergencyStop('liquidate')">
+            <strong>Option 2: Immediate Emergency Liquidation</strong>
+            <div style="font-size:0.75rem; opacity:0.9;">Cancels working orders AND dispatches market exit orders to immediately flatten all open positions.</div>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('modal-emergency-stop')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Emergency STOP Modal -->
+  <div class="modal-overlay" id="modal-reset-stop">
+    <div class="modal-box">
+      <div class="modal-title" style="color:var(--color-success);">
+        ✓ Reset Emergency Kill Switch
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem;">
+          Resuming trading requires explicit, authenticated operator confirmation per RTLD §16.
+        </p>
+        <div class="input-group">
+          <label for="reset-token-input">Operator Authorization Token:</label>
+          <input type="password" id="reset-token-input" class="input-field" placeholder="Enter operator token...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('modal-reset-stop')">Cancel</button>
+        <button class="btn-secondary" style="background:#047857; color:#fff;" onclick="triggerEmergencyReset()">Confirm & Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    AI Trader Autonomous Intelligent Trading System — Phase V8 Operator Control Console & Health Monitoring
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
