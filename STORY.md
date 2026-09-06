@@ -166,6 +166,16 @@
   - Strict confidence clamping to $[0.0, 1.0]$.
 - Delivered test suites in `tests/unit/domain/test_agent_signal.py` and `tests/unit/agents/test_agent_base.py` (15 new tests) achieving **100% coverage on both base.py and agent_signal.py**, raising repository total to **284 passing tests and 96% global coverage**.
 
+### Milestone 24: Sprint S10.02 Rule-Based Agent Roster Implementation (Complete — EPIC-10 100% Complete)
+- Implemented full 4-agent rule-based trading intelligence roster adhering to MLD §6 and ADD §6.2:
+  - `TrendAgent` (`src/agents/trend.py`): Dual moving average alignment (`sma_20 > sma_50`), ADX trend strength filtering ($\ge 25.0$), and rolling percentile rank scoring. Enforces non-negotiable MLD §6.1 invariant: strictly forces `SignalDirection.NO_VIEW` and `confidence=0.0` when `regime.trend_state` is `RANGING` or `UNKNOWN`.
+  - `MomentumAgent` (`src/agents/momentum.py`): Evaluates Rate of Change `roc_10` and relative strength `rsi_14`. Rejects low-momentum noise via configurable neutral band ($|roc| \le 0.5$, $|rsi - 50| \le 3.0$), scales confidence with distance from neutral midpoint, and returns `NO_VIEW` on indicator divergence.
+  - `MeanReversionAgent` (`src/agents/mean_reversion.py`): Evaluates 20-period price z-score `zscore_20`. Generates contrarian reversion signals (LONG on oversold $z \le -1.5$, SHORT on overbought $z \ge 1.5$), suppresses within neutral band ($|z| \le 0.5$), and enforces non-negotiable MLD §6.3 invariant: applies a $50\%$ confidence discount factor (`trending_discount_factor = 0.50`) during `TRENDING_UP` or `TRENDING_DOWN` market regimes.
+  - `PriceActionAgent` (`src/agents/price_action.py`): Evaluates proximity to 20-period support and resistance levels alongside candlestick rejection wicks (`lower_shadow_ratio`, `upper_shadow_ratio` $\ge 0.35$) and structural patterns (`pattern_hammer`, `pattern_shooting_star`, bullish/bearish engulfing). Boosts confidence by $+0.20$ upon confirmation.
+  - Exported all agents in `src/agents/__init__.py`.
+- Delivered comprehensive test suites across `tests/unit/agents/` (31 new tests) achieving **100% statement and branch coverage on all four trading agent modules**, raising repository total to **315 passing tests and 96% global coverage**.
+- **EPIC-10: Multi-Agent Signal Generation Roster is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -198,7 +208,8 @@
 | **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
 | Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
 | **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
-| Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **UP NEXT** |
+| Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **COMPLETE** |
+| **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-dynamic-weight-allocation.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Dynamic Weight Engine & Allocation Matrices | **UP NEXT** |
 
 ---
 
@@ -206,11 +217,12 @@
 
 When resuming execution:
 
-### Sprint S10.02: Rule-Based Agent Roster Implementation
-Execute all deliverables for [Sprint S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md):
-- Implement `TrendAgent` and `MomentumAgent` in `src/agents/trend.py` and `src/agents/momentum.py` per MLD §6.1 and §6.2.
-- Implement `MeanReversionAgent` and `PriceActionAgent` in `src/agents/mean_reversion.py` and `src/agents/price_action.py` per MLD §6.3 and §6.4.
-- Deliver unit test suites across `tests/unit/agents/`.
+### Sprint S11.01: Regime-Conditioned Dynamic Weight Allocation Engine
+Execute all deliverables for [Sprint S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-dynamic-weight-allocation.md):
+- Implement `DynamicWeightEngine` in `src/aggregation/weight_engine.py` per ADD §6.3 and MLD §7.1.
+- Define static baseline weight allocation matrices conditioned on 5D market regime states.
+- Enforce simplex constraints: weights non-negative, sum to 1.0, minimum threshold gating.
+- Deliver unit test suites across `tests/unit/aggregation/`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -242,3 +254,4 @@ Execute all deliverables for [Sprint S10.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S09.01 Delivered | `src/domain/regime.py`, `src/domain/__init__.py`, `src/config/models.py`, `src/regime/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.01, 5-dimensional RegimeDetector, canonical StrEnums & RegimeClassification domain entity, 255 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S09.02 Delivered (EPIC-09 Complete) | `src/regime/transition.py`, `src/domain/regime.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.02, RegimeTransitionFilter with 2-cycle hysteresis, boundary noise suppression, RegimeTransitionEvent, 269 tests passing, 96% global coverage, EPIC-09 100% complete. |
 | **2026-09-06** | Sprint S10.01 Delivered | `src/domain/agent_signal.py`, `src/agents/base.py`, `src/agents/__init__.py`, `tests/unit/domain/test_agent_signal.py`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.01, TradingAgent protocol, BaseAgent fault-tolerant execution contract with exception safety, AgentSignalOutput model, 284 tests passing, 96% global coverage. |
+| **2026-09-06** | Sprint S10.02 Delivered (EPIC-10 Complete) | `src/agents/*`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.02, TrendAgent, MomentumAgent, MeanReversionAgent, PriceActionAgent adhering to MLD §6, 315 tests passing, 100% coverage on agent roster, EPIC-10 100% complete. |
