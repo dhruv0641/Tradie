@@ -141,6 +141,12 @@
 - **EPIC-08: Baseline Quantitative Trading Strategies is 100% COMPLETE.**
 - **PHASE V1: BACKTESTING TRADER IS 100% COMPLETE! Gate G1 criteria fully satisfied and unlocked!**
 
+### Milestone 21: Sprint S09.01 Multi-Dimensional Regime Classification Engine (Complete)
+- Implemented canonical market regime domain entities in `src/domain/regime.py`: `TrendState`, `VolatilityLevel`, `DirectionalBias`, `LiquidityCondition`, `RiskSentiment` (`StrEnum`), and `RegimeClassification` immutable Pydantic v2 model with UTC validation and metric lineage.
+- Implemented `RegimeConfig` in `src/config/models.py` attached to `AppConfig` defining ADX threshold, rolling percentile window, volatility thresholds, and liquidity ratio cutoff.
+- Implemented `RegimeDetector` in `src/regime/detector.py` classifying market conditions across 5 canonical dimensions per MLD §5.1 and ADD §5, strictly enforcing `DirectionalBias.NEUTRAL` when `TrendState.RANGING` to prevent boundary flip-flops, and providing safe degradation to `UNKNOWN` on missing features.
+- Delivered test suites in `tests/unit/domain/test_regime.py` and `tests/unit/regime/test_detector.py` (18 new tests) achieving 100% coverage on domain models and 96% on detector, raising repository total to **255 passing tests and 96% global coverage**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -170,7 +176,8 @@
 | Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
 | **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
 | Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
-| **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **UP NEXT** |
+| **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
+| Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **UP NEXT** |
 
 ---
 
@@ -178,11 +185,10 @@
 
 When resuming execution:
 
-### Phase V2: Autonomous AI Trading Brain (Commencing EPIC-09)
-Execute all deliverables for [Sprint S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md):
-- Implement `RegimeDetector` protocol and volatility / trend strength classifiers in `src/regime/`.
-- Implement canonical regime state representations (`RegimeClassification`, `MarketRegime`) in `src/domain/regime.py`.
-- Deliver unit test suites in `tests/unit/regime/`.
+### Sprint S09.02: Regime Transition Detection & Hysteresis Filtering
+Execute all deliverables for [Sprint S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md):
+- Implement `RegimeTransitionFilter` in `src/regime/transition.py` with 2-cycle hysteresis smoothing and transition flagging.
+- Deliver unit test suites in `tests/unit/regime/test_transition.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -211,3 +217,4 @@ Execute all deliverables for [Sprint S09.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S07.02 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.02 & Epic 07, StressTestRunner with 5 scenarios, MonteCarloSimulator with 1,000 resamples, drawdown halt & kill switch probabilities, 96% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S08.01 Delivered | `src/strategies/*`, `src/backtesting/engine.py`, `tests/unit/strategies/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.01, BaseStrategy abstract interface, DualEMACrossoverStrategy, DonchianBreakoutStrategy, signal exit handling in BacktestEngine, 96% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S08.02 Delivered (Phase V1 Complete) | `src/strategies/*`, `src/backtesting/reporting.py`, `scripts/run_v1_baseline.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.02, BollingerBandsRSIMeanReversionStrategy, BacktestReporter with PRD §10 & BTD §12 caveats, CLI baseline runner, EPIC-08 100% complete, Phase V1 Gate G1 satisfied and unlocked. |
+| **2026-09-06** | Sprint S09.01 Delivered | `src/domain/regime.py`, `src/domain/__init__.py`, `src/config/models.py`, `src/regime/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.01, 5-dimensional RegimeDetector, canonical StrEnums & RegimeClassification domain entity, 255 tests passing, 96% global coverage. |

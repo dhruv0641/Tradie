@@ -113,6 +113,49 @@ class DataConfig(BaseModel):
     )
 
 
+class RegimeConfig(BaseModel):
+    """Market regime classification and transition detection parameters (MLD §5, §11)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    adx_threshold: float = Field(
+        default=25.0,
+        gt=0.0,
+        le=100.0,
+        description="ADX threshold separating trending from ranging states (MLD §5.1)",
+    )
+    volatility_window: int = Field(
+        default=200,
+        ge=20,
+        le=1000,
+        description="Trailing window for percentile volatility calculation (MLD §5.1, §11)",
+    )
+    volatility_low_percentile: float = Field(
+        default=33.0,
+        ge=1.0,
+        le=50.0,
+        description="Percentile cutoff for LOW volatility classification",
+    )
+    volatility_high_percentile: float = Field(
+        default=67.0,
+        ge=50.0,
+        le=99.0,
+        description="Percentile cutoff for HIGH volatility classification",
+    )
+    liquidity_volume_ratio_threshold: float = Field(
+        default=0.50,
+        gt=0.0,
+        le=2.0,
+        description="Volume ratio below which liquidity is classified DEGRADED (MLD §5.1)",
+    )
+    hysteresis_cycles: int = Field(
+        default=2,
+        ge=1,
+        le=10,
+        description="Consecutive cycles required to confirm a regime transition (MLD §5.2, §11)",
+    )
+
+
 class AppConfig(BaseModel):
     """Master application configuration encapsulating all architectural subsystems."""
 
@@ -128,4 +171,7 @@ class AppConfig(BaseModel):
     broker: BrokerConfig = Field(default_factory=BrokerConfig, description="Broker settings")
     data: DataConfig = Field(
         default_factory=DataConfig, description="Market data pipeline settings"
+    )
+    regime: RegimeConfig = Field(
+        default_factory=RegimeConfig, description="Market regime intelligence settings"
     )

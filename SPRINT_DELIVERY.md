@@ -69,6 +69,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-014** | 2026-09-06 | 16:45:00 | `S07.02` | Stress Testing & Monte Carlo Resampling Engine | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (211 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-015** | 2026-09-06 | 16:55:00 | `S08.01` | Rule-Based Momentum & Trend Baseline Strategies | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (224 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-016** | 2026-09-06 | 17:05:00 | `S08.02` | Mean-Reversion Baseline Strategy & Reporting | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (237 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-017** | 2026-09-06 | 17:15:00 | `S09.01` | Multi-Dimensional Regime Classification Engine | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (255 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -841,12 +842,59 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-017: Sprint S09.01 — Multi-Dimensional Regime Classification Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `17:15:00 IST` (11:45:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 06 (AI Architecture) / Agent 02 (Architecture) / Agent 07 (ML Engineering) / Agent 09 (Risk & Safety) / Agent 14 (QA)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical market regime domain entities in `src/domain/regime.py` adhering to MLD §5.1, ADD §5, and DDD §5.1:
+  - Strongly-typed `StrEnum` dimensions: `TrendState` (`TRENDING_UP`, `TRENDING_DOWN`, `RANGING`, `UNKNOWN`), `VolatilityLevel` (`LOW`, `NORMAL`, `HIGH`, `UNKNOWN`), `DirectionalBias` (`BULLISH`, `BEARISH`, `NEUTRAL`, `UNKNOWN`), `LiquidityCondition` (`NORMAL`, `DEGRADED`, `UNKNOWN`), `RiskSentiment` (`RISK_ON`, `RISK_OFF`, `UNKNOWN`).
+  - `RegimeClassification` immutable Pydantic v2 model with timezone-aware UTC validation, unique UUID, composite `regime_label`, and metric lineage.
+  - Exported all models in `src/domain/__init__.py`.
+- Implemented `RegimeConfig` in `src/config/models.py` attached to master `AppConfig` defining ADX cutoff (25.0), rolling percentile window (200 bars), low/high volatility percentiles (33/67), liquidity threshold (0.50 volume ratio), and hysteresis cycles (2).
+- Implemented `RegimeDetector` in `src/regime/detector.py` per FRD-REGIME-1/3 and MLD §5.1:
+  - Multi-dimensional rule-based and statistical classification avoiding opaque black-box models (ADD §5).
+  - Trend classification via ADX and directional indicator (+DI/-DI) or SMA alignment.
+  - Volatility percentile categorization using trailing rolling history.
+  - **Directional Bias Invariant**: Strictly enforces `NEUTRAL` when trend state is `RANGING` regardless of return sign to prevent boundary flip-flop noise (MLD §5.1).
+  - Liquidity condition classification via volume ratio against 20-period baseline.
+  - Safe degradation to `UNKNOWN` on missing features without raising unhandled exceptions (MLD §5.3).
+  - Batch history warmup via historical DataFrame.
+- Delivered test suites in `tests/unit/domain/test_regime.py` and `tests/unit/regime/test_detector.py` (18 new tests) achieving **100% coverage on domain models and 96% on detector.py**, raising repository total to **255 passing tests and 96% global coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `92 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 92 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `255 passed in 12.47s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/regime.py` — Canonical Pydantic v2 domain models and StrEnums for 5-dimensional regime intelligence.
+2. `src/regime/detector.py` — Multi-dimensional regime detector classification engine.
+3. `src/regime/__init__.py` — Module exports for market regime intelligence subsystem.
+4. `tests/unit/domain/test_regime.py` — Unit tests for regime domain models, immutability, and validation.
+5. `tests/unit/regime/test_detector.py` — Unit tests for RegimeDetector dimensions, invariants, and fallbacks.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported regime domain models and enums.
+2. `src/config/models.py` — Added `RegimeConfig` and attached to `AppConfig`.
+3. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-017.
+4. `STORY.md` — Updated status board marking Sprint S09.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S08.02` — Mean-Reversion Baseline Strategy & Reporting
-- **Completed Epic**: `EPIC-08` — Baseline Quantitative Trading Strategies (**100% COMPLETE**)
-- **Completed Phase**: **PHASE V1: BACKTESTING TRADER (100% COMPLETE — GATE G1 SATISFIED)**
-- **Next Phase Up**: **PHASE V2: AUTONOMOUS AI TRADING BRAIN**
-- **Next Epic Up**: `EPIC-09` — Multi-Dimensional Market Regime Detection Engine
-- **Next Sprint Up**: `Sprint S09.01` — Statistical & Volatility Regime Detection ([docs/sprints/S09.01-statistical-volatility-regime-detection.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md))
-- **Next Task Up**: `TASK-09-01-001` — Implement Volatility & Trend Strength Regime Detectors
+- **Completed Sprint**: `Sprint S09.01` — Multi-Dimensional Regime Classification Engine
+- **Active Epic**: `EPIC-09` — Multi-Dimensional Market Regime Detection Engine (In Progress)
+- **Active Phase**: **PHASE V2: AUTONOMOUS AI TRADING BRAIN**
+- **Next Sprint Up**: `Sprint S09.02` — Regime Transition Detection & Hysteresis Filtering ([docs/sprints/S09.02-regime-transition-detection-hysteresis.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md))
+- **Next Task Up**: `TASK-09-02-001` — Implement Transition Flagging and 2-Cycle Hysteresis Filter

@@ -18,6 +18,14 @@ from src.domain.market_data import (
     MarketTick,
     OHLCVCandle,
 )
+from src.domain.regime import (
+    DirectionalBias,
+    LiquidityCondition,
+    RegimeClassification,
+    RiskSentiment,
+    TrendState,
+    VolatilityLevel,
+)
 from src.domain.validation import (
     ChronologicalSplit,
     MonteCarloSimulationResult,
@@ -35,8 +43,10 @@ __all__ = [
     "ChronologicalSplit",
     "CorporateAction",
     "DecisionRecord",
+    "DirectionalBias",
     "EquityPoint",
     "FeatureSet",
+    "LiquidityCondition",
     "MarketDepthLevel",
     "MarketDepthQuote",
     "MarketTick",
@@ -45,10 +55,14 @@ __all__ = [
     "OHLCVCandle",
     "OrderSubmission",
     "Position",
+    "RegimeClassification",
+    "RiskSentiment",
     "StressScenarioResult",
     "StressScenarioType",
     "StressTestReport",
     "TradeEvaluation",
+    "TrendState",
+    "VolatilityLevel",
     "WalkForwardFold",
     "WalkForwardReport",
 ]
