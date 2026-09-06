@@ -80,6 +80,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-025** | 2026-09-06 | 18:35:00 | `S13.01` | Supervisor Decision Gate & Precedence Logic | 3 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (392 tests), 100% Decision & Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-026** | 2026-09-06 | 18:45:00 | `S13.02` | Emergency Kill Switch & Manual STOP Subsystem | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (407 tests), 100% Safety Path Coverage, KS-TEST-1..4 Clean, AST Linter Clean, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-027** | 2026-09-06 | 18:55:00 | `S14.01` | Transactional Position Ledger & Portfolio Tracking | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (427 tests), 100% Ledger Branch Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-028** | 2026-09-06 | 19:05:00 | `S15.01` | Broker Adapter Interface & Idempotency Engine | 6 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (454 tests), 100% Adapter & Idempotency Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1390,13 +1391,57 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 6. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-027.
 7. `STORY.md` — Updated status board marking Sprint S14.01 and Milestone 30 COMPLETE; EPIC-14 100% Complete.
 
+### DELIV-028: Sprint S15.01 — Broker Adapter Interface & Idempotency Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `19:05:00 IST` (13:35:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 10 (Execution) / Agent 09 (Risk & Safety) / Agent 13 (Security) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented runtime-checkable `BrokerAdapter(Protocol)` and `BaseBrokerAdapter(ABC)` in `src/execution/broker_adapter.py` defining the broker integration boundary per `subsystem-contracts.md` §5, TRD-EXEC-1/4, HLD §9, and EDD §5.
+- Implemented comprehensive broker exception hierarchy (`BrokerError`, `BrokerAuthenticationError`, `BrokerConnectionError`, `BrokerOrderError`, `BrokerOrderNotFoundError`, `BrokerRateLimitError`).
+- Implemented deterministic client order ID generator `generate_client_order_id` and `IdempotentOrderDispatcher` in `src/execution/idempotency.py` with microsecond in-memory deduplication, thread-safe concurrency locks, and database-backed transactional idempotency against `order_submissions` table (FRD-EXEC-5, TRD-EXEC-2, EDD §6.1).
+- Implemented `OrderTranslator`, `OrderTranslationConfig`, and `OrderTranslationResult` in `src/execution/translator.py` translating Supervisor decisions into broker orders:
+  - Default order type: `LIMIT` order with price bounded by maximum allowable slippage from decision-time quote (default: 0.20% / 0.002) per FRD-EXEC-9 and EDD §6.2.
+  - Conservative tick rounding: round DOWN for BUY to never exceed slippage ceiling, round UP for SELL to never breach slippage floor.
+  - Exact exchange tick size validation (`(limit_price % tick) == 0`).
+  - Lot size validation rejecting non-conforming quantities.
+  - Broker instrument symbol mapping.
+  - Strict rejection of market orders when `allow_market_orders=False` (default safety policy).
+- Delivered 26 new unit tests across `tests/unit/execution/test_broker_adapter.py`, `tests/unit/execution/test_idempotency.py`, and `tests/unit/execution/test_translator.py`, achieving **100% coverage on BrokerAdapter and IdempotentOrderDispatcher**, and **95% coverage on OrderTranslator**, with **454 tests passing repository-wide at 97% global branch coverage**.
+
+#### 2. Verification Evidence & Quality Toolchain Output
+- **Ruff Lint & Format**: Clean pass (`All checks passed! 133 files already formatted`)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 145 source files` (0 errors)
+- **Safety Isolation Linter**: `scripts/verify_safety_isolation.py` → `[PASS] All safety isolation, minimal-dependency, and precedence checks passed cleanly.`
+- **Pytest Full Suite**: `uv run pytest --cov=src --cov-branch` → `454 passed in 14.01s`, **97% global branch coverage**
+- **Safety & Execution Coverage**: **100% statement and branch coverage** across `src/execution/broker_adapter.py`, `src/execution/idempotency.py`, `src/execution/position_ledger.py`, and **95% coverage** on `src/execution/translator.py`.
+- **Pre-commit Scan**: Passed cleanly (including Gitleaks 0 secrets detected).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/execution/broker_adapter.py` — Canonical BrokerAdapter protocol, BaseBrokerAdapter ABC, and broker exception hierarchy.
+2. `src/execution/idempotency.py` — Deterministic client order ID generator and IdempotentOrderDispatcher with DB transactional support.
+3. `src/execution/translator.py` — Order parameter translator with bounded-slippage limit orders, tick rounding, and lot sizing.
+4. `tests/unit/execution/test_broker_adapter.py` — Protocol checkability, exception hierarchy, and base adapter lifecycle tests.
+5. `tests/unit/execution/test_idempotency.py` — Idempotency deduplication, concurrent thread safety, and DB transactional tests.
+6. `tests/unit/execution/test_translator.py` — Bounded slippage, conservative tick rounding, lot size validation, and market order policy tests.
+
+##### Modified Files:
+1. `src/execution/__init__.py` — Exported BrokerAdapter, IdempotentOrderDispatcher, OrderTranslator, and associated entities.
+2. `tests/unit/decision/test_supervisor.py` — Added `# noqa: PLR0917` to test fixtures with $>5$ parameters.
+3. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-028.
+4. `STORY.md` — Updated status board marking Sprint S15.01 and Milestone 31 COMPLETE.
+
 ---
 
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S14.01` — Transactional Position Ledger & Portfolio Tracking
-- **Completed Epic**: `EPIC-14` — Portfolio Ledger & Position State Tracking (100% Complete)
-- **Active Phase**: **PHASE V3 / V4: RISK SYSTEM & EXECUTION ARCHITECTURE**
-- **Next Epic Up**: `EPIC-15` — Broker Adapter Interface & Idempotency Engine
-- **Next Sprint Up**: `Sprint S15.01` — Broker Adapter Interface & Idempotency Engine ([docs/sprints/S15.01-broker-adapter-interface-idempotency.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md))
-- **Next Task Up**: `TASK-15-01-001` — Implement BrokerAdapter Abstract Interface & Order Submission Contract
+- **Completed Sprint**: `Sprint S15.01` — Broker Adapter Interface & Idempotency Engine
+- **Active Epic**: `EPIC-15` — Order Lifecycle & Broker Integration Layer
+- **Active Phase**: **PHASE V4 / V5: EXECUTION ARCHITECTURE & PAPER TRADING**
+- **Next Sprint Up**: `Sprint S15.02` — Order Lifecycle State Machine & Reconnection Logic ([docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md))
+- **Next Task Up**: `TASK-15-02-001` — Implement Order Lifecycle State Machine and Timeout Manager

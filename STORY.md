@@ -273,6 +273,12 @@
 - Delivered 20 unit tests in `tests/unit/execution/test_position_ledger.py` achieving **100% statement and branch coverage on PositionLedger**, raising repository total to **427 passing tests and 97% global branch coverage**.
 - **EPIC-14: Portfolio Ledger & Position State Tracking is now 100% COMPLETE.**
 
+### Milestone 31: Sprint S15.01 Delivered — Broker Adapter Interface & Idempotency Engine (2026-09-06)
+- Implemented `BrokerAdapter` abstract runtime-checkable protocol, `BaseBrokerAdapter` ABC, and comprehensive broker exception hierarchy (`src/execution/broker_adapter.py`) per `subsystem-contracts.md` §5, TRD-EXEC-1/4, HLD §9, and EDD §5.
+- Implemented deterministic client order ID generator (`generate_client_order_id`) and `IdempotentOrderDispatcher` (`src/execution/idempotency.py`) with microsecond in-memory deduplication, thread-safe concurrency locks, and database-backed transactional idempotency against `order_submissions` table (FRD-EXEC-5, TRD-EXEC-2, EDD §6.1).
+- Implemented `OrderTranslator` (`src/execution/translator.py`) with default bounded-slippage limit orders, tick size conservative rounding, lot size validation, and broker instrument mapping per FRD-EXEC-2, FRD-EXEC-9, and EDD §6.2.
+- Delivered 26 new unit tests across `test_broker_adapter.py`, `test_idempotency.py`, and `test_translator.py`, achieving **100% coverage on BrokerAdapter and IdempotentOrderDispatcher**, and **95% coverage on OrderTranslator**, raising total repository tests to **454 passing tests at 97% global branch coverage**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -313,7 +319,22 @@
 | **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **COMPLETE** |
 | Phase V3 | EPIC-13 | [S13.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.02-emergency-kill-switch-manual-stop.md) | [TASK-13-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-02-001.md) | Emergency Kill Switch & AST Safety Linter | **COMPLETE** |
 | **Phase V3** | **EPIC-14** | [S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **COMPLETE** |
-| **Phase V3 / V4** | **EPIC-15** | [S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **UP NEXT** |
+| **Phase V3 / V4** | **EPIC-15** | [S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **COMPLETE** |
+| Phase V3 / V4 | EPIC-15 | [S15.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **UP NEXT** |
+
+---
+
+## 4. Immediate Next Step: How to Resume
+
+When resuming execution:
+
+### Sprint S15.02: Order Lifecycle State Machine & Reconnection Logic
+Execute all deliverables for [Sprint S15.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md):
+- Implement `OrderManager` state machine in `src/execution/order_manager.py` managing state transitions (`PENDING` $\to$ `SUBMITTED` $\to$ `FILLED` / `REJECTED`) per EDD §4.
+- Implement pending-to-submitted 5-second escalation circuit (EDD §13).
+- Implement `ConnectionMonitor` in `src/execution/connection_monitor.py` tracking broker heartbeat signals and enforcing the 30-second safe-state hold circuit (EDD §9, NFR-REL-4, RTLD-15).
+- Deliver unit and failure-injection test suites with $\ge 80\%$ line coverage and 100% branch coverage on order state machine.
+- Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
 
@@ -365,3 +386,4 @@ Execute all deliverables for [Sprint S15.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S13.01 Delivered | `src/domain/decision.py`, `src/decision/*`, `tests/unit/decision/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.01, Supervisor Decision Gate, Decision domain model, non-bypassable risk check precedence, 100% branch coverage, 392 tests passing. |
 | **2026-09-06** | Sprint S13.02 Delivered (EPIC-13 Complete) | `src/risk/kill_switch.py`, `tests/safety/*`, `scripts/verify_safety_isolation.py`, `tests/unit/scripts/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.02, KillSwitch synchronous audit logging, KS-TEST-1..4 suite, static AST safety isolation linter, 407 tests passing, 97% global branch coverage, EPIC-13 100% complete. |
 | **2026-09-06** | Sprint S14.01 Delivered (EPIC-14 Complete) | `src/execution/*`, `src/domain/capital_state.py`, `src/domain/execution.py`, `src/domain/risk.py`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S14.01, PositionLedger, OrderFill, CapitalState modularization, mark-to-market accounting, 427 tests passing, 97% global coverage, 100% ledger coverage, EPIC-14 100% complete. |
+| **2026-09-06** | Sprint S15.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.01, BrokerAdapter protocol, BaseBrokerAdapter ABC, IdempotentOrderDispatcher with DB transactional support, OrderTranslator with bounded slippage & tick constraints, 454 tests passing, 97% global coverage. |
