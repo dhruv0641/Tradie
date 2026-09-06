@@ -20,6 +20,7 @@ from src.domain.market_data import (
     MarketTick,
     OHLCVCandle,
 )
+from src.domain.pattern import ObservedPattern
 from src.domain.regime import (
     DirectionalBias,
     LiquidityCondition,
@@ -69,6 +70,7 @@ __all__ = [
     "ModelVersion",
     "MonteCarloSimulationResult",
     "OHLCVCandle",
+    "ObservedPattern",
     "OrderFill",
     "OrderSubmission",
     "Position",

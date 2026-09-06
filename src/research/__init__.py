@@ -14,8 +14,14 @@ from src.research.environment import (
     ResearchIsolationError,
     check_research_ast_isolation,
 )
+from src.research.pattern_detector import (
+    PatternExtractionConfig,
+    PatternExtractionEngine,
+)
 
 __all__ = [
+    "PatternExtractionConfig",
+    "PatternExtractionEngine",
     "ResearchBrainConfig",
     "ResearchBrainEnvironment",
     "ResearchIsolationError",

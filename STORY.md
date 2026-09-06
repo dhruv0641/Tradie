@@ -384,6 +384,17 @@
   - Full test suite: **643 passed, 0 failed, 95% global branch coverage**.
   - **EPIC-19 IS 100% COMPLETE!**
 
+### Milestone 41: Multi-Trade Variance Driver Pattern Extraction (Sprint S20.01)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented canonical `ObservedPattern` domain model in `src/domain/pattern.py` capturing structured empirical underperformance clusters across regimes, agents, variance drivers, and disagreement levels.
+  - Implemented `PatternExtractionEngine` and `PatternExtractionConfig` in `src/research/pattern_detector.py` per SLD §5.2 and FRD-LEARN-2.
+  - Enforced minimum sample size ($\ge 30$ trades) and one-tailed two-proportion z-tests ($p \le 0.05$) to separate `CONFIRMED_HYPOTHESIS` from `OBSERVED_UNCONFIRMED` noise.
+  - Enforced strict read-only boundary isolation (SLD §5.3): analysis only, zero live execution or parameter modification.
+  - Delivered 8 unit tests in `tests/unit/research/test_pattern_detector.py` achieving **94% line coverage** on `pattern_detector.py` and **94%** on `pattern.py`.
+  - Full test suite: **651 passed, 0 failed, 95% global branch coverage**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -437,8 +448,8 @@
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-002](docs/tasks/TASK-18-02-02.md) | Deploy Phase V5 Autonomous Risk-Controlled Live Trading | **COMPLETE** |
 | **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **COMPLETE** |
 | Phase V6 | EPIC-19 | [S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md) | [TASK-19-02-001](docs/tasks/TASK-19-02-001.md) | Implement Gymnasium Trading Environment & Reward Function | **COMPLETE** |
-| **Phase V6** | **EPIC-20** | [S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md) | [TASK-20-01-001](docs/tasks/TASK-20-01-001.md) | Multi-Trade Variance Driver Pattern Extraction | **UP NEXT** |
-| Phase V6 | EPIC-20 | [S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md) | [TASK-20-02-001](docs/tasks/TASK-20-02-001.md) | Scoped Hypothesis & Candidate Generation Workflow | Pending |
+| **Phase V6** | **EPIC-20** | [S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md) | [TASK-20-01-001](docs/tasks/TASK-20-01-001.md) | Multi-Trade Variance Driver Pattern Extraction | **COMPLETE** |
+| Phase V6 | EPIC-20 | [S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md) | [TASK-20-02-001](docs/tasks/TASK-20-02-001.md) | Scoped Hypothesis & Candidate Generation Workflow | **UP NEXT** |
 
 ---
 
@@ -446,11 +457,10 @@
 
 When resuming execution:
 
-### Sprint S20.01: Multi-Trade Variance Driver Pattern Extraction
-Execute all deliverables for [Sprint S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md):
-- Implement canonical `ObservedPattern` entity in `src/domain/pattern.py`.
-- Implement `PatternExtractionEngine` in `src/research/pattern_detector.py` aggregating `TradeEvaluation` and `DecisionRecord` rows.
-- Enforce $\ge 30$ trade sample threshold and detect statistically significant failure clusters by regime, agent, and variance driver.
+### Sprint S20.02: Scoped Hypothesis & Candidate Generation Workflow
+Execute all deliverables for [Sprint S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md):
+- Implement `CandidateGenerator` in `src/research/candidate_generator.py` converting `ObservedPattern` into `ModelVersion` candidate.
+- Enforce one-change-at-a-time scoping discipline (SLD §6.2), concurrency limit (max 1 candidate in validation), and 30-trade cooldown.
 - Deliver unit tests with $\ge 80\%$ line coverage and run `.\scripts\deliver_sprint.ps1`.
 
 ---
@@ -500,3 +510,4 @@ Execute all deliverables for [Sprint S20.01](docs/sprints/S20.01-multi-trade-var
 | **2026-09-06** | Sprint S18.02 Delivered (EPIC-18 Complete) | `src/execution/reconciliation.py`, `src/core/runner.py`, `scripts/run_live_trader.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S18.02, StartupReconciler safe-state gate with auto-halt on discrepancy, live trading runner on ₹10k capital, 614 tests passing at 95% coverage, EPIC-18 100% complete. |
 | **2026-09-06** | Sprint S19.01 Delivered | `src/research/environment.py`, `docker/Dockerfile.research`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S19.01, ResearchBrainEnvironment physical isolation, AST isolation checker, credential scrubbing, 628 tests passing. |
 | **2026-09-06** | Sprint S19.02 Delivered (EPIC-19 Complete) | `src/research/rl/*`, `tests/unit/research/test_rl_environment.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S19.02, Gymnasium-compliant TradingEnv, MultiFactorRewardCalculator, action space constrained to AgentSignalOutput, 643 tests passing, EPIC-19 100% complete. |
+| **2026-09-06** | Sprint S20.01 Delivered | `src/domain/pattern.py`, `src/research/pattern_detector.py`, `tests/unit/research/test_pattern_detector.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S20.01, ObservedPattern domain model, PatternExtractionEngine with two-proportion z-tests, 651 tests passing. |

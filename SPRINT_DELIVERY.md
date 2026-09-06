@@ -89,7 +89,8 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-034** | 2026-09-06 | 20:30:00 | `S18.01` | Pre-Live SOW §9 Precondition Audit & Credential Setup | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass, 100% Preconditions Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-035** | 2026-09-06 | 20:38:00 | `S18.02` | Live Trading Activation & Startup Reconciliation Gate | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (614 tests), 100% Reconciler Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-036** | 2026-09-06 | 20:55:00 | `S19.01` | Research Brain Physical Isolation & Sandboxing | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (628 tests), 94% Environment Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
-| **DELIV-037** | 2026-09-06 | 21:05:00 | `S19.02` | RL Sandboxed Training Environment (Optional) | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (643 tests), 97% Env / 100% Reward Coverage, Gitleaks Clean | Ready to Push |
+| **DELIV-037** | 2026-09-06 | 21:05:00 | `S19.02` | RL Sandboxed Training Environment (Optional) | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (643 tests), 97% Env / 100% Reward Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-038** | 2026-09-06 | 21:15:00 | `S20.01` | Multi-Trade Variance Driver Pattern Extraction | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (651 tests), 94% Pattern Detector Coverage, Gitleaks Clean | Ready to Push |
 
 ---
 
@@ -1888,10 +1889,51 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-038: Sprint S20.01 — Multi-Trade Variance Driver Pattern Extraction
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `21:15:00 IST` (15:45:00 UTC)
+- **Sprint Identifier**: `Sprint S20.01`
+- **Sprint Name**: Multi-Trade Variance Driver Pattern Extraction
+- **Epic**: `EPIC-20` — Hypothesis Generation & Candidate Promotion (Phase V6)
+- **Tasks Addressed**:
+  - `TASK-20-01-001`: Implement Multi-Trade Pattern Detection across Regimes and Agents (`src/research/pattern_detector.py`, `src/domain/pattern.py`)
+- **Primary Agent**: `Agent 08 (Self-Learning Agent)`
+- **Approving Agents**: `Agent 07 (ML Engineering)`, `Agent 00 (Chief Architect)`, `Agent 09 (Risk & Safety Agent)` [Veto Authority]
+
+#### 1. Implementation Highlights
+- **Canonical ObservedPattern Domain Model (`src/domain/pattern.py`)**:
+  - Implemented immutable `ObservedPattern` capturing empirical failure and variance patterns across dimensions (`REGIME_FAILURE`, `AGENT_UNDERPERFORMANCE`, `VARIANCE_CLUSTER`, `DISAGREEMENT_FAILURE`).
+  - Distinguishes `CONFIRMED_HYPOTHESIS` (sample size $\ge 30$, $p \le 0.05$) from `OBSERVED_UNCONFIRMED` (accumulating evidence without premature candidate generation).
+- **PatternExtractionEngine (`src/research/pattern_detector.py`)**:
+  - Aggregates completed `TradeEvaluation` records and links them to entry `DecisionRecord` objects.
+  - Enforces minimum batch threshold and sample size ($\ge 30$ trades) to prevent chasing statistical noise (SLD §5.2, §10).
+  - Evaluates two-proportion one-tailed z-tests using standard normal error function (`math.erf`) to compute exact p-values against population baseline win rates.
+  - Analyzes clusters across 4 dimensions: market regime, contributing agent, variance driver, and decision disagreement.
+  - Enforces strict read-only boundary isolation (SLD §5.3): never mutates live parameters or executes orders directly.
+- **Testing Suites**:
+  - Delivered 8 unit tests in `tests/unit/research/test_pattern_detector.py` achieving **94% line coverage** on `pattern_detector.py` and **94%** on `pattern.py`.
+  - Full test suite: **651 passed, 0 failed, 95% global branch coverage**.
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/domain/pattern.py` — Canonical `ObservedPattern` entity.
+2. `src/research/pattern_detector.py` — `PatternExtractionEngine`, `PatternExtractionConfig`.
+3. `tests/unit/research/test_pattern_detector.py` — 8 unit tests for pattern extraction and noise filtering.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Re-exported `ObservedPattern`.
+2. `src/research/__init__.py` — Re-exported `PatternExtractionEngine` and `PatternExtractionConfig`.
+3. `docs/tasks/TASK-20-01-001.md` — Marked task as COMPLETE.
+4. `docs/sprints/S20.01-multi-trade-variance-driver-patterns.md` — Marked sprint as COMPLETE.
+5. `SPRINT_DELIVERY.md` — Recorded DELIV-038 in master register and chronological audit logs.
+6. `STORY.md` — Recorded Milestone 41 and advanced active sprint to S20.02.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprints**: `Sprint S18.01`, `Sprint S18.02`, `Sprint S19.01`, `Sprint S19.02`
-- **Completed Epics**: `EPIC-19` — Research Brain Infrastructure & Sandboxing (**100% COMPLETE**)
-- **Active Epic**: `EPIC-20` — Hypothesis Generation & Candidate Promotion (Phase V6)
-- **Next Sprint Up**: `Sprint S20.01` — Multi-Trade Variance Driver Pattern Extraction
-- **Next Task Up**: `TASK-20-01-001` — Implement Multi-Trade Variance Driver Pattern Extraction
+- **Completed Sprints**: `Sprint S18.01`, `Sprint S18.02`, `Sprint S19.01`, `Sprint S19.02`, `Sprint S20.01`
+- **Active Epic**: `EPIC-20` — Hypothesis Generation & Candidate Promotion (Phase V6) (**50% COMPLETE**)
+- **Next Sprint Up**: `Sprint S20.02` — Scoped Hypothesis & Candidate Generation Workflow
+- **Next Task Up**: `TASK-20-02-001` — Scoped Hypothesis & Candidate Generation Workflow
