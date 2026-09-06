@@ -39,9 +39,16 @@ class ParquetHistoricalStore:
     def __init__(self, base_dir: Path | str = "data/historical") -> None:
         self.base_dir = Path(base_dir)
 
+    def _sanitize_instrument(self, instrument: str) -> str:
+        """Sanitize instrument symbol for cross-platform filesystem directory safety."""
+        return instrument.replace(":", "_").replace("/", "_").replace("\\", "_")
+
     def _get_partition_dir(self, timeframe: str, instrument: str, year: int, month: int) -> Path:
-        """Construct directory path: {base_dir}/{timeframe}/{instrument}/year={YYYY}/month={MM}."""
-        return self.base_dir / timeframe / instrument / f"year={year:04d}" / f"month={month:02d}"
+        """Construct partition path: {base_dir}/{timeframe}/{inst}/year={YYYY}/month={MM}."""
+        safe_instrument = self._sanitize_instrument(instrument)
+        return (
+            self.base_dir / timeframe / safe_instrument / f"year={year:04d}" / f"month={month:02d}"
+        )
 
     def write_candles(self, candles: Sequence[OHLCVCandle]) -> int:
         """Write and deduplicate candles into partitioned Snappy Parquet files.
@@ -155,7 +162,11 @@ class ParquetHistoricalStore:
         if start_utc >= end_utc:
             return None
 
-        instrument_dir = self.base_dir / timeframe / instrument
+        safe_instrument = self._sanitize_instrument(instrument)
+        instrument_dir = self.base_dir / timeframe / safe_instrument
+        if not instrument_dir.exists() and (self.base_dir / timeframe / instrument).exists():
+            instrument_dir = self.base_dir / timeframe / instrument
+
         if not instrument_dir.exists():
             return None
 

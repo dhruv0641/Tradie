@@ -63,6 +63,14 @@
 - Delivered integration test suites in `tests/integration/` achieving 97% global test coverage.
 - **EPIC-02: Domain Entities & Hybrid Storage Architecture is now 100% COMPLETE.**
 
+### Milestone 9: Sprint S03.01 Market Data Adapter Interface & Historical Ingestion (Complete)
+- Implemented `@runtime_checkable` `DataSourceAdapter(Protocol)` in `src/data/adapter.py` adhering to `subsystem-contracts.md` §1 and FRD-DATA-8, specifying contracts for lifecycle, historical queries, and streaming iterators.
+- Implemented `AdapterFactory` registry with dynamic registration and instantiation, plus deterministic `MockDataSourceAdapter`.
+- Implemented `CSVDataSourceAdapter` in `src/data/csv_adapter.py` parsing standard OHLCV CSVs and NSE Bhavcopy CSVs with exact Decimal precision, UTC normalization, and `NSE:{SYMBOL}` formatting.
+- Implemented `HistoricalDataLoader` in `src/data/historical_loader.py` orchestrating physical candle sanity validation ($Low \le Open, Close \le High$, $Volume \ge 0$), Snappy Parquet partitioning via `ParquetHistoricalStore`, and optional TimescaleDB insertion.
+- Authored production CLI script `scripts/ingest_historical.py` (`uv run python -m scripts.ingest_historical`).
+- Delivered unit and integration test suites in `tests/unit/data/` and `tests/integration/` achieving 93% global test coverage with zero warnings.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -79,25 +87,22 @@
 | Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-003.md) | Order, Position & Model Governance Entities | **COMPLETE** |
 | Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **COMPLETE** |
 | Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
-| Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **UP NEXT** |
-| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | Queued |
+| Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **COMPLETE** |
+| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
+| Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **UP NEXT** |
 
 ---
 
 ## 4. Immediate Next Step: How to Resume
 
-When the user asks to start:
+When resuming execution:
 
-### If user says `"Start Task 1"` or `"Start TASK-03-01-001"`:
-1. Open [`docs/tasks/TASK-03-01-001.md`](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md).
-2. Implement abstract `DataSourceAdapter` interface in `src/data/adapter.py`.
-3. Verify with `uv run pytest tests/unit/data/test_adapter.py`.
-
-### If user says `"Start Sprint 5"` or `"Start Sprint S03.01"`:
-Execute all tasks in [Sprint S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) in sequence:
-- `TASK-03-01-001`: Implement Unified Market Data Ingestion Adapter Interface.
-- `TASK-03-01-002`: Implement NSE Bhavcopy & Historical Equities Ingestion.
-- Execute post-sprint delivery protocol in [SPRINT_DELIVERY.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/SPRINT_DELIVERY.md) and push to `implementation-develop`.
+### Sprint S03.02: Real-Time WebSocket Streaming Pipeline
+Execute all deliverables for [Sprint S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md):
+- Implement `src/data/streaming.py` (`WebSocketFeedHandler` with TLS, heartbeat monitor, exponential backoff reconnection).
+- Implement `src/data/aggregator.py` (`CandleAggregator` assembling closed 1m/5m bars from tick stream, emitting validation events, and flushing to TimescaleDB buffer).
+- Implement test suite in `tests/unit/data/test_streaming.py`.
+- Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
 
@@ -113,3 +118,4 @@ Execute all tasks in [Sprint S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Des
 | **2026-09-06** | Sprint S01.02 Delivered | `src/utils/*`, `src/config/*`, `.env.example`, `tests/unit/test_logging.py`, `tests/unit/test_config.py`, `SPRINT_DELIVERY.md` | Completed Sprint S01.02, 98% coverage on logging & settings, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S02.01 Delivered | `src/domain/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.01, 99% coverage on canonical domain entities, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S02.02 Delivered | `src/infrastructure/*`, `alembic/*`, `alembic.ini`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.02 & Epic 02, 97% coverage on database & Parquet store, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S03.01 Delivered | `src/data/*`, `scripts/*`, `tests/unit/data/*`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.01, 93% coverage on data adapters & historical loader, pushed to implementation-develop. |

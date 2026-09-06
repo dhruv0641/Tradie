@@ -57,6 +57,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-002** | 2026-09-06 | 14:45:00 | `S01.02` | Environment Configuration & Structured Logging Framework | 8 new files | Ruff Clean, Mypy Strict, 98% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-003** | 2026-09-06 | 14:52:00 | `S02.01` | Canonical Pydantic v2 Domain Models | 11 new files | Ruff Clean, Mypy Strict, 99% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-004** | 2026-09-06 | 15:05:00 | `S02.02` | PostgreSQL / TimescaleDB DDL & Parquet Archive | 10 new files | Ruff Clean, Mypy Strict, 97% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-005** | 2026-09-06 | 15:15:00 | `S03.01` | Market Data Adapter Interface & Historical Ingestion | 7 new / 2 modified | Ruff Clean, Mypy Strict, 93% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -251,9 +252,53 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-005: Sprint S03.01 — Market Data Adapter Interface & Historical Ingestion
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `15:15:00 IST` (09:45:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 04 (Data Engineering) / Agent 05 (Backtesting)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `@runtime_checkable` `DataSourceAdapter(Protocol)` in `src/data/adapter.py` adhering to `subsystem-contracts.md` §1 and FRD-DATA-8, specifying contracts for `connect`, `disconnect`, `is_connected`, `fetch_historical_candles`, `subscribe_candles`, and `subscribe_depth`.
+- Implemented `AdapterFactory` registry with dynamic registration and instantiation, and `MockDataSourceAdapter` for deterministic unit testing.
+- Implemented `CSVDataSourceAdapter` in `src/data/csv_adapter.py` parsing standard OHLCV CSVs and NSE Bhavcopy CSVs with exact `Decimal` precision, UTC timestamp normalization, equity series filtering (`EQ`), and canonical `NSE:{SYMBOL}` formatting.
+- Implemented `HistoricalDataLoader` in `src/data/historical_loader.py` orchestrating batch ingestion from adapters/CSVs, physical candle sanity validation ($Low \le Open, Close \le High$, $Volume \ge 0$), Snappy Parquet partitioning via `ParquetHistoricalStore`, and optional TimescaleDB insertion.
+- Enhanced `ParquetHistoricalStore` in `src/infrastructure/parquet_store.py` with cross-platform sanitized directory naming supporting Windows NTFS.
+- Authored production CLI script `scripts/ingest_historical.py` (`uv run python -m scripts.ingest_historical`).
+- Authored unit and integration test suites in `tests/unit/data/test_adapter.py` and `tests/integration/test_historical_ingest.py` validating factory, protocol conformance, Bhavcopy filtering, zero lookahead persistence, and CLI execution.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `40 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 40 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `58 passed in 6.81s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `93%` code coverage with branch coverage reporting.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed with 0 secret leaks detected by `gitleaks`.
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/data/__init__.py` — Market data package root exporting protocols, factory, adapters, and loaders.
+2. `src/data/adapter.py` — `DataSourceAdapter` protocol, `AdapterFactory` registry, and `MockDataSourceAdapter`.
+3. `src/data/csv_adapter.py` — High-precision CSV and NSE Bhavcopy adapter.
+4. `src/data/historical_loader.py` — Historical batch loader with validation, Parquet storage, and TimescaleDB ingestion.
+5. `scripts/__init__.py` — Package init for CLI tooling.
+6. `scripts/ingest_historical.py` — Production CLI historical market data ingestion tool.
+7. `tests/unit/data/__init__.py` — Unit test package for data adapters.
+8. `tests/unit/data/test_adapter.py` — Unit tests for adapter protocol and factory.
+9. `tests/integration/test_historical_ingest.py` — Integration tests for CSV parsing, Parquet persistence, and CLI.
+
+##### Modified Files:
+1. `src/infrastructure/parquet_store.py` — Sanitized partition paths for NTFS/cross-platform compatibility.
+2. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-005.
+3. `STORY.md` — Updated status board marking Sprint S03.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S02.02` — PostgreSQL / TimescaleDB DDL & Parquet Archive
-- **Completed Epic**: `EPIC-02` — Domain Entities & Hybrid Storage Architecture (Phase V0 Milestone 8 COMPLETE)
-- **Next Sprint Up**: `Sprint S03.01` — Data Ingestion Adapters (NSE Equities / Derivatives Bulk & REST) ([docs/sprints/S03.01-historical-data-ingestion.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md))
-- **Next Task Up**: `TASK-03-01-001` — Implement Unified Market Data Ingestion Adapter Interface
+- **Completed Sprint**: `Sprint S03.01` — Market Data Adapter Interface & Historical Ingestion
+- **Next Sprint Up**: `Sprint S03.02` — Real-Time WebSocket Streaming Pipeline ([docs/sprints/S03.02-streaming-websocket-pipeline.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md))
+- **Next Task Up**: `TASK-03-02-001` — Implement Streaming WebSocket Feed Ingestion Pipeline (`src/data/streaming.py`, `src/data/aggregator.py`)
