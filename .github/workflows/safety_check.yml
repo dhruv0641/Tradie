@@ -1,0 +1,38 @@
+name: Safety Isolation & Precedence Verification
+
+on:
+  push:
+    branches: [main, develop, implementation-develop]
+  pull_request:
+    branches: [main, develop, implementation-develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  safety-isolation-check:
+    name: Safety Architecture & Isolation Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install Dependencies
+        run: uv sync --all-extras
+
+      - name: Verify Safety Isolation & Precedence (AST Linter)
+        run: uv run python scripts/verify_safety_isolation.py
+
+      - name: Execute Safety-Critical Verification Suite (KS-TEST-1..4)
+        run: |
+          uv run pytest -v tests/safety/ --cov=src/risk/kill_switch --cov=src/decision --cov-branch --cov-fail-under=100

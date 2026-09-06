@@ -2,12 +2,56 @@
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from src.domain.risk import RiskCheckResult
+
+
+class Decision(BaseModel):
+    """Final decision emitted by the Supervisor for order translation and execution."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    outcome: Literal["BUY", "SELL", "HOLD", "NO_TRADE"] = Field(
+        description="Final action decided by the Supervisor"
+    )
+    reason: str = Field(description="Deterministic justification for the decision")
+    risk_check: RiskCheckResult = Field(
+        description="Risk verification snapshot evaluated by the Risk Engine"
+    )
+    kill_switch_active: bool = Field(
+        default=False, description="Whether kill switch was active during decision"
+    )
+    approved_quantity: int = Field(
+        default=0, ge=0, description="Risk-approved position quantity (0 for NO_TRADE or HOLD)"
+    )
+    stop_loss_price: Decimal | None = Field(
+        default=None, description="Deterministic hard stop-loss price"
+    )
+    target_price: Decimal | None = Field(default=None, description="Profit target price level")
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        description="Decision generation timestamp in UTC",
+    )
+
+    @field_validator("timestamp")
+    @classmethod
+    def validate_utc_timestamp(cls, v: datetime) -> datetime:
+        """Enforce that timestamp is timezone-aware UTC."""
+        if v.tzinfo is None:
+            msg = "Decision timestamp must be timezone-aware UTC"
+            raise ValueError(msg)
+        return v
+
+    @property
+    def is_trade_approved(self) -> bool:
+        """Return True if decision is an actionable BUY or SELL trade."""
+        return self.outcome in ("BUY", "SELL") and self.approved_quantity > 0
 
 
 class DecisionRecord(BaseModel):

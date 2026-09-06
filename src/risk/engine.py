@@ -1,7 +1,7 @@
 """Deterministic Risk Engine enforcing fail-fast safety boundary checklist per RTLD §4-§14."""
 
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import structlog
 
@@ -20,6 +20,26 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 logger = structlog.get_logger()
+
+
+@runtime_checkable
+class RiskEngineProtocol(Protocol):
+    """Protocol defining the deterministic RiskEngine interface per LLD §5."""
+
+    @property
+    def config(self) -> RiskConfig:
+        """Return active risk configuration."""
+        ...
+
+    def evaluate(
+        self,
+        candidate: CandidateTrade,
+        capital: CapitalState,
+        streak: StreakState,
+        market: MarketState,
+    ) -> RiskCheckResult:
+        """Evaluate candidate trade against fail-fast risk checklist."""
+        ...
 
 
 class RiskEngine:

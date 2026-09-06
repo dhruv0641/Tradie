@@ -49,7 +49,11 @@ uv run ruff format --check src tests
 Write-Host "--> Running Mypy Strict Check..." -ForegroundColor Green
 uv run mypy src tests
 
-# 4. Run Pytest with Branch Coverage
+# 4. Verify Safety Architecture & Isolation
+Write-Host "--> Running Safety Isolation & Precedence Linter..." -ForegroundColor Green
+uv run python scripts/verify_safety_isolation.py
+
+# 5. Run Pytest with Branch Coverage
 Write-Host "--> Running Pytest with Branch Coverage..." -ForegroundColor Green
 uv run pytest --cov=src --cov-branch --cov-report=term-missing
 

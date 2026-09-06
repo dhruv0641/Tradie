@@ -8,7 +8,7 @@ from src.domain.backtest_result import (
     BacktestTrade,
     EquityPoint,
 )
-from src.domain.decision import DecisionRecord
+from src.domain.decision import Decision, DecisionRecord
 from src.domain.evaluation import TradeEvaluation
 from src.domain.execution import OrderSubmission, Position
 from src.domain.features import FeatureSet
@@ -56,6 +56,7 @@ __all__ = [
     "CapitalState",
     "ChronologicalSplit",
     "CorporateAction",
+    "Decision",
     "DecisionRecord",
     "DirectionalBias",
     "EquityPoint",

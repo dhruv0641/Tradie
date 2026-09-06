@@ -232,13 +232,35 @@
   - Tier-1 trigger: 3 consecutive losses $\to$ 50% size reduction multiplier ($M = 0.50$, RTLD-11).
   - Tier-2 trigger: 5 consecutive losses $\to$ session trading pause ($M = 0.0$, RTLD-12).
   - Winning trade ($P > 0$) immediately resets consecutive loss counter to 0.
-  - Breakeven trade ($P = 0$) maintains streak neutrally without incrementing.
+- Breakeven trade ($P = 0$) maintains streak neutrally without incrementing.
   - Session boundary transition (`on_session_start()`): automatically clears Tier-2 session pause while retaining rolling Tier-1 losses.
   - Authorized operator manual reset with token authentication.
 - Re-exported canonical `StreakState` in `src/domain/streak_state.py` per TASK-12-02-002 specification.
 - Integrated `PositionSizer` into `RiskEngine._check_per_trade_risk_and_sizing` for unified deterministic sizing across the risk subsystem.
 - Delivered unit test suites in `tests/unit/risk/test_sizer.py` and `tests/unit/risk/test_streak_tracker.py` (24 new tests) achieving **100% statement and 100% branch coverage on all risk modules**, raising repository total to **382 passing tests and 97% global branch coverage**.
-- **EPIC-12: Deterministic Risk Engine & Safety Isolation is now 100% COMPLETE.**
+
+### Milestone 29: Sprint S13.01 & S13.02 Supervisor Decision Gate & Emergency Kill Switch (Complete — EPIC-13 100% Complete)
+- Implemented canonical `Decision` Pydantic v2 domain model in `src/domain/decision.py` enforcing immutable audit fields (`outcome`, `reason`, `risk_check`, `kill_switch_active`, `approved_quantity`, `stop_loss_price`, `target_price`, timezone-aware UTC `timestamp`) and `@property is_trade_approved`.
+- Implemented authoritative `Supervisor` decision gate in `src/decision/supervisor.py` adhering strictly to LLD §7, FRD Module 7 (FRD-SUP-1-6), and BRD BR-4:
+  - **Precedence 1 (Kill Switch)**: Checked as the **very first statement** in AST body (`if self._kill_switch.is_active():`). Forces `HOLD` if position is open or `NO_TRADE` if flat.
+  - **Precedence 2 (Candidate Availability)**: If `candidate is None` (rejected upstream), emits `NO_TRADE`.
+  - **Precedence 3 (Deterministic Risk Gate)**: Evaluates `RiskEngine.evaluate()`. If Risk Engine blocks, emits `NO_TRADE`. **Zero override pathway exists by construction** (FRD-SUP-6).
+  - **Step 4 (Approved Trade)**: Emits actionable `BUY` or `SELL` with risk-approved quantity and protective stop loss.
+  - Implemented `build_decision_record()` producing cryptographically hash-stamped SHA-256 `DecisionRecord`.
+- Implemented `RiskEngineProtocol` in `src/risk/engine.py` decoupling the Supervisor from concrete RiskEngine implementations while preserving strict typing.
+- Enhanced `InMemoryKillSwitch` in `src/risk/kill_switch.py` supporting synchronous audit event recording via `AuditLogProtocol` hook (`record_sync()`), authenticated operator reset (`str` or `OperatorAuthTokenProtocol`), and `KillSwitch` alias.
+- Implemented official Safety Verification Test Suite **KS-TEST-1 through KS-TEST-4** in `tests/safety/test_kill_switch.py`:
+  - KS-TEST-1: Upstream BUY signal with active kill switch forces `HOLD` or `NO_TRADE`.
+  - KS-TEST-2: Upstream hang does not affect kill switch activation latency ($<0.05$s, well within RTLD-17 $<2$s target).
+  - KS-TEST-3: Extreme drawdown auto-trigger at RTLD-6 threshold (10%) halts trading decisions.
+  - KS-TEST-4: Unauthenticated or empty reset attempts raise `PermissionError` and leave kill switch active.
+  - Concurrent thread safety and audit logging verified.
+- Implemented static architecture AST linter `scripts/verify_safety_isolation.py` per LLD §10 and NFR-SAFE-5:
+  - Verified 0 import edges from `src/risk/` and `src/decision/` into `src/agents/`, ML frameworks, LLM libraries, or broker SDKs.
+  - Verified `Supervisor.decide()` first statement is kill switch check.
+  - Verified 0 bypass/override parameters across `Supervisor.decide()` and `RiskEngine.evaluate()`.
+- Delivered test suites across `tests/unit/decision/`, `tests/safety/`, and `tests/unit/scripts/` (25 new tests) achieving **100% statement and branch coverage on all safety modules**, raising repository total to **407 passing tests and 97% global branch coverage**.
+- **EPIC-13: Supervisor Decision Gate & Emergency Kill Switch is now 100% COMPLETE.**
 
 ---
 
@@ -277,7 +299,9 @@
 | Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **COMPLETE** |
 | **Phase V3** | **EPIC-12** | [S12.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md) | [TASK-12-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-01-001.md) | Deterministic Risk Engine Core & Parameter Register | **COMPLETE** |
 | Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **COMPLETE** |
-| **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **UP NEXT** |
+| **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **COMPLETE** |
+| Phase V3 | EPIC-13 | [S13.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.02-emergency-kill-switch-manual-stop.md) | [TASK-13-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-02-001.md) | Emergency Kill Switch & AST Safety Linter | **COMPLETE** |
+| **Phase V3** | **EPIC-14** | [S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **UP NEXT** |
 
 ---
 
@@ -285,13 +309,11 @@
 
 When resuming execution:
 
-### Sprint S13.01: Supervisor Decision Gate & Time-in-Force Rules
-Execute all deliverables for [Sprint S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md):
-- Implement Supervisor decision state machine per LLD §6, FRD Module 7, and RTLD §13.
-- Enforce precedence order: Kill Switch -> Risk Engine Veto -> Model Consensus -> Time-in-Force Rules.
-- Implement canonical `DecisionRecord` generation with complete audit lineage.
-- Enforce strict NO TRADE discipline when confidence, quality, or risk constraints fail.
-- Deliver unit test suites across `tests/unit/supervisor/test_supervisor.py` with 100% branch coverage.
+### Sprint S14.01: Transactional Position Ledger & State Tracking
+Execute all deliverables for [Sprint S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md):
+- Implement transactional position ledger adhering to EDD §5 and DDD §6.
+- Enforce idempotent fill updates, average price calculations, and P&L tracking.
+- Deliver unit and integration test suites with $\ge 80\%$ coverage.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -328,3 +350,5 @@ Execute all deliverables for [Sprint S13.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S11.02 Delivered (EPIC-11 Complete) | `src/aggregation/timeframe_selector.py`, `src/aggregation/__init__.py`, `tests/unit/aggregation/test_timeframe_selector.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.02, TimeframeSelector multi-timeframe scoring, best-of-rejected NO TRADE discipline, disagreement preservation, 339 tests passing, 96% global coverage, EPIC-11 100% complete. |
 | **2026-09-06** | Sprint S12.01 Delivered | `src/domain/risk.py`, `src/risk/*`, `tests/unit/domain/test_risk_domain.py`, `tests/unit/risk/test_risk_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S12.01, canonical RiskConfig (RTLD §14 register), InMemoryKillSwitch, fail-fast RiskEngine with 100% branch coverage on safety paths, 358 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S12.02 Delivered (EPIC-12 Complete) | `src/risk/sizer.py`, `src/risk/streak_tracker.py`, `src/domain/streak_state.py`, `tests/unit/risk/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S12.02, PositionSizer multi-cap bounding, StreakTracker Tier-1/Tier-2 circuit breakers, 382 tests passing, 100% risk coverage, EPIC-12 100% complete. |
+| **2026-09-06** | Sprint S13.01 Delivered | `src/domain/decision.py`, `src/decision/*`, `tests/unit/decision/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.01, Supervisor Decision Gate, Decision domain model, non-bypassable risk check precedence, 100% branch coverage, 392 tests passing. |
+| **2026-09-06** | Sprint S13.02 Delivered (EPIC-13 Complete) | `src/risk/kill_switch.py`, `tests/safety/*`, `scripts/verify_safety_isolation.py`, `tests/unit/scripts/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.02, KillSwitch synchronous audit logging, KS-TEST-1..4 suite, static AST safety isolation linter, 407 tests passing, 97% global branch coverage, EPIC-13 100% complete. |

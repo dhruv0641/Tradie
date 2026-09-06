@@ -39,6 +39,9 @@ jobs:
       - name: Run Mypy Strict Type Check
         run: uv run mypy src tests
 
+      - name: Verify Safety Isolation & Precedence
+        run: uv run python scripts/verify_safety_isolation.py
+
   test-and-coverage:
     name: Test Execution & Coverage
     runs-on: ubuntu-latest
