@@ -1,0 +1,69 @@
+name: Security Audit & Secrets Scan
+
+on:
+  push:
+    branches: [main, develop, implementation-develop]
+  pull_request:
+    branches: [main, develop, implementation-develop]
+  schedule:
+    - cron: '0 4 * * 1' # Weekly Monday security audit
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-scan:
+    name: Gitleaks Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-audit:
+    name: Dependency Vulnerability Scan (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv and dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          uv pip install pip-audit .
+
+      - name: Run pip-audit
+        run: |
+          uv run pip-audit --strict --desc
+
+  tls-and-safety-lint:
+    name: Transport Security & Safety Isolation Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install ruff mypy pytest pydantic structlog
+
+      - name: Run Safety Isolation Linter
+        run: |
+          python scripts/verify_safety_isolation.py
