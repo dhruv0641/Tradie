@@ -56,6 +56,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-001** | 2026-09-06 | 14:38:00 | `S01.01` | Repository Setup, Tooling & Quality Toolchain | 17 new / 19 modified | Ruff Clean, Mypy Strict, 100% Test Pass, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-002** | 2026-09-06 | 14:45:00 | `S01.02` | Environment Configuration & Structured Logging Framework | 8 new files | Ruff Clean, Mypy Strict, 98% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-003** | 2026-09-06 | 14:52:00 | `S02.01` | Canonical Pydantic v2 Domain Models | 11 new files | Ruff Clean, Mypy Strict, 99% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-004** | 2026-09-06 | 15:05:00 | `S02.02` | PostgreSQL / TimescaleDB DDL & Parquet Archive | 10 new files | Ruff Clean, Mypy Strict, 97% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -206,8 +207,53 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-004: Sprint S02.02 — PostgreSQL / TimescaleDB DDL & Parquet Archive
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `15:05:00 IST` (09:35:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 04 (Data Engineering) / Agent 15 (DevOps)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented SQLAlchemy 2.0 ORM declarative models in `src/infrastructure/models.py` for all 7 canonical tables (`ohlcv_candles` [hypertable], `decision_records`, `trade_evaluations`, `model_versions`, `validation_runs`, `order_submissions`, `positions`) strictly conforming to DDD §6 and TRD §6.
+- Configured JSONB / JSON dual-dialect support for complex nested schemas (`regime_classification`, `agent_outputs`, `evidence_payload_json`).
+- Implemented `DatabaseManager` in `src/infrastructure/database.py` managing AsyncEngine connection pooling via `asyncpg`, transactional session scopes with automatic rollback on error, and non-blocking `SELECT 1` health check pings.
+- Established Alembic database migration environment (`alembic.ini`, `alembic/env.py`, `alembic/script.py.mako`) and authored initial schema migration `alembic/versions/0001_initial_schema.py` creating tables, indexes, TimescaleDB hypertable for `ohlcv_candles`, and append-only database triggers blocking `UPDATE` and `DELETE` operations on `decision_records` and `trade_evaluations`.
+- Implemented `ParquetHistoricalStore` in `src/infrastructure/parquet_store.py` with hierarchical Snappy-compressed columnar partitioning (`data/historical/{timeframe}/{instrument}/year={YYYY}/month={MM}/data.parquet`), exact `Decimal(18, 4)` price representation, automatic deduplication by `(instrument, timestamp)`, and point-in-time range queries strictly enforcing zero-lookahead bias (`[start_time, end_time)`).
+- Authored integration test suites in `tests/integration/test_db_migrations.py` and `tests/integration/test_parquet_store.py` validating full ORM round-trip persistence, session context rollback, Alembic offline DDL generation, partition layouts, and sub-50ms high-throughput time-series slicing.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `31 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 31 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `45 passed in 6.53s` (Code 0)
+- **Code Coverage**: Global `97%` code coverage with branch coverage reporting (`src/infrastructure/models.py`: 100%, `src/infrastructure/database.py`: 96%, `src/infrastructure/parquet_store.py`: 90%).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed with 0 secret leaks detected by `gitleaks`.
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/infrastructure/__init__.py` — Infrastructure package root exporting models, database manager, and Parquet store.
+2. `src/infrastructure/models.py` — SQLAlchemy 2.0 ORM DeclarativeBase models for all 7 canonical tables.
+3. `src/infrastructure/database.py` — Async PostgreSQL connection manager, session generator, and health check.
+4. `src/infrastructure/parquet_store.py` — High-throughput partitioned Parquet storage manager with zero-lookahead slicing.
+5. `alembic.ini` — Alembic database migration tool configuration.
+6. `alembic/env.py` — Alembic runtime environment supporting offline SQL generation and asyncpg online migrations.
+7. `alembic/script.py.mako` — Migration template for forward and rollback DDL.
+8. `alembic/versions/0001_initial_schema.py` — Initial DDL migration with TimescaleDB hypertable and immutable audit triggers.
+9. `tests/integration/test_db_migrations.py` — Integration tests for ORM models, session context, and Alembic DDL.
+10. `tests/integration/test_parquet_store.py` — Integration tests for Parquet partitioning, zero-lookahead slicing, and performance.
+
+##### Modified Files:
+1. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-004.
+2. `STORY.md` — Updated status board marking Sprint S02.02 COMPLETE and Epic 02 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S02.01` — Canonical Pydantic v2 Domain Models
-- **Next Sprint Up**: `Sprint S02.02` — PostgreSQL / TimescaleDB DDL & Parquet Archive ([docs/sprints/S02.02-timescaledb-parquet-storage.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md))
-- **Next Task Up**: `TASK-02-02-001` — Setup PostgreSQL / TimescaleDB Database and Alembic Migrations
+- **Completed Sprint**: `Sprint S02.02` — PostgreSQL / TimescaleDB DDL & Parquet Archive
+- **Completed Epic**: `EPIC-02` — Domain Entities & Hybrid Storage Architecture (Phase V0 Milestone 8 COMPLETE)
+- **Next Sprint Up**: `Sprint S03.01` — Data Ingestion Adapters (NSE Equities / Derivatives Bulk & REST) ([docs/sprints/S03.01-historical-data-ingestion.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md))
+- **Next Task Up**: `TASK-03-01-001` — Implement Unified Market Data Ingestion Adapter Interface

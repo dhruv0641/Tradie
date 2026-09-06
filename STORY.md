@@ -4,10 +4,10 @@
 |---|---|
 | **Project** | AI Trader — Autonomous Intelligent Trading System |
 | **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V0: Research Foundation** (Capital: ₹0) |
-| **Current Target Gate** | Gate G0 Precondition | **Current Active Sprint** | **Sprint S02.02** — PostgreSQL / TimescaleDB DDL & Parquet Archive |
-| **Current Active Task** | **TASK-02-02-001** — PostgreSQL / TimescaleDB Setup & Alembic Migrations |
+| **Current Target Gate** | Gate G0 Precondition | **Current Active Sprint** | **Sprint S03.01** — Data Ingestion Adapters (NSE Equities / Derivatives Bulk & REST) |
+| **Current Active Task** | **TASK-03-01-001** — Implement Unified Market Data Ingestion Adapter Interface |
 | **Last Updated** | 2026-09-06 |
-| **State** | **Ready for Code Execution** (Sprint S02.01 Complete & Delivered) |
+| **State** | **Ready for Code Execution** (Epic 02 & Sprint S02.02 Complete & Delivered) |
 
 ---
 
@@ -55,6 +55,14 @@
 - Enforced Decimal precision for all prices/turnover, strict candle boundaries ($Low \le Open, Close \le High$), and timezone-aware UTC timestamps.
 - Delivered unit test suites across `tests/unit/domain/` achieving 99% global test coverage.
 
+### Milestone 8: Sprint S02.02 PostgreSQL / TimescaleDB DDL & Parquet Archive (Complete)
+- Implemented SQLAlchemy 2.0 ORM declarative models for all 7 canonical tables (`ohlcv_candles` [hypertable], `decision_records`, `trade_evaluations`, `model_versions`, `validation_runs`, `order_submissions`, `positions`) strictly conforming to DDD §6 and TRD §6.
+- Implemented `DatabaseManager` in `src/infrastructure/database.py` with AsyncEngine connection pooling, transactional session scopes with automatic rollback, and health checks.
+- Authored Alembic initial migration `alembic/versions/0001_initial_schema.py` creating tables, TimescaleDB hypertable for `ohlcv_candles`, and append-only audit triggers on `decision_records` and `trade_evaluations`.
+- Implemented `ParquetHistoricalStore` in `src/infrastructure/parquet_store.py` with hierarchical Snappy partitioning, exact `Decimal(18, 4)` precision, and sub-50ms zero-lookahead point-in-time range queries.
+- Delivered integration test suites in `tests/integration/` achieving 97% global test coverage.
+- **EPIC-02: Domain Entities & Hybrid Storage Architecture is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -69,8 +77,10 @@
 | Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-001.md) | Core Market Data & Candle Models (`OHLCVBar`, `Tick`) | **COMPLETE** |
 | Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-002.md) | Master DecisionRecord & TradeEvaluation Models | **COMPLETE** |
 | Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-003.md) | Order, Position & Model Governance Entities | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **UP NEXT** |
-| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | Queued |
+| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
+| Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **UP NEXT** |
+| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | Queued |
 
 ---
 
@@ -78,15 +88,15 @@
 
 When the user asks to start:
 
-### If user says `"Start Task 1"` or `"Start TASK-02-02-001"`:
-1. Open [`docs/tasks/TASK-02-02-001.md`](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md).
-2. Configure SQLAlchemy models in `src/infrastructure/models.py` and Alembic migrations.
-3. Verify with `uv run pytest tests/integration/test_db_migrations.py`.
+### If user says `"Start Task 1"` or `"Start TASK-03-01-001"`:
+1. Open [`docs/tasks/TASK-03-01-001.md`](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md).
+2. Implement abstract `DataSourceAdapter` interface in `src/data/adapter.py`.
+3. Verify with `uv run pytest tests/unit/data/test_adapter.py`.
 
-### If user says `"Start Sprint 4"` or `"Start Sprint S02.02"`:
-Execute all tasks in [Sprint S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) in sequence:
-- `TASK-02-02-001`: PostgreSQL / TimescaleDB setup and Alembic migrations.
-- `TASK-02-02-002`: Partitioned Parquet storage manager for historical backtesting.
+### If user says `"Start Sprint 5"` or `"Start Sprint S03.01"`:
+Execute all tasks in [Sprint S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-historical-data-ingestion.md) in sequence:
+- `TASK-03-01-001`: Implement Unified Market Data Ingestion Adapter Interface.
+- `TASK-03-01-002`: Implement NSE Bhavcopy & Historical Equities Ingestion.
 - Execute post-sprint delivery protocol in [SPRINT_DELIVERY.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/SPRINT_DELIVERY.md) and push to `implementation-develop`.
 
 ---
@@ -102,3 +112,4 @@ Execute all tasks in [Sprint S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Des
 | **2026-09-06** | Sprint S01.01 Delivered | `pyproject.toml`, `uv.lock`, `ruff.toml`, `mypy.ini`, `.pre-commit-config.yaml`, `pytest.ini`, `tests/*`, `src/*`, `.github/*`, `SPRINT_DELIVERY.md` | Completed Sprint S01.01, passed all strict tests and secret scans, established delivery protocol. |
 | **2026-09-06** | Sprint S01.02 Delivered | `src/utils/*`, `src/config/*`, `.env.example`, `tests/unit/test_logging.py`, `tests/unit/test_config.py`, `SPRINT_DELIVERY.md` | Completed Sprint S01.02, 98% coverage on logging & settings, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S02.01 Delivered | `src/domain/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.01, 99% coverage on canonical domain entities, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S02.02 Delivered | `src/infrastructure/*`, `alembic/*`, `alembic.ini`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.02 & Epic 02, 97% coverage on database & Parquet store, pushed to implementation-develop. |
