@@ -46,6 +46,32 @@ class OrderSubmission(BaseModel):
         return v
 
 
+class OrderFill(BaseModel):
+    """Order fill execution event emitted by broker or execution simulation."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    fill_id: str = Field(min_length=1, description="Unique fill identifier")
+    client_order_id: str = Field(min_length=1, description="Client order ID")
+    instrument: str = Field(min_length=1, description="Traded instrument identifier")
+    direction: Literal["BUY", "SELL"] = Field(description="Order fill direction")
+    quantity: int = Field(gt=0, description="Executed fill quantity")
+    price: Decimal = Field(gt=Decimal("0"), description="Execution fill price per unit")
+    commission: Decimal = Field(
+        default=Decimal("0"), ge=Decimal("0"), description="Brokerage and statutory charges"
+    )
+    timestamp: datetime = Field(description="Fill timestamp in UTC")
+
+    @field_validator("timestamp")
+    @classmethod
+    def validate_utc_timestamp(cls, v: datetime) -> datetime:
+        """Enforce timezone awareness in UTC."""
+        if v.tzinfo is None:
+            msg = "Timestamp must be timezone-aware UTC"
+            raise ValueError(msg)
+        return v
+
+
 class Position(BaseModel):
     """Current portfolio holding position for an instrument."""
 
@@ -67,6 +93,10 @@ class Position(BaseModel):
     realized_pnl: Decimal = Field(
         default=Decimal("0"),
         description="Cumulative realized profit or loss from closed trades",
+    )
+    peak_unrealized_pnl: Decimal = Field(
+        default=Decimal("0"),
+        description="Peak unrealized profit or loss reached during position lifetime",
     )
     updated_at: datetime = Field(description="Position update timestamp in UTC")
 

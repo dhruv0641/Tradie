@@ -10,7 +10,7 @@ from src.domain.backtest_result import (
 )
 from src.domain.decision import Decision, DecisionRecord
 from src.domain.evaluation import TradeEvaluation
-from src.domain.execution import OrderSubmission, Position
+from src.domain.execution import OrderFill, OrderSubmission, Position
 from src.domain.features import FeatureSet
 from src.domain.governance import ModelVersion
 from src.domain.market_data import (
@@ -69,6 +69,7 @@ __all__ = [
     "ModelVersion",
     "MonteCarloSimulationResult",
     "OHLCVCandle",
+    "OrderFill",
     "OrderSubmission",
     "Position",
     "RegimeClassification",

@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.domain.execution import OrderSubmission, Position
+from src.domain.execution import OrderFill, OrderSubmission, Position
 from src.domain.governance import ModelVersion
 
 
@@ -110,6 +110,18 @@ def test_execution_naive_timestamp_rejections() -> None:
             updated_at=naive_dt,
         )
 
+    # OrderFill naive timestamp
+    with pytest.raises(ValidationError, match="Timestamp must be timezone-aware UTC"):
+        OrderFill(
+            fill_id="f1",
+            client_order_id="c1",
+            instrument="NSE:INFY",
+            direction="BUY",
+            quantity=10,
+            price=Decimal("1500.00"),
+            timestamp=naive_dt,
+        )
+
     # ModelVersion naive trained_at
     with pytest.raises(ValidationError, match="Timestamp must be timezone-aware UTC"):
         ModelVersion(
@@ -120,3 +132,26 @@ def test_execution_naive_timestamp_rejections() -> None:
             trained_at=naive_dt,
             validation_metrics={"sharpe": 1.5},
         )
+
+
+@pytest.mark.unit
+def test_order_fill_model_valid() -> None:
+    """Verify OrderFill entity instantiation and attributes."""
+    now = datetime(2026, 9, 6, 9, 30, 0, tzinfo=UTC)
+    fill = OrderFill(
+        fill_id="fill-001",
+        client_order_id="ORD-001",
+        instrument="NSE:TCS",
+        direction="BUY",
+        quantity=50,
+        price=Decimal("3500.25"),
+        commission=Decimal("15.50"),
+        timestamp=now,
+    )
+    assert fill.fill_id == "fill-001"
+    assert fill.instrument == "NSE:TCS"
+    assert fill.direction == "BUY"
+    assert fill.quantity == 50
+    assert fill.price == Decimal("3500.25")
+    assert fill.commission == Decimal("15.50")
+    assert fill.timestamp == now

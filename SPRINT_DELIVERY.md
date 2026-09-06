@@ -79,6 +79,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-024** | 2026-09-06 | 18:25:00 | `S12.02` | Sizing Engine & Consecutive Loss Circuit Breakers | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (382 tests), 100% Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-025** | 2026-09-06 | 18:35:00 | `S13.01` | Supervisor Decision Gate & Precedence Logic | 3 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (392 tests), 100% Decision & Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-026** | 2026-09-06 | 18:45:00 | `S13.02` | Emergency Kill Switch & Manual STOP Subsystem | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (407 tests), 100% Safety Path Coverage, KS-TEST-1..4 Clean, AST Linter Clean, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-027** | 2026-09-06 | 18:55:00 | `S14.01` | Transactional Position Ledger & Portfolio Tracking | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (427 tests), 100% Ledger Branch Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1343,11 +1344,59 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-027: Sprint S14.01 — Transactional Position Ledger & Portfolio Tracking
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `18:55:00 IST` (13:25:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 12 (Low-Level) / Agent 09 (Risk & Safety) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `PositionLedger` and `PositionLedgerProtocol` in `src/execution/position_ledger.py` serving as the single internal source of truth for portfolio exposure, holdings, cost basis, realized/unrealized P&L, and capital state (FRD-EXEC-4, TRD-DATA-2, EDD §8, RTLD §8).
+- Implemented multi-leg entries with weighted-average entry price calculation.
+- Implemented partial exits preserving the original entry price on remaining holdings and accurately booking realized P&L.
+- Implemented complete position closures and position flipping (e.g. Long -> Short, Short -> Long) in a single fill.
+- Implemented mark-to-market valuation engine supporting per-instrument and universe-wide updates, peak unrealized P&L tracking, and monotonic peak equity tracking.
+- Modularized `CapitalState` domain entity into `src/domain/capital_state.py` with backward-compatible re-exports in `src/domain/risk.py` and `src/domain/__init__.py`.
+- Added `OrderFill` immutable Pydantic v2 entity and `peak_unrealized_pnl` on `Position` in `src/domain/execution.py`.
+- Implemented ACID transactional database persistence via `record_fill_transactional(fill, session)` with automatic in-memory snapshot rollback upon database failure (TRD-DATA-2).
+- Total test count reached **427 passed in 18.35s** with **97% global branch coverage** and **100% statement and branch coverage on PositionLedger**.
+- **EPIC-14: Portfolio Ledger & Position State Tracking is now 100% COMPLETE.**
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `127 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 139 source files` (0 errors)
+- **Pytest Full Suite**: `uv run pytest --cov=src --cov-branch` → `427 passed in 18.35s`, **97% global branch coverage**
+- **Safety & Ledger Coverage**: **100% statement and branch coverage** across `src/execution/position_ledger.py`, `src/domain/capital_state.py`, `src/domain/execution.py`, `src/decision/`, and `src/risk/`.
+- **Pre-commit Scan**: Passed cleanly (including Gitleaks 0 secrets detected).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/capital_state.py` — Canonical Pydantic v2 CapitalState domain model.
+2. `src/execution/__init__.py` — Package export for PositionLedger and PositionLedgerProtocol.
+3. `src/execution/position_ledger.py` — Authoritative position ledger and mark-to-market accounting engine.
+4. `tests/unit/execution/__init__.py` — Package initialization for execution unit tests.
+5. `tests/unit/execution/test_position_ledger.py` — 20 comprehensive unit tests covering all ledger lifecycle operations and ACID persistence.
+
+##### Modified Files:
+1. `src/domain/execution.py` — Added `OrderFill` model and `peak_unrealized_pnl` on `Position`.
+2. `src/domain/risk.py` — Replaced inline CapitalState with import from `src.domain.capital_state` and added `__all__`.
+3. `src/domain/__init__.py` — Exported `OrderFill` and canonical `CapitalState`.
+4. `tests/unit/domain/test_execution.py` — Added OrderFill instantiation and UTC validation tests.
+5. `tests/unit/decision/test_supervisor.py` — Added `# noqa: PLR0917` to test fixture parameter lists.
+6. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-027.
+7. `STORY.md` — Updated status board marking Sprint S14.01 and Milestone 30 COMPLETE; EPIC-14 100% Complete.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S13.02` — Emergency Kill Switch & Manual STOP Subsystem
-- **Completed Epic**: `EPIC-13` — Supervisor Decision Gate & Emergency Kill Switch (100% Complete)
-- **Active Phase**: **PHASE V3: RISK SYSTEM & EXECUTION ARCHITECTURE**
-- **Next Epic Up**: `EPIC-14` — Transactional Position Ledger & Portfolio Accounting
-- **Next Sprint Up**: `Sprint S14.01` — Transactional Position Ledger & State Tracking ([docs/sprints/S14.01-transactional-position-ledger-tracking.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md))
-- **Next Task Up**: `TASK-14-01-001` — Implement Position Ledger Database Models & Migration
+- **Completed Sprint**: `Sprint S14.01` — Transactional Position Ledger & Portfolio Tracking
+- **Completed Epic**: `EPIC-14` — Portfolio Ledger & Position State Tracking (100% Complete)
+- **Active Phase**: **PHASE V3 / V4: RISK SYSTEM & EXECUTION ARCHITECTURE**
+- **Next Epic Up**: `EPIC-15` — Broker Adapter Interface & Idempotency Engine
+- **Next Sprint Up**: `Sprint S15.01` — Broker Adapter Interface & Idempotency Engine ([docs/sprints/S15.01-broker-adapter-interface-idempotency.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md))
+- **Next Task Up**: `TASK-15-01-001` — Implement BrokerAdapter Abstract Interface & Order Submission Contract

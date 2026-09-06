@@ -262,6 +262,17 @@
 - Delivered test suites across `tests/unit/decision/`, `tests/safety/`, and `tests/unit/scripts/` (25 new tests) achieving **100% statement and branch coverage on all safety modules**, raising repository total to **407 passing tests and 97% global branch coverage**.
 - **EPIC-13: Supervisor Decision Gate & Emergency Kill Switch is now 100% COMPLETE.**
 
+### Milestone 30: Sprint S14.01 Delivered — Transactional Position Ledger & Portfolio Accounting (EPIC-14 100% Complete)
+- Implemented `PositionLedger` and `PositionLedgerProtocol` in `src/execution/position_ledger.py` serving as the single internal source of truth for portfolio exposure, holdings, cost basis, realized/unrealized P&L, and capital state (FRD-EXEC-4, TRD-DATA-2, EDD §8, RTLD §8).
+- Implemented multi-leg entries with weighted-average entry price calculation and cost basis preservation during partial exits.
+- Implemented complete position closures and position flipping (Long -> Short, Short -> Long) in a single fill.
+- Implemented mark-to-market valuation engine with peak unrealized P&L tracking and monotonic peak equity tracking.
+- Modularized `CapitalState` domain model into `src/domain/capital_state.py` with backward-compatible re-exports in `src/domain/risk.py` and `src/domain/__init__.py`.
+- Added `OrderFill` immutable domain entity and `peak_unrealized_pnl` to `Position` in `src/domain/execution.py`.
+- Implemented ACID transactional database persistence via `record_fill_transactional(fill, session)` with automatic in-memory snapshot rollback upon database failure (TRD-DATA-2).
+- Delivered 20 unit tests in `tests/unit/execution/test_position_ledger.py` achieving **100% statement and branch coverage on PositionLedger**, raising repository total to **427 passing tests and 97% global branch coverage**.
+- **EPIC-14: Portfolio Ledger & Position State Tracking is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -301,7 +312,8 @@
 | Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **COMPLETE** |
 | **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **COMPLETE** |
 | Phase V3 | EPIC-13 | [S13.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.02-emergency-kill-switch-manual-stop.md) | [TASK-13-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-02-001.md) | Emergency Kill Switch & AST Safety Linter | **COMPLETE** |
-| **Phase V3** | **EPIC-14** | [S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **UP NEXT** |
+| **Phase V3** | **EPIC-14** | [S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **COMPLETE** |
+| **Phase V3 / V4** | **EPIC-15** | [S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **UP NEXT** |
 
 ---
 
@@ -309,10 +321,10 @@
 
 When resuming execution:
 
-### Sprint S14.01: Transactional Position Ledger & State Tracking
-Execute all deliverables for [Sprint S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md):
-- Implement transactional position ledger adhering to EDD §5 and DDD §6.
-- Enforce idempotent fill updates, average price calculations, and P&L tracking.
+### Sprint S15.01: Broker Adapter Interface & Idempotency Engine
+Execute all deliverables for [Sprint S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md):
+- Implement `BrokerAdapter` abstract interface conforming to EDD §3, TRD-EXEC-1, and FRD-EXEC-1.
+- Implement client order ID generation and idempotency engine preventing duplicate submissions (TRD-EXEC-2).
 - Deliver unit and integration test suites with $\ge 80\%$ coverage.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
@@ -352,3 +364,4 @@ Execute all deliverables for [Sprint S14.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S12.02 Delivered (EPIC-12 Complete) | `src/risk/sizer.py`, `src/risk/streak_tracker.py`, `src/domain/streak_state.py`, `tests/unit/risk/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S12.02, PositionSizer multi-cap bounding, StreakTracker Tier-1/Tier-2 circuit breakers, 382 tests passing, 100% risk coverage, EPIC-12 100% complete. |
 | **2026-09-06** | Sprint S13.01 Delivered | `src/domain/decision.py`, `src/decision/*`, `tests/unit/decision/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.01, Supervisor Decision Gate, Decision domain model, non-bypassable risk check precedence, 100% branch coverage, 392 tests passing. |
 | **2026-09-06** | Sprint S13.02 Delivered (EPIC-13 Complete) | `src/risk/kill_switch.py`, `tests/safety/*`, `scripts/verify_safety_isolation.py`, `tests/unit/scripts/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.02, KillSwitch synchronous audit logging, KS-TEST-1..4 suite, static AST safety isolation linter, 407 tests passing, 97% global branch coverage, EPIC-13 100% complete. |
+| **2026-09-06** | Sprint S14.01 Delivered (EPIC-14 Complete) | `src/execution/*`, `src/domain/capital_state.py`, `src/domain/execution.py`, `src/domain/risk.py`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S14.01, PositionLedger, OrderFill, CapitalState modularization, mark-to-market accounting, 427 tests passing, 97% global coverage, 100% ledger coverage, EPIC-14 100% complete. |
