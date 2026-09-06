@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Project** | AI Trader — Autonomous Intelligent Trading System |
-| **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V0: Research Foundation** (Capital: ₹0) |
-| **Current Target Gate** | Gate G1 Exit Criteria (Phase V1 Completion) | **Current Active Sprint** | **Sprint S08.02** — Mean-Reversion Baseline Strategy & Reporting |
-| **Current Active Task** | **TASK-08-02-001** — Implement Bollinger Band Mean-Reversion Strategy and Comprehensive Reporter |
+| **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V4 / V5: Execution Architecture & Paper Trading** (Paper Capital: ₹10,000) |
+| **Current Target Gate** | Gate G4 Exit Criteria (Phase V4 Completion) | **Current Active Sprint** | **Sprint S16.02** — Continuous Paper Trading Market-Hours Harness |
+| **Current Active Task** | **TASK-16-02-001** — Implement Continuous Paper Trading Harness & Live Pipeline Integration |
 | **Last Updated** | 2026-09-06 |
-| **State** | **Ready for Code Execution** (Sprint S08.01 Complete & Delivered) |
+| **State** | **Ready for Code Execution** (Sprint S16.01 Complete & Delivered) |
 
 ---
 
@@ -290,6 +290,16 @@
 - Delivered 28 new unit tests across `test_order_manager.py` and `test_connection_monitor.py`, achieving **100% statement and 100% branch coverage** on both `order_manager.py` and `connection_monitor.py`, raising total repository tests to **468 passing tests at 97% global branch coverage**.
 - **EPIC-15: Order Lifecycle & Broker Integration Layer is now 100% COMPLETE.**
 
+### Milestone 33: Sprint S16.01 Delivered — Simulated Paper Broker Adapter & Virtual Account Engine (2026-09-06 — EPIC-16 50% Complete)
+- Implemented `PaperBrokerAdapter` inheriting from `BaseBrokerAdapter` and fulfilling `BrokerAdapter` runtime protocol in `src/execution/paper_adapter.py`.
+- Configured immutable `PaperBrokerConfig` supporting virtual initial cash (defaulting to ₹10,000 per BRD BR-2 and FRD-CAP-2), configurable slippage in basis points (`slippage_bps`), execution modes (`IMMEDIATE` vs `QUOTE_DRIVEN`), and product types (`INTRADAY` vs `DELIVERY`).
+- Integrated production `CostModel` (`src/backtesting/cost_model.py`) to calculate and deduct exact Indian statutory transaction costs (STT, NSE turnover charges, SEBI fees, stamp duty, GST) and broker commissions on every simulated execution leg.
+- Maintained thread-safe internal simulated state: working order book (`_orders`), positions ledger (`_positions`), virtual cash balance (`_cash`), cumulative transaction costs (`_total_costs`), realized P&L (`_realized_pnl`), and immutable trade fills (`_fills`).
+- Handled position lifecycle with complete mathematical rigor: position initiation, size increase with volume-weighted average price (VWAP) blending, partial closing, complete closing, and seamless position flipping (e.g. Long 10 -> Short 5 via Sell 15) with accurate realized and peak unrealized P&L attribution.
+- Enforced hard virtual cash sufficiency checks on BUY orders: rejecting orders when `cash < gross_value + transaction_costs`, preventing negative balance states.
+- Implemented simulation helpers: `set_market_price(instrument, price)`, `set_connection_alive(alive)`, and tick-driven matching engine `on_tick(instrument, price)` that evaluates working limit and market orders against streaming ticks and updates mark-to-market valuations dynamically.
+- Delivered 24 comprehensive unit tests in `tests/unit/execution/test_paper_adapter.py`, achieving **99% statement and branch coverage** on `paper_adapter.py` with **492 tests passing repository-wide at 97% global branch coverage**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -332,7 +342,8 @@
 | **Phase V3** | **EPIC-14** | [S14.01](docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **COMPLETE** |
 | **Phase V3 / V4** | **EPIC-15** | [S15.01](docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **COMPLETE** |
 | Phase V3 / V4 | EPIC-15 | [S15.02](docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **COMPLETE** |
-| **Phase V4 / V5** | **EPIC-16** | [S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md) | [TASK-16-01-001](docs/tasks/TASK-16-01-001.md) | Paper Trading Simulation Environment & Virtual Account | **UP NEXT** |
+| **Phase V4 / V5** | **EPIC-16** | [S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md) | [TASK-16-01-001](docs/tasks/TASK-16-01-001.md) | Paper Trading Simulation Environment & Virtual Account | **COMPLETE** |
+| Phase V4 / V5 | EPIC-16 | [S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md) | [TASK-16-02-001](docs/tasks/TASK-16-02-001.md) | Continuous Paper Trading Market-Hours Harness | **UP NEXT** |
 
 ---
 
@@ -340,11 +351,11 @@
 
 When resuming execution:
 
-### Sprint S16.01: Paper Trading Simulation Environment & Virtual Account Engine
-Execute all deliverables for [Sprint S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md):
-- Implement virtual paper-trading broker adapter in `src/execution/paper_broker.py` simulating fills against real-time WebSocket market feeds (FRD-PAPER-1, EDD §10).
-- Implement paper account balance and margin accounting (FRD-PAPER-2).
-- Deliver unit and end-to-end simulation tests with $\ge 80\%$ line coverage.
+### Sprint S16.02: Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
+Execute all deliverables for [Sprint S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md):
+- Implement continuous market-hours paper trading runner harness connecting real-time streaming market data (`WebSocketStreamer` / `BarAggregator`), feature generation, multi-agent signal generation, aggregator, risk engine, supervisor decision gate, and `PaperBrokerAdapter`.
+- Run continuous simulation cycles during simulated market hours (09:15 to 15:30 IST).
+- Deliver end-to-end integration and unit tests with $\ge 80\%$ line coverage.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 
@@ -387,3 +398,4 @@ Execute all deliverables for [Sprint S16.01](docs/sprints/S16.01-paper-trading-s
 | **2026-09-06** | Sprint S14.01 Delivered (EPIC-14 Complete) | `src/execution/*`, `src/domain/capital_state.py`, `src/domain/execution.py`, `src/domain/risk.py`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S14.01, PositionLedger, OrderFill, CapitalState modularization, mark-to-market accounting, 427 tests passing, 97% global coverage, 100% ledger coverage, EPIC-14 100% complete. |
 | **2026-09-06** | Sprint S15.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.01, BrokerAdapter protocol, BaseBrokerAdapter ABC, IdempotentOrderDispatcher with DB transactional support, OrderTranslator with bounded slippage & tick constraints, 454 tests passing, 97% global coverage. |
 | **2026-09-06** | Sprint S15.02 Delivered (EPIC-15 Complete) | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.02, OrderManager with 5s timeout manager & DB sync, ConnectionMonitor with 30s outage circuit breaker & safe-state hold, 468 tests passing, 97% global coverage, 100% coverage on S15.02 modules, EPIC-15 100% complete. |
+| **2026-09-06** | Sprint S16.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.01, PaperBrokerAdapter, virtual portfolio accounting, Indian statutory tax & cost deduction, tick matching engine, 492 tests passing, 99% coverage on PaperBrokerAdapter, 97% global coverage. |

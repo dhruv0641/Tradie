@@ -118,6 +118,7 @@ def test_supervisor_properties(
 
 
 def test_kill_switch_precedence_with_open_position(
+    *,
     supervisor: Supervisor,
     kill_switch: InMemoryKillSwitch,
     sample_candidate_buy: CandidateTrade,
@@ -146,6 +147,7 @@ def test_kill_switch_precedence_with_open_position(
 
 
 def test_kill_switch_precedence_without_open_position(
+    *,
     supervisor: Supervisor,
     kill_switch: InMemoryKillSwitch,
     sample_candidate_buy: CandidateTrade,

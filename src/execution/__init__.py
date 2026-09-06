@@ -28,6 +28,7 @@ from src.execution.order_manager import (
     OrderNotFoundError,
     OrderStatus,
 )
+from src.execution.paper_adapter import PaperBrokerAdapter, PaperBrokerConfig
 from src.execution.position_ledger import PositionLedger, PositionLedgerProtocol
 from src.execution.translator import (
     OrderTranslationConfig,
@@ -62,6 +63,8 @@ __all__ = [
     "OrderTranslationError",
     "OrderTranslationResult",
     "OrderTranslator",
+    "PaperBrokerAdapter",
+    "PaperBrokerConfig",
     "PositionLedger",
     "PositionLedgerProtocol",
     "generate_client_order_id",

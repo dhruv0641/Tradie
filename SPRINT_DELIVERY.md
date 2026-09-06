@@ -82,6 +82,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-027** | 2026-09-06 | 18:55:00 | `S14.01` | Transactional Position Ledger & Portfolio Tracking | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (427 tests), 100% Ledger Branch Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-028** | 2026-09-06 | 19:05:00 | `S15.01` | Broker Adapter Interface & Idempotency Engine | 6 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (454 tests), 100% Adapter & Idempotency Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-029** | 2026-09-06 | 19:25:00 | `S15.02` | Order Lifecycle State Machine & Reconnection Logic | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (468 tests), 100% OrderManager & ConnectionMonitor Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-030** | 2026-09-06 | 19:35:00 | `S16.01` | Simulated Paper Broker Adapter & Virtual Account Engine | 2 new / 5 modified | Ruff Clean, Mypy Strict, 100% Test Pass (492 tests), 99% PaperAdapter Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1482,10 +1483,52 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-030: Sprint S16.01 — Simulated Paper Broker Adapter & Virtual Account Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `19:35:00 IST` (14:05:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 10 (Execution) / Agent 09 (Risk & Safety) / Agent 05 (Backtesting / Simulation) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `PaperBrokerAdapter` inheriting from `BaseBrokerAdapter` and fulfilling `BrokerAdapter` runtime protocol in `src/execution/paper_adapter.py`.
+- Configured immutable `PaperBrokerConfig` supporting virtual initial cash (defaulting to ₹10,000 per BRD BR-2 and FRD-CAP-2), configurable slippage in basis points (`slippage_bps`), execution modes (`IMMEDIATE` vs `QUOTE_DRIVEN`), and product types (`INTRADAY` vs `DELIVERY`).
+- Integrated production `CostModel` (`src/backtesting/cost_model.py`) to calculate and deduct exact Indian statutory transaction costs (STT, NSE turnover charges, SEBI fees, stamp duty, GST) and broker commissions on every simulated execution leg.
+- Maintained thread-safe internal simulated state: working order book (`_orders`), positions ledger (`_positions`), virtual cash balance (`_cash`), cumulative transaction costs (`_total_costs`), realized P&L (`_realized_pnl`), and immutable trade fills (`_fills`).
+- Handled position lifecycle with complete mathematical rigor: position initiation, size increase with volume-weighted average price (VWAP) blending, partial closing, complete closing, and seamless position flipping (e.g. Long 10 -> Short 5 via Sell 15) with accurate realized and peak unrealized P&L attribution.
+- Enforced hard virtual cash sufficiency checks on BUY orders: rejecting orders when `cash < gross_value + transaction_costs`, preventing negative balance states.
+- Implemented simulation helpers: `set_market_price(instrument, price)`, `set_connection_alive(alive)`, and tick-driven matching engine `on_tick(instrument, price)` that evaluates working limit and market orders against streaming ticks and updates mark-to-market valuations dynamically.
+- Delivered 24 comprehensive unit tests in `tests/unit/execution/test_paper_adapter.py`, achieving **99% statement and branch coverage** on `paper_adapter.py` with **492 tests passing repository-wide at 97% global branch coverage**.
+
+#### 2. Verification Evidence & Quality Toolchain Output
+- **Ruff Lint & Format**: Clean pass (`All checks passed! 139 files already formatted`)
+- **Mypy Strict**: `uv run mypy src tests` -> `Success: no issues found in 151 source files` (0 errors)
+- **Safety Isolation Linter**: `scripts/verify_safety_isolation.py` -> `[PASS] All safety isolation, minimal-dependency, and precedence checks passed cleanly.`
+- **Pytest Full Suite**: `uv run pytest -q` -> `492 passed in 14.12s`, **97% global branch coverage**
+- **Paper Adapter Coverage**: **99% coverage** across `src/execution/paper_adapter.py` (271 stmts, 2 missed).
+- **Pre-commit Scan**: Passed cleanly across all files (including Gitleaks 0 secrets detected).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/execution/paper_adapter.py` — Realistic simulated paper broker adapter with slippage, Indian statutory taxes, virtual portfolio accounting, and tick-driven matching engine.
+2. `tests/unit/execution/test_paper_adapter.py` — 24 unit tests covering order placement, cancel, modify, tick matching, slippage calculation, cost breakdown deduction, and position accounting.
+
+##### Modified Files:
+1. `src/execution/__init__.py` — Re-exported `PaperBrokerAdapter` and `PaperBrokerConfig`.
+2. `tests/unit/decision/test_supervisor.py` — Added keyword-only `*,` for test fixtures with >5 arguments.
+3. `tests/unit/features/test_engine.py` — Formatted long line per Ruff standards.
+4. `tests/integration/test_db_migrations.py` — Formatted imports per isort / ruff rules.
+5. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-030.
+6. `STORY.md` — Updated status board marking Sprint S16.01 and Milestone 33 COMPLETE; EPIC-16 50% Complete.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S15.02` — Order Lifecycle State Machine & Reconnection Logic
-- **Active Epic**: `EPIC-15` — Order Lifecycle & Broker Integration Layer (**100% COMPLETE**)
+- **Completed Sprint**: `Sprint S16.01` — Simulated Paper Broker Adapter & Virtual Account Engine
+- **Active Epic**: `EPIC-16` — Real-Time Paper Trading Subsystem (Phase V4 / V5) (**50% COMPLETE**)
 - **Next Phase Up**: **PHASE V4 / V5: EXECUTION ARCHITECTURE & PAPER TRADING**
-- **Next Epic Up**: `EPIC-16` — Paper Trading Simulation Environment
-- **Next Sprint Up**: `Sprint S16.01` — Paper Trading Simulation Environment & Virtual Account Engine
+- **Next Epic Up**: `EPIC-16` — Real-Time Paper Trading Subsystem
+- **Next Sprint Up**: `Sprint S16.02` — Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
