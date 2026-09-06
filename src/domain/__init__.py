@@ -8,6 +8,8 @@ from src.domain.backtest_result import (
     BacktestTrade,
     EquityPoint,
 )
+from src.domain.capital_event import CapitalEvent, CapitalEventType
+from src.domain.capital_state import CapitalState
 from src.domain.decision import Decision, DecisionRecord
 from src.domain.evaluation import TradeEvaluation
 from src.domain.execution import OrderFill, OrderSubmission, Position
@@ -33,11 +35,11 @@ from src.domain.regime import (
 )
 from src.domain.risk import (
     CandidateTrade,
-    CapitalState,
     MarketState,
     RiskCheckResult,
     StreakState,
 )
+from src.domain.scaling_report import CapitalScalingReport, CriterionResult
 from src.domain.validation import (
     ChronologicalSplit,
     MonteCarloSimulationResult,
@@ -60,9 +62,13 @@ __all__ = [
     "BacktestResult",
     "BacktestTrade",
     "CandidateTrade",
+    "CapitalEvent",
+    "CapitalEventType",
+    "CapitalScalingReport",
     "CapitalState",
     "ChronologicalSplit",
     "CorporateAction",
+    "CriterionResult",
     "Decision",
     "DecisionRecord",
     "DirectionalBias",

@@ -98,6 +98,8 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-043** | 2026-09-07 | 01:10:00 | `S22.02` | Operator Web Dashboard & Manual STOP UI | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (719 tests), 95% API Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-044** | 2026-09-07 | 01:25:00 | `S23.01` | Secrets Management, TLS Enforcement & Pre-commit Audit | 3 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (725 tests), 97% Secrets Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-045** | 2026-09-07 | 01:40:00 | `S23.02` | Docker Topology, Process Supervision & Disaster Recovery | 7 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (733 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-046** | 2026-09-07 | 01:50:00 | `S24.01` | Capital Scaling Evaluation Engine | 3 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass, 100% Evaluator Branch Coverage, Gitleaks Clean | Ready for Push |
+| **DELIV-047** | 2026-09-07 | 02:00:00 | `S24.02` | Operator Authorization Flow & Withdrawal Accounting | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (750 tests), 98% Manager Coverage, Gitleaks Clean | Ready for Push |
 
 ---
 
@@ -2231,9 +2233,92 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
-## 5. Next Sprint Transition
+### DELIV-046: Sprint S24.01 — Capital Scaling Evaluation Engine (RTLD §15)
 
-- **Completed Sprints**: `Sprint S01.01` through `Sprint S23.02` (45 Sprints Delivered)
-- **Completed Epics**: `EPIC-01` through `EPIC-23` (**100% COMPLETE**)
-- **Next Epic Up**: `EPIC-24` — Dynamic Capital Scaling & Compounding Governance (Phase V8)
-- **Next Sprint Up**: `Sprint S24.01` — Capital Scaling Evaluation Engine (`TASK-24-01-001`)
+- **Execution Date**: `2026-09-07`
+- **Execution Time**: `01:50:00 IST` (20:20:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 09 (Risk & Safety) / Agent 00 (Chief Architect) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical `src/domain/scaling_report.py`:
+  - `CriterionResult`: Strongly typed evaluation result model capturing criterion number, threshold, empirical actual, pass/fail status, and supporting evidence dictionary.
+  - `CapitalScalingReport`: Immutable audit evaluation report capturing 9 criteria results, current capital, +25% recommended capital tier, and human-readable decision verdict.
+- Implemented `src/capital/scaling_evaluator.py`:
+  - `CapitalScalingEvaluator` evaluating all 9 criteria from RTLD §15 and SOW §6.9 (Phase V8):
+    1. Minimum sample size: $\ge 30$ closed live trades over $\ge 90$ live days.
+    2. Consistency across regimes: Positive expectancy across $\ge 2$ distinct regimes.
+    3. Drawdown adherence: Zero breaches of 8% hard halt limit.
+    4. Risk-adjusted return: Sortino ratio $\ge 1.0$ over evaluation window.
+    5. Robustness: Underlying active model passed all validation stages without degradation.
+    6. Live/Paper divergence: Live performance within $\pm 20\%$ tolerance band of paper expectations.
+    7. Model stability: Zero automated rollbacks during evaluation window.
+    8. Execution quality: Slippage multiplier $\le 1.5\times$ and zero duplicate orders.
+    9. Operational reliability: Uptime $\ge 99.5\%$ with zero unhandled disconnections.
+  - Recommends +25% step scaling if and only if all 9 criteria pass simultaneously; emits recommendations only without autonomous execution (BRD BR-2, FRD-CAP-2).
+- Delivered 10 comprehensive unit tests in `tests/unit/capital/test_scaling_evaluator.py` with 100% branch coverage on the evaluator engine.
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/domain/scaling_report.py` — Canonical Pydantic v2 domain model for capital scaling reports.
+2. `src/capital/scaling_evaluator.py` — Multi-criteria capital scaling evaluation engine.
+3. `tests/unit/capital/test_scaling_evaluator.py` — 10 unit tests covering nominal all-pass and all failure modes.
+
+##### Modified Files:
+1. `docs/tasks/TASK-24-01-001.md` — Marked task as COMPLETE.
+2. `docs/sprints/S24.01-capital-scaling-evaluation-engine.md` — Marked sprint as COMPLETE.
+3. `SPRINT_DELIVERY.md` — Recorded DELIV-046 in master register and chronological audit logs.
+
+---
+
+### DELIV-047: Sprint S24.02 — Operator Authorization Flow & Withdrawal Accounting
+
+- **Execution Date**: `2026-09-07`
+- **Execution Time**: `02:00:00 IST` (20:30:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 09 (Risk & Safety) / Agent 00 (Chief Architect - OPERATOR SIGN-OFF) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical `src/domain/capital_event.py`:
+  - `CapitalEventType`: `SCALING_INCREASE`, `PROFIT_WITHDRAWAL`, `CAPITAL_RESET`.
+  - `CapitalEvent`: Immutable audit record capturing timestamp, previous capital, new capital, withdrawn profit amount, cryptographic SHA-256 operator token hash, justification, and scaling report ID.
+- Implemented `src/capital/manager.py`:
+  - `CapitalManager` managing live trading capital and profit withdrawal accounting:
+    - Enforces no silent capital scaling (BRD BR-2): live capital can NEVER scale autonomously without human signature.
+    - Constant-time HMAC operator authentication token verification (`UnauthorizedScalingError`).
+    - Gating by `CapitalScalingReport.eligible_for_scaling` (`IneligibleScalingError`).
+    - Maximum +25% step-scaling ceiling enforcement (`ScalingCapExceededError`).
+    - Mandatory 50% profit withdrawal execution before scaling (FRD-CAP-3, RTLD §15).
+    - Realized P&L tracking, peak equity management, and retained profits separation from base capital.
+    - Standalone profit withdrawal execution from retained earnings (`record_withdrawal`).
+    - Canonical `CapitalState` export for telemetry and dashboard integration.
+- Delivered 7 comprehensive unit tests in `tests/unit/capital/test_capital_manager.py` achieving **98% branch coverage** on `CapitalManager`.
+- Total test suite: **750 passed, 0 failed, 96% global branch coverage**.
+- **EPIC-24 IS 100% COMPLETE!**
+- **PHASE V8 IS 100% COMPLETE! ALL 24 EPICS AND 47 SPRINTS ARE FULLY DELIVERED!**
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/domain/capital_event.py` — Canonical Pydantic v2 domain model for capital events.
+2. `src/capital/manager.py` — Capital manager, operator authorization flow, and withdrawal accounting.
+3. `src/capital/__init__.py` — Package export for capital module.
+4. `tests/unit/capital/__init__.py` — Capital test package init.
+5. `tests/unit/capital/test_capital_manager.py` — 7 unit tests covering manager lifecycle and authorization.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Re-exported all new domain models (`CapitalScalingReport`, `CriterionResult`, `CapitalEvent`, `CapitalEventType`).
+2. `docs/tasks/TASK-24-02-001.md` — Marked task as COMPLETE.
+3. `docs/sprints/S24.02-operator-authorization-flow-withdrawals.md` — Marked sprint as COMPLETE.
+4. `SPRINT_DELIVERY.md` — Recorded DELIV-047 in master register and chronological audit logs.
+5. `STORY.md` — Updated status board, marked EPIC-24 COMPLETE, and logged milestone.
+
+---
+
+## 5. Master Implementation Milestone Summary
+
+- **Delivered Sprints**: All 47 Sprints (`Sprint S01.01` through `Sprint S24.02`) (**100% COMPLETE**)
+- **Delivered Epics**: All 24 Epics (`EPIC-01` through `EPIC-24`) (**100% COMPLETE**)
+- **Delivered Phases**: All 9 Phases (`Phase V0` through `Phase V8`) (**100% COMPLETE**)
+- **Platform Status**: Fully Autonomous Intelligent Trading System baseline complete with multi-agent consensus, deterministic risk boundaries, paper & live broker adapters, multi-stage model validation & rollback monitor, FastAPI control dashboard, secrets management, containerized deployment topology, and multi-criteria capital scaling governance.

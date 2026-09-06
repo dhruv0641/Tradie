@@ -6,7 +6,10 @@ Adheres to TRD-DR-1, TRD-DATA-5, NFR-REL-6, and TTD §15.
 from __future__ import annotations
 
 import gzip
-from pathlib import Path  # noqa: TCH003
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import pytest
 
