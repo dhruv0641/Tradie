@@ -4,11 +4,10 @@
 |---|---|
 | **Project** | AI Trader — Autonomous Intelligent Trading System |
 | **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V0: Research Foundation** (Capital: ₹0) |
-| **Current Target Gate** | Gate G0 Precondition |
-| **Current Active Sprint** | **Sprint S01.02** — Environment Configuration & Structured Logging Framework |
-| **Current Active Task** | **TASK-01-02-001** — Configure Structured JSON Logging with `structlog` |
+| **Current Target Gate** | Gate G0 Preconditio| **Current Active Sprint** | **Sprint S02.01** — Canonical Pydantic v2 Domain Models |
+| **Current Active Task** | **TASK-02-01-001** — Core Market Data & Candle Models (`OHLCVBar`, `Tick`) |
 | **Last Updated** | 2026-09-06 |
-| **State** | **Ready for Code Execution** (Sprint S01.01 Complete & Delivered) |
+| **State** | **Ready for Code Execution** (Sprint S01.02 Complete & Delivered) |
 
 ---
 
@@ -46,6 +45,11 @@
 - Configured Ruff, Mypy in strict mode, pre-commit secret scanning hooks (`gitleaks`), Pytest test harness with branch coverage, and GitHub Actions CI workflow.
 - Established automated post-sprint delivery protocol and ledger in [SPRINT_DELIVERY.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/SPRINT_DELIVERY.md).
 
+### Milestone 6: Sprint S01.02 Centralized Configuration & Structured Logging (Complete)
+- Implemented `src/utils/logging.py` structured JSON logging engine with contextual correlation IDs and environment-aware console/JSON formatting.
+- Implemented `src/config/models.py` and `src/config/settings.py` with immutable Pydantic v2 settings, `SecretStr` masking, and fail-fast environment separation enforcing TRD-DEPLOY-2.
+- Delivered unit test suites in `tests/unit/test_logging.py` and `tests/unit/test_config.py` achieving 98% coverage.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -55,9 +59,11 @@
 | **Phase V0** | **EPIC-01** | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-001.md) | Python 3.12+ Environment & `pyproject.toml` | **COMPLETE** |
 | Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-002.md) | Ruff, Mypy Strict & Pre-commit Hooks | **COMPLETE** |
 | Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-003.md) | Pytest Framework & GitHub Actions CI | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-001.md) | Structured JSON Logging with `structlog` | **UP NEXT** |
-| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Pydantic v2 Settings Loader & Validation | Queued |
-| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | TASK-02-01-001+ | Canonical Pydantic v2 Domain Models | Queued |
+| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-001.md) | Structured JSON Logging with `structlog` | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Pydantic v2 Settings Loader & Validation | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-001.md) | Core Market Data & Candle Models (`OHLCVBar`, `Tick`) | **UP NEXT** |
+| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-002.md) | Order, Execution & Position Domain Entities | Queued |
+| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-003.md) | Signal & Decision Record Models | Queued |
 
 ---
 
@@ -65,16 +71,17 @@
 
 When the user asks to start:
 
-### If user says `"Start Task 1"` or `"Start TASK-01-02-001"`:
-1. Open [`docs/tasks/TASK-01-02-001.md`](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-001.md).
-2. Implement structured logging wrapper in `src/logging/` with correlation IDs and JSON output.
-3. Write unit tests in `tests/unit/test_logging.py`.
-4. Verify with `uv run pytest tests/unit/test_logging.py`.
+### If user says `"Start Task 1"` or `"Start TASK-02-01-001"`:
+1. Open [`docs/tasks/TASK-02-01-001.md`](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-001.md).
+2. Implement canonical market data models in `src/domain/market_data.py` (`OHLCVBar`, `Tick`, `OrderBookSnapshot`) with strict validation (high >= low, positive volume).
+3. Write unit tests in `tests/unit/domain/test_market_data.py`.
+4. Verify with `uv run pytest tests/unit/domain/test_market_data.py`.
 
-### If user says `"Start Sprint 2"` or `"Start Sprint S01.02"`:
-Execute all tasks in [Sprint S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) in sequence:
-- `TASK-01-02-001`: Structured JSON logging framework.
-- `TASK-01-02-002`: Pydantic-settings configuration loader and environment overrides.
+### If user says `"Start Sprint 3"` or `"Start Sprint S02.01"`:
+Execute all tasks in [Sprint S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) in sequence:
+- `TASK-02-01-001`: Core Market Data & Candle Models.
+- `TASK-02-01-002`: Order, Execution & Position Domain Entities.
+- `TASK-02-01-003`: Signal & Decision Record Models.
 - Execute post-sprint delivery protocol in [SPRINT_DELIVERY.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/SPRINT_DELIVERY.md) and push to `implementation-develop`.
 
 ---
@@ -88,3 +95,4 @@ Execute all tasks in [Sprint S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Des
 | **2026-09-05** | Antigravity Strict Team Agent Setup | `.agents/rules/*`, `.agents/skills/*` | Configured 17-agent team rules, veto authority, TDD enforcement, and architecture guards. |
 | **2026-09-06** | Project Story & State Tracker Created | `STORY.md` | Created live session anchor so any model switch maintains exact project context and state. |
 | **2026-09-06** | Sprint S01.01 Delivered | `pyproject.toml`, `uv.lock`, `ruff.toml`, `mypy.ini`, `.pre-commit-config.yaml`, `pytest.ini`, `tests/*`, `src/*`, `.github/*`, `SPRINT_DELIVERY.md` | Completed Sprint S01.01, passed all strict tests and secret scans, established delivery protocol. |
+| **2026-09-06** | Sprint S01.02 Delivered | `src/utils/*`, `src/config/*`, `.env.example`, `tests/unit/test_logging.py`, `tests/unit/test_config.py`, `SPRINT_DELIVERY.md` | Completed Sprint S01.02, 98% coverage on logging & settings, pushed to implementation-develop. |
