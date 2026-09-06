@@ -71,6 +71,14 @@
 - Authored production CLI script `scripts/ingest_historical.py` (`uv run python -m scripts.ingest_historical`).
 - Delivered unit and integration test suites in `tests/unit/data/` and `tests/integration/` achieving 93% global test coverage with zero warnings.
 
+### Milestone 10: Sprint S03.02 Real-Time WebSocket Streaming Pipeline (Complete)
+- Implemented `CandleAggregator` in `src/data/aggregator.py` assembling streaming ticks into exact Decimal OHLCV bars across multiple concurrent timeframes (`1m`, `5m`, etc.) without dropping ticks (TRD-PIPE-3, FRD-DATA-1).
+- Added `MarketTick` canonical domain model in `src/domain/market_data.py` representing real-time trades with exact Decimal prices, volume, turnover, and best bid/ask.
+- Implemented `WebSocketFeedHandler` in `src/data/streaming.py` with TLS connection management, automated heartbeat ping-pong monitoring, exponential backoff reconnection with jitter, status dispatching (`CONNECTED`, `DISCONNECTED`, `STALE`, `RECONNECTING`), and subscription state preservation.
+- Exported all new modules in `src/data/__init__.py` and `src/domain/__init__.py`.
+- Delivered unit and integration test suites in `tests/unit/data/` achieving 91% global test coverage with zero warnings.
+- **EPIC-03: Market Data Ingestion & Storage Pipelines is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -89,7 +97,8 @@
 | Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
 | Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **COMPLETE** |
 | Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
-| Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **UP NEXT** |
+| Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
+| Phase V0 | **EPIC-04** | [S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **UP NEXT** |
 
 ---
 
@@ -97,11 +106,12 @@
 
 When resuming execution:
 
-### Sprint S03.02: Real-Time WebSocket Streaming Pipeline
-Execute all deliverables for [Sprint S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md):
-- Implement `src/data/streaming.py` (`WebSocketFeedHandler` with TLS, heartbeat monitor, exponential backoff reconnection).
-- Implement `src/data/aggregator.py` (`CandleAggregator` assembling closed 1m/5m bars from tick stream, emitting validation events, and flushing to TimescaleDB buffer).
-- Implement test suite in `tests/unit/data/test_streaming.py`.
+### Sprint S04.01: Data Validation & Sanity Checks
+Execute all deliverables for [Sprint S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md):
+- Implement `DataValidationPipeline` in `src/data/validation.py` verifying price sanity rules ($Low \le Open, Close \le High$, volume $\ge 0$).
+- Implement statistical outlier detection (Z-score / IQR) for tick spikes.
+- Route quarantined invalid records to dead-letter queue / quarantine store.
+- Deliver test suites in `tests/unit/data/test_validation.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -119,3 +129,4 @@ Execute all deliverables for [Sprint S03.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S02.01 Delivered | `src/domain/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.01, 99% coverage on canonical domain entities, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S02.02 Delivered | `src/infrastructure/*`, `alembic/*`, `alembic.ini`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S02.02 & Epic 02, 97% coverage on database & Parquet store, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S03.01 Delivered | `src/data/*`, `scripts/*`, `tests/unit/data/*`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.01, 93% coverage on data adapters & historical loader, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S03.02 Delivered | `src/data/aggregator.py`, `src/data/streaming.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.02 & Epic 03, 91% coverage on streaming pipeline & bar aggregator, pushed to implementation-develop. |

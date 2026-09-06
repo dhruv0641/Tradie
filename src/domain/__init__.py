@@ -9,6 +9,7 @@ from src.domain.market_data import (
     CorporateAction,
     MarketDepthLevel,
     MarketDepthQuote,
+    MarketTick,
     OHLCVCandle,
 )
 
@@ -18,6 +19,7 @@ __all__ = [
     "FeatureSet",
     "MarketDepthLevel",
     "MarketDepthQuote",
+    "MarketTick",
     "ModelVersion",
     "OHLCVCandle",
     "OrderSubmission",

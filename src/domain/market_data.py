@@ -123,3 +123,32 @@ class CorporateAction(BaseModel):
             msg = "Ex-date must be timezone-aware UTC"
             raise ValueError(msg)
         return v
+
+
+class MarketTick(BaseModel):
+    """Immutable real-time market trade tick or top-of-book execution event."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    instrument: str = Field(
+        min_length=1, description="Canonical instrument symbol (e.g. NSE:RELIANCE)"
+    )
+    timestamp: datetime = Field(description="Tick execution timestamp in UTC")
+    last_price: Decimal = Field(gt=Decimal("0"), description="Last traded price")
+    volume: int = Field(ge=0, description="Trade volume for this tick or cumulative volume")
+    turnover: Decimal = Field(
+        default=Decimal("0"),
+        ge=Decimal("0"),
+        description="Turnover for this tick or cumulative turnover",
+    )
+    bid_price: Decimal | None = Field(default=None, gt=Decimal("0"), description="Best bid price")
+    ask_price: Decimal | None = Field(default=None, gt=Decimal("0"), description="Best ask price")
+
+    @field_validator("timestamp")
+    @classmethod
+    def validate_utc_timestamp(cls, v: datetime) -> datetime:
+        """Enforce that timestamp is timezone-aware."""
+        if v.tzinfo is None:
+            msg = "Timestamp must be timezone-aware UTC"
+            raise ValueError(msg)
+        return v
