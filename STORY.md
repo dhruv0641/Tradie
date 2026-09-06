@@ -176,6 +176,15 @@
 - Delivered comprehensive test suites across `tests/unit/agents/` (31 new tests) achieving **100% statement and branch coverage on all four trading agent modules**, raising repository total to **315 passing tests and 96% global coverage**.
 - **EPIC-10: Multi-Agent Signal Generation Roster is now 100% COMPLETE.**
 
+### Milestone 25: Sprint S11.01 Weighted Signal Aggregator & Score Normalization (Complete)
+- Implemented canonical `AggregationResult` Pydantic v2 domain model in `src/domain/aggregation_result.py` per FRD Module 5 (FRD-AGG-1-6), ADD §7, MLD §7, and LLD §8.2 with immutable audit fields (`passed`, `score`, `direction`, `disagreement`, `weighted_score`, `contributing_agents`, `agent_scores`, `agent_weights`, `selected_timeframe`, `reason`, `timestamp`). Validates that `passed=True` requires valid direction, and `passed=False` requires `direction=None`.
+- Implemented `AggregatorConfig` in `src/config/models.py` attached to `AppConfig` and exported in `src/config/__init__.py` with equal baseline weights (0.25 each) and configurable `min_quality_threshold` (0.40).
+- Implemented `SignalAggregator` in `src/aggregation/aggregator.py`:
+  - Dynamically re-normalizes weights among responding agents excluding `NO_VIEW` (FRD-SIG-3).
+  - Computes signed consensus score $S \in [-1.0, 1.0]$, trade quality score $Q = |S| \in [0.0, 1.0]$, and raw disagreement dispersion $\sigma_w = \sqrt{\sum \tilde{w}_i (s_i - S)^2}$ (FRD-AGG-5).
+  - Enforces threshold gating (FRD-AGG-6) with explicit deadlock rejection for equal conflicting conviction.
+- Delivered test suites in `tests/unit/domain/test_aggregation_result.py` and `tests/unit/aggregation/test_aggregator.py` (17 new tests) achieving **100% coverage on both aggregator.py and aggregation_result.py**, raising repository total to **332 passing tests and 96% global coverage**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -209,7 +218,8 @@
 | Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
 | **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
 | Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **COMPLETE** |
-| **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-dynamic-weight-allocation.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Dynamic Weight Engine & Allocation Matrices | **UP NEXT** |
+| **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-weighted-signal-aggregator-score-normalization.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Weighted Signal Aggregator & Score Normalization | **COMPLETE** |
+| Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **UP NEXT** |
 
 ---
 
@@ -217,12 +227,14 @@
 
 When resuming execution:
 
-### Sprint S11.01: Regime-Conditioned Dynamic Weight Allocation Engine
-Execute all deliverables for [Sprint S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-dynamic-weight-allocation.md):
-- Implement `DynamicWeightEngine` in `src/aggregation/weight_engine.py` per ADD §6.3 and MLD §7.1.
-- Define static baseline weight allocation matrices conditioned on 5D market regime states.
-- Enforce simplex constraints: weights non-negative, sum to 1.0, minimum threshold gating.
-- Deliver unit test suites across `tests/unit/aggregation/`.
+### Sprint S11.02: Dynamic Timeframe Intelligence & Disagreement Metric
+Execute all deliverables for [Sprint S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md):
+- Implement `TimeframeSelector` in `src/aggregation/timeframe_selector.py` per LLD §8.3 and ADD §7.3.
+- Evaluate candidate opportunities independently across multiple candidate timeframes.
+- Filter passing timeframes and select optimal candidate by highest trade quality score $Q$.
+- Enforce strict NO TRADE discipline: if no timeframe clears threshold, output NO TRADE (FRD-AGG-4).
+- Preserve raw disagreement dispersion metric $\sigma_w$ in final `AggregationResult`.
+- Deliver unit test suites across `tests/unit/aggregation/test_timeframe_selector.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -255,3 +267,4 @@ Execute all deliverables for [Sprint S11.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S09.02 Delivered (EPIC-09 Complete) | `src/regime/transition.py`, `src/domain/regime.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.02, RegimeTransitionFilter with 2-cycle hysteresis, boundary noise suppression, RegimeTransitionEvent, 269 tests passing, 96% global coverage, EPIC-09 100% complete. |
 | **2026-09-06** | Sprint S10.01 Delivered | `src/domain/agent_signal.py`, `src/agents/base.py`, `src/agents/__init__.py`, `tests/unit/domain/test_agent_signal.py`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.01, TradingAgent protocol, BaseAgent fault-tolerant execution contract with exception safety, AgentSignalOutput model, 284 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S10.02 Delivered (EPIC-10 Complete) | `src/agents/*`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.02, TrendAgent, MomentumAgent, MeanReversionAgent, PriceActionAgent adhering to MLD §6, 315 tests passing, 100% coverage on agent roster, EPIC-10 100% complete. |
+| **2026-09-06** | Sprint S11.01 Delivered | `src/domain/aggregation_result.py`, `src/config/*`, `src/aggregation/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.01, canonical AggregationResult, AggregatorConfig, deterministic SignalAggregator with dynamic weight re-normalization, disagreement dispersion, 332 tests passing, 96% global coverage. |

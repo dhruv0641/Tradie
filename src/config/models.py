@@ -156,6 +156,32 @@ class RegimeConfig(BaseModel):
     )
 
 
+class AggregatorConfig(BaseModel):
+    """Configuration settings for multi-agent signal aggregation and dynamic timeframe selection."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    agent_weights: dict[str, float] = Field(
+        default_factory=lambda: {
+            "trend_agent": 0.25,
+            "momentum_agent": 0.25,
+            "mean_reversion_agent": 0.25,
+            "price_action_agent": 0.25,
+        },
+        description="Initial baseline weighting scheme across the agent roster (MLD §7.1)",
+    )
+    min_quality_threshold: float = Field(
+        default=0.40,
+        ge=0.0,
+        le=1.0,
+        description="Minimum trade quality score Q threshold to pass opportunity (FRD-AGG-6)",
+    )
+    candidate_timeframes: list[str] = Field(
+        default_factory=lambda: ["5m", "15m", "1h"],
+        description="List of candidate timeframes evaluated for dynamic selection (FRD-AGG-3)",
+    )
+
+
 class AppConfig(BaseModel):
     """Master application configuration encapsulating all architectural subsystems."""
 
@@ -174,4 +200,8 @@ class AppConfig(BaseModel):
     )
     regime: RegimeConfig = Field(
         default_factory=RegimeConfig, description="Market regime intelligence settings"
+    )
+    aggregator: AggregatorConfig = Field(
+        default_factory=AggregatorConfig,
+        description="Multi-agent signal aggregation settings",
     )

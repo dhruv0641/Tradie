@@ -73,6 +73,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-018** | 2026-09-06 | 17:25:00 | `S09.02` | Regime Transition Detection & Hysteresis Filtering | 2 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (269 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-019** | 2026-09-06 | 17:35:00 | `S10.01` | Trading Agent Interface & Normalized Output Contract | 6 new / 1 modified | Ruff Clean, Mypy Strict, 100% Test Pass (284 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-020** | 2026-09-06 | 17:45:00 | `S10.02` | Rule-Based Agent Roster Implementation | 8 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (315 tests), 96% Global Coverage (100% on agents), Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-021** | 2026-09-06 | 17:55:00 | `S11.01` | Weighted Signal Aggregator & Score Normalization | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (332 tests), 96% Global Coverage (100% on aggregator), Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 
 
@@ -1033,11 +1034,58 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-021: Sprint S11.01 — Weighted Signal Aggregator & Score Normalization
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `17:55:00 IST` (12:25:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 06 (AI Architecture) / Agent 03 (Quant) / Agent 09 (Risk & Safety) / Agent 14 (QA)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical `AggregationResult` Pydantic v2 domain model in `src/domain/aggregation_result.py` per FRD Module 5 (FRD-AGG-1-6), ADD §7, MLD §7, and LLD §8.2:
+  - Strongly typed, immutable audit container capturing `passed`, trade quality score `score` $Q \in [0.0, 1.0]$, `direction` (`BUY`, `SELL`, or `None`), raw disagreement dispersion `disagreement` $\sigma_w \ge 0.0$, signed consensus score `weighted_score` $S \in [-1.0, 1.0]$, `contributing_agents`, `agent_scores`, `agent_weights`, `selected_timeframe`, and diagnostic `reason`.
+  - Invariant validator: `passed=True` strictly requires valid direction (`BUY`/`SELL`), and `passed=False` strictly requires `direction=None` (`NO_TRADE`).
+  - Exported in `src/domain/__init__.py`.
+- Added `AggregatorConfig` in `src/config/models.py` attached to `AppConfig` and exported in `src/config/__init__.py` with default equal weighting (0.25 Trend, 0.25 Momentum, 0.25 Mean-Reversion, 0.25 Price Action) and configurable `min_quality_threshold` (default 0.40).
+- Implemented `SignalAggregator` in `src/aggregation/aggregator.py`:
+  - Dynamically re-normalizes weights among responding agents (excluding `NO_VIEW` and invalid signals per FRD-SIG-3).
+  - Computes signed consensus score $S \in [-1.0, 1.0]$ and trade quality score $Q = |S| \in [0.0, 1.0]$.
+  - Computes weighted population standard deviation disagreement metric $\sigma_w = \sqrt{\sum \tilde{w}_i (s_i - S)^2}$ (FRD-AGG-5).
+  - Enforces minimum quality threshold gating (FRD-AGG-6). Opposing equal convictions resulting in net zero score trigger explicit deadlock rejection.
+  - Exported in `src/aggregation/__init__.py`.
+- Delivered comprehensive test suites in `tests/unit/domain/test_aggregation_result.py` and `tests/unit/aggregation/test_aggregator.py` (17 new tests) achieving **100% statement and branch coverage on both aggregator.py and aggregation_result.py**, raising repository total to **332 passing tests and 96% global coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `101 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 113 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `332 passed in 13.13s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage with 100% branch coverage on `SignalAggregator` and `AggregationResult`.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/aggregation_result.py` — Canonical Pydantic v2 AggregationResult domain model.
+2. `src/aggregation/__init__.py` — Package initialization exporting SignalAggregator.
+3. `src/aggregation/aggregator.py` — Deterministic weighted voting aggregator and trade quality scoring engine.
+4. `tests/unit/domain/test_aggregation_result.py` — Unit tests for AggregationResult domain validation and immutability.
+5. `tests/unit/aggregation/test_aggregator.py` — Unit tests for weighted consensus, missing agent re-normalization, disagreement dispersion, and quality gates.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported AggregationResult.
+2. `src/config/models.py` — Added AggregatorConfig and attached to AppConfig.
+3. `src/config/__init__.py` — Exported AggregatorConfig and RegimeConfig.
+4. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-021.
+5. `STORY.md` — Updated status board marking Sprint S11.01 and Milestone 25 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S10.02` — Rule-Based Agent Roster Implementation
-- **Completed Epic**: `EPIC-10` — Multi-Agent Signal Generation Engine (100% Complete)
+- **Completed Sprint**: `Sprint S11.01` — Weighted Signal Aggregator & Score Normalization
+- **Active Epic**: `EPIC-11` — Signal Aggregation & Dynamic Timeframe Selection (In Progress)
 - **Active Phase**: **PHASE V2: AUTONOMOUS AI TRADING BRAIN**
-- **Next Epic Up**: `EPIC-11` — Multi-Agent Signal Aggregation & Conflict Resolution Engine
-- **Next Sprint Up**: `Sprint S11.01` — Regime-Conditioned Dynamic Weight Allocation Engine ([docs/sprints/S11.01-dynamic-weight-allocation.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-dynamic-weight-allocation.md))
-- **Next Task Up**: `TASK-11-01-001` — Implement Dynamic Weight Engine
+- **Next Sprint Up**: `Sprint S11.02` — Dynamic Timeframe Intelligence & Disagreement Metric ([docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md))
+- **Next Task Up**: `TASK-11-02-001` — Implement Disagreement Metric and Dynamic Timeframe Selector
