@@ -372,6 +372,18 @@
   - Created standalone Docker container `docker/Dockerfile.research` with non-privileged `researcher` user and read-only environment.
   - Delivered 12 unit tests and 2 integration tests achieving **94% line coverage** on `environment.py` and bringing global suite to **628 passed tests**.
 
+### Milestone 40: RL Sandboxed Training Environment (Sprint S19.02 — EPIC-19 100% Complete)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented Gymnasium-compliant `TradingEnv` in `src/research/rl/environment.py` with `DiscreteSpace` and `BoxSpace` spaces.
+  - Constrained action space strictly to `AgentSignalOutput` ($[0, 1]$ confidence and direction) with zero access to risk engine or position sizing.
+  - Implemented `MultiFactorRewardCalculator` in `src/research/rl/reward.py` incorporating net return, quadratic peak-to-trough drawdown penalty, rolling return volatility penalty, transaction cost drag (via `CostModel`), execution slippage drag, action churn penalty, and consistency bonus per FRD-LEARN-9 and ADD §11.
+  - Added architectural fail-stop boundary isolation guards: `can_place_live_orders() == False`, `attempt_order_placement()` and `attempt_position_mutation()` raise `ResearchIsolationError`.
+  - Delivered 15 unit tests in `tests/unit/research/test_rl_environment.py` achieving **97% branch coverage** on `environment.py` and **100%** on `reward.py`.
+  - Full test suite: **643 passed, 0 failed, 95% global branch coverage**.
+  - **EPIC-19 IS 100% COMPLETE!**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -424,7 +436,9 @@
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-001](docs/tasks/TASK-18-02-001.md) | `StartupReconciler` Safe-State Startup Gate | **COMPLETE** |
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-002](docs/tasks/TASK-18-02-02.md) | Deploy Phase V5 Autonomous Risk-Controlled Live Trading | **COMPLETE** |
 | **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **COMPLETE** |
-| Phase V6 | EPIC-19 | [S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md) | [TASK-19-02-001](docs/tasks/TASK-19-02-001.md) | Implement Gymnasium Trading Environment & Reward Function | **UP NEXT** |
+| Phase V6 | EPIC-19 | [S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md) | [TASK-19-02-001](docs/tasks/TASK-19-02-001.md) | Implement Gymnasium Trading Environment & Reward Function | **COMPLETE** |
+| **Phase V6** | **EPIC-20** | [S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md) | [TASK-20-01-001](docs/tasks/TASK-20-01-001.md) | Multi-Trade Variance Driver Pattern Extraction | **UP NEXT** |
+| Phase V6 | EPIC-20 | [S20.02](docs/sprints/S20.02-scoped-hypothesis-candidate-generation.md) | [TASK-20-02-001](docs/tasks/TASK-20-02-001.md) | Scoped Hypothesis & Candidate Generation Workflow | Pending |
 
 ---
 
@@ -432,11 +446,11 @@
 
 When resuming execution:
 
-### Sprint S19.02: RL Sandboxed Training Environment (Optional)
-Execute all deliverables for [Sprint S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md):
-- Implement Gymnasium-compliant `TradingEnv` in `src/research/rl/environment.py`.
-- Implement `MultiFactorRewardCalculator` in `src/research/rl/reward.py` with drawdown, volatility, and transaction cost penalties.
-- Constrain action space strictly to `AgentSignalOutput` ($[0, 1]$ confidence and direction) with zero access to risk engine or sizing.
+### Sprint S20.01: Multi-Trade Variance Driver Pattern Extraction
+Execute all deliverables for [Sprint S20.01](docs/sprints/S20.01-multi-trade-variance-driver-pattern-extraction.md):
+- Implement canonical `ObservedPattern` entity in `src/domain/pattern.py`.
+- Implement `PatternExtractionEngine` in `src/research/pattern_detector.py` aggregating `TradeEvaluation` and `DecisionRecord` rows.
+- Enforce $\ge 30$ trade sample threshold and detect statistically significant failure clusters by regime, agent, and variance driver.
 - Deliver unit tests with $\ge 80\%$ line coverage and run `.\scripts\deliver_sprint.ps1`.
 
 ---
@@ -484,3 +498,5 @@ Execute all deliverables for [Sprint S19.02](docs/sprints/S19.02-rl-sandboxed-tr
 | **2026-09-06** | Sprint S17.02 Delivered (EPIC-17 Complete) | `src/audit/*`, `src/domain/evaluation.py`, `src/core/runner.py`, `scripts/explain_decision.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S17.02, TradeEvaluator with Indian cost drag attribution, 9 variance categories, DecisionExplainer with CLI query interface, 586 tests passing, EPIC-17 100% complete. |
 | **2026-09-06** | Sprint S18.01 Delivered | `docs/compliance/*`, `scripts/verify_live_preconditions.py`, `src/config/models.py`, `src/execution/live_broker_adapter.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S18.01, SEBI compliance review, SOW §9 preconditions verifier, production LiveBrokerAdapter with TLS and masked secrets, 17 unit tests. |
 | **2026-09-06** | Sprint S18.02 Delivered (EPIC-18 Complete) | `src/execution/reconciliation.py`, `src/core/runner.py`, `scripts/run_live_trader.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S18.02, StartupReconciler safe-state gate with auto-halt on discrepancy, live trading runner on ₹10k capital, 614 tests passing at 95% coverage, EPIC-18 100% complete. |
+| **2026-09-06** | Sprint S19.01 Delivered | `src/research/environment.py`, `docker/Dockerfile.research`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S19.01, ResearchBrainEnvironment physical isolation, AST isolation checker, credential scrubbing, 628 tests passing. |
+| **2026-09-06** | Sprint S19.02 Delivered (EPIC-19 Complete) | `src/research/rl/*`, `tests/unit/research/test_rl_environment.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S19.02, Gymnasium-compliant TradingEnv, MultiFactorRewardCalculator, action space constrained to AgentSignalOutput, 643 tests passing, EPIC-19 100% complete. |
