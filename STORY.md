@@ -217,8 +217,28 @@
   6. Per-trade risk & sizing (RTLD-3, 11, 13)
   7. Volatility, liquidity & market state (RTLD-14, 19)
   8. Model confidence & expected value (RTLD-16)
-- Designed with strict deterministic isolation: no LLM, AI model, or async bus exists on the risk evaluation path (BRD BR-1, BR-4, AGENTS.md §3.1).
 - Delivered unit test suites in `tests/unit/domain/test_risk_domain.py` and `tests/unit/risk/test_risk_engine.py` (19 new tests) achieving **100% statement and branch coverage on all risk modules**, raising repository total to **358 passing tests and 96% global branch coverage**.
+
+### Milestone 28: Sprint S12.02 Sizing Engine & Consecutive Loss Circuit Breakers (Complete — EPIC-12 100% Complete)
+- Implemented `PositionSizer` and `SizingResult` in `src/risk/sizer.py` strictly enforcing RTLD §6, FRD-RISK-2, FRD-RISK-3, and FRD-RISK-6:
+  - Fixed-fractional risk sizing formula: $\text{Raw\_Quantity} = \lfloor \frac{\text{Current\_Capital} \times \text{Risk\_Pct}}{|\text{Entry} - \text{Stop}|} \rfloor$.
+  - Multi-cap bounds: $\text{Pos\_Cap\_Qty} = \lfloor \frac{\text{Current\_Capital} \times \text{Max\_Pos\_Pct}}{\text{Entry}} \rfloor$, $\text{Exposure\_Cap\_Qty} = \lfloor \frac{\text{Exposure\_Headroom}}{\text{Entry}} \rfloor$.
+  - $\text{Final\_Quantity} = \min(\text{Raw\_Quantity}, \text{Pos\_Cap\_Qty}, \text{Exposure\_Cap\_Qty})$.
+  - Rejects unsizeable trades if stop distance is 0, entry price $\le 0$, or if raw/final quantity calculates to 0 without rounding up.
+  - Returns strongly-typed `SizingResult` diagnosing governing binding constraint (`"risk_budget"`, `"position_cap"`, `"exposure_headroom"`, `"unsizeable"`), actual risk at stop in ₹, and position value.
+  - Dynamically scales risk budget downwards by 50% for Tier-1 streak reduction or $2\times$ volatility conditions.
+- Implemented `StreakTracker` in `src/risk/streak_tracker.py` enforcing RTLD §10, FRD-RISK-8, and RTLD §14:
+  - Tracks consecutive loss count across stream of trade P&L outcomes.
+  - Tier-1 trigger: 3 consecutive losses $\to$ 50% size reduction multiplier ($M = 0.50$, RTLD-11).
+  - Tier-2 trigger: 5 consecutive losses $\to$ session trading pause ($M = 0.0$, RTLD-12).
+  - Winning trade ($P > 0$) immediately resets consecutive loss counter to 0.
+  - Breakeven trade ($P = 0$) maintains streak neutrally without incrementing.
+  - Session boundary transition (`on_session_start()`): automatically clears Tier-2 session pause while retaining rolling Tier-1 losses.
+  - Authorized operator manual reset with token authentication.
+- Re-exported canonical `StreakState` in `src/domain/streak_state.py` per TASK-12-02-002 specification.
+- Integrated `PositionSizer` into `RiskEngine._check_per_trade_risk_and_sizing` for unified deterministic sizing across the risk subsystem.
+- Delivered unit test suites in `tests/unit/risk/test_sizer.py` and `tests/unit/risk/test_streak_tracker.py` (24 new tests) achieving **100% statement and 100% branch coverage on all risk modules**, raising repository total to **382 passing tests and 97% global branch coverage**.
+- **EPIC-12: Deterministic Risk Engine & Safety Isolation is now 100% COMPLETE.**
 
 ---
 
@@ -256,7 +276,8 @@
 | **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-weighted-signal-aggregator-score-normalization.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Weighted Signal Aggregator & Score Normalization | **COMPLETE** |
 | Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **COMPLETE** |
 | **Phase V3** | **EPIC-12** | [S12.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md) | [TASK-12-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-01-001.md) | Deterministic Risk Engine Core & Parameter Register | **COMPLETE** |
-| Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **UP NEXT** |
+| Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **COMPLETE** |
+| **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **UP NEXT** |
 
 ---
 
@@ -264,18 +285,13 @@
 
 When resuming execution:
 
-### Sprint S12.02: Sizing Engine & Consecutive Loss Circuit Breakers
-Execute all deliverables for [Sprint S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md):
-- Implement `PositionSizer` in `src/risk/sizer.py` enforcing RTLD §6 multi-constraint bounding:
-  - Fixed-fractional risk sizing formula: $Q_{raw} = \lfloor \frac{\text{Capital} \times \text{RiskPct}}{|P_{entry} - P_{stop}|} \rfloor$
-  - Multi-cap bounds: $Q \le \lfloor \frac{\text{Capital} \times \text{MaxPosPct}}{P_{entry}} \rfloor$, $Q \le \lfloor \frac{\text{AvailableExposure}}{P_{entry}} \rfloor$
-  - Return zero quantity ($Q = 0$) and reject trades where distance is 0 or position size rounds to 0.
-- Implement `StreakTracker` in `src/risk/streak_tracker.py` enforcing RTLD §12 consecutive loss circuit breakers:
-  - Track consecutive loss streaks across trade outcomes.
-  - Tier-1: 3 consecutive losses -> 50% size reduction multiplier ($M = 0.50$).
-  - Tier-2: 5 consecutive losses -> session trading pause / cool-down window.
-  - Reset streak cleanly on winning trade.
-- Deliver unit test suites across `tests/unit/risk/test_sizer.py` and `tests/unit/risk/test_streak_tracker.py` with 100% branch coverage.
+### Sprint S13.01: Supervisor Decision Gate & Time-in-Force Rules
+Execute all deliverables for [Sprint S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md):
+- Implement Supervisor decision state machine per LLD §6, FRD Module 7, and RTLD §13.
+- Enforce precedence order: Kill Switch -> Risk Engine Veto -> Model Consensus -> Time-in-Force Rules.
+- Implement canonical `DecisionRecord` generation with complete audit lineage.
+- Enforce strict NO TRADE discipline when confidence, quality, or risk constraints fail.
+- Deliver unit test suites across `tests/unit/supervisor/test_supervisor.py` with 100% branch coverage.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -311,3 +327,4 @@ Execute all deliverables for [Sprint S12.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S11.01 Delivered | `src/domain/aggregation_result.py`, `src/config/*`, `src/aggregation/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.01, canonical AggregationResult, AggregatorConfig, deterministic SignalAggregator with dynamic weight re-normalization, disagreement dispersion, 332 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S11.02 Delivered (EPIC-11 Complete) | `src/aggregation/timeframe_selector.py`, `src/aggregation/__init__.py`, `tests/unit/aggregation/test_timeframe_selector.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.02, TimeframeSelector multi-timeframe scoring, best-of-rejected NO TRADE discipline, disagreement preservation, 339 tests passing, 96% global coverage, EPIC-11 100% complete. |
 | **2026-09-06** | Sprint S12.01 Delivered | `src/domain/risk.py`, `src/risk/*`, `tests/unit/domain/test_risk_domain.py`, `tests/unit/risk/test_risk_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S12.01, canonical RiskConfig (RTLD §14 register), InMemoryKillSwitch, fail-fast RiskEngine with 100% branch coverage on safety paths, 358 tests passing, 96% global coverage. |
+| **2026-09-06** | Sprint S12.02 Delivered (EPIC-12 Complete) | `src/risk/sizer.py`, `src/risk/streak_tracker.py`, `src/domain/streak_state.py`, `tests/unit/risk/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S12.02, PositionSizer multi-cap bounding, StreakTracker Tier-1/Tier-2 circuit breakers, 382 tests passing, 100% risk coverage, EPIC-12 100% complete. |

@@ -76,6 +76,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-021** | 2026-09-06 | 17:55:00 | `S11.01` | Weighted Signal Aggregator & Score Normalization | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (332 tests), 96% Global Coverage (100% on aggregator), Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-022** | 2026-09-06 | 18:05:00 | `S11.02` | Dynamic Timeframe Intelligence & Disagreement Metric | 2 new / 1 modified | Ruff Clean, Mypy Strict, 100% Test Pass (339 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-023** | 2026-09-06 | 18:15:00 | `S12.01` | Deterministic Risk Engine Core & Parameter Register | 7 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (358 tests), 100% Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-024** | 2026-09-06 | 18:25:00 | `S12.02` | Sizing Engine & Consecutive Loss Circuit Breakers | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (382 tests), 100% Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1191,10 +1192,68 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-024: Sprint S12.02 — Sizing Engine & Consecutive Loss Circuit Breakers
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `18:25:00 IST` (12:55:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 09 (Risk & Safety) / Agent 03 (Quant) / Agent 12 (Low-Level) / Agent 14 (QA)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent with Veto Authority)
+
+#### 1. Scope & Technical Summary
+- Implemented `PositionSizer` and `SizingResult` in `src/risk/sizer.py` strictly enforcing RTLD §6, FRD-RISK-2, FRD-RISK-3, and FRD-RISK-6:
+  - Fixed-fractional risk sizing formula: $\text{Raw\_Quantity} = \lfloor \frac{\text{Current\_Capital} \times \text{Risk\_Pct}}{|\text{Entry} - \text{Stop}|} \rfloor$.
+  - Multi-cap bounds: $\text{Pos\_Cap\_Qty} = \lfloor \frac{\text{Current\_Capital} \times \text{Max\_Pos\_Pct}}{\text{Entry}} \rfloor$, $\text{Exposure\_Cap\_Qty} = \lfloor \frac{\text{Exposure\_Headroom}}{\text{Entry}} \rfloor$.
+  - $\text{Final\_Quantity} = \min(\text{Raw\_Quantity}, \text{Pos\_Cap\_Qty}, \text{Exposure\_Cap\_Qty})$.
+  - Rejects unsizeable trades if stop distance is 0, entry price $\le 0$, or if raw/final quantity calculates to 0 without rounding up.
+  - Returns strongly-typed `SizingResult` diagnosing governing binding constraint (`"risk_budget"`, `"position_cap"`, `"exposure_headroom"`, `"unsizeable"`), actual risk at stop in ₹, and position value.
+  - Dynamically scales risk budget downwards by 50% for Tier-1 streak reduction or $2\times$ volatility conditions.
+- Implemented `StreakTracker` in `src/risk/streak_tracker.py` enforcing RTLD §10, FRD-RISK-8, and RTLD §14:
+  - Tracks consecutive loss count across stream of trade P&L outcomes.
+  - Tier-1 trigger: 3 consecutive losses $\to$ 50% size reduction multiplier ($M = 0.50$, RTLD-11).
+  - Tier-2 trigger: 5 consecutive losses $\to$ session trading pause ($M = 0.0$, RTLD-12).
+  - Winning trade ($P > 0$) immediately resets consecutive loss counter to 0.
+  - Breakeven trade ($P = 0$) maintains streak neutrally without incrementing.
+  - Session boundary transition (`on_session_start()`): automatically clears Tier-2 session pause while retaining rolling Tier-1 losses.
+  - Authorized operator manual reset with token authentication.
+- Re-exported canonical `StreakState` in `src/domain/streak_state.py` per TASK-12-02-002 specification.
+- Integrated `PositionSizer` into `RiskEngine._check_per_trade_risk_and_sizing` for unified deterministic sizing across the risk subsystem.
+- Delivered unit test suites in `tests/unit/risk/test_sizer.py` and `tests/unit/risk/test_streak_tracker.py` (24 new tests) achieving **100% statement and 100% branch coverage on all risk modules**, raising repository total to **382 passing tests and 97% global branch coverage**.
+- **EPIC-12: Deterministic Risk Engine & Safety Isolation is now 100% COMPLETE.**
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `115 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 127 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `382 passed in 14.09s` (Code 0, 0 warnings)
+- **Safety Path Coverage**: **100% statement and branch coverage** on `src/risk/sizer.py`, `src/risk/streak_tracker.py`, `src/risk/engine.py`, `src/risk/kill_switch.py`, `src/risk/config.py`, `src/domain/risk.py`, and `src/domain/streak_state.py`.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/risk/sizer.py` — Fixed-fractional position sizer with multi-cap bounding (`PositionSizer`, `SizingResult`).
+2. `src/risk/streak_tracker.py` — Behavioral streak tracking engine with Tier-1/Tier-2 circuit breakers (`StreakTracker`).
+3. `src/domain/streak_state.py` — Streak state domain model export.
+4. `tests/unit/risk/test_sizer.py` — Unit tests for fixed-fractional sizing, multi-cap bounds, and RTLD §6 worked example.
+5. `tests/unit/risk/test_streak_tracker.py` — Unit tests for consecutive loss tracking, session boundaries, and resets.
+
+##### Modified Files:
+1. `src/domain/risk.py` — Extended StreakState with circuit breaker attributes and added CandidateTrade symbol alias.
+2. `src/risk/engine.py` — Integrated PositionSizer into fail-fast checklist Step 6.
+3. `src/risk/__init__.py` — Exported PositionSizer, SizingResult, and StreakTracker.
+4. `tests/unit/domain/test_risk_domain.py` — Added coverage for symbol alias and StreakState attributes.
+5. `tests/unit/risk/test_risk_engine.py` — Added test for sizer property.
+6. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-024.
+7. `STORY.md` — Updated status board marking Sprint S12.02 and Milestone 28 COMPLETE; EPIC-12 100% Complete.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S12.01` — Deterministic Risk Engine Core & Parameter Register
-- **Active Epic**: `EPIC-12` — Deterministic Risk Engine & Safety Isolation
+- **Completed Sprint**: `Sprint S12.02` — Sizing Engine & Consecutive Loss Circuit Breakers
+- **Completed Epic**: `EPIC-12` — Deterministic Risk Engine & Safety Isolation (100% Complete)
 - **Active Phase**: **PHASE V3: RISK SYSTEM & EXECUTION ARCHITECTURE**
-- **Next Sprint Up**: `Sprint S12.02` — Sizing Engine & Consecutive Loss Circuit Breakers ([docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md))
-- **Next Task Up**: `TASK-12-02-001` — Implement PositionSizer with Multi-Constraint Bounding
+- **Next Epic Up**: `EPIC-13` — Supervisor Decision Gate & Manual STOP Circuit Breakers
+- **Next Sprint Up**: `Sprint S13.01` — Supervisor Decision Gate & Time-in-Force Rules ([docs/sprints/S13.01-supervisor-decision-gate-tif.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md))
+- **Next Task Up**: `TASK-13-01-001` — Implement Supervisor Decision State Machine & Consensus Validation

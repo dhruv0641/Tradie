@@ -7,11 +7,16 @@ from src.risk.kill_switch import (
     KillSwitchProtocol,
     TriggerSource,
 )
+from src.risk.sizer import PositionSizer, SizingResult
+from src.risk.streak_tracker import StreakTracker
 
 __all__ = [
     "InMemoryKillSwitch",
     "KillSwitchProtocol",
+    "PositionSizer",
     "RiskConfig",
     "RiskEngine",
+    "SizingResult",
+    "StreakTracker",
     "TriggerSource",
 ]

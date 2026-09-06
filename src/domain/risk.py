@@ -26,6 +26,11 @@ class CandidateTrade(BaseModel):
     )
     timestamp: datetime = Field(description="Timestamp in UTC")
 
+    @property
+    def symbol(self) -> str:
+        """Alias for instrument trading symbol."""
+        return self.instrument
+
     @field_validator("timestamp")
     @classmethod
     def validate_utc_timestamp(cls, v: datetime) -> datetime:
@@ -95,6 +100,18 @@ class StreakState(BaseModel):
 
     consecutive_losses: int = Field(
         default=0, ge=0, description="Count of consecutive losing trades"
+    )
+    is_tier1_active: bool = Field(
+        default=False, description="True if Tier-1 50% size reduction is triggered"
+    )
+    is_tier2_active: bool = Field(
+        default=False, description="True if Tier-2 session pause is triggered"
+    )
+    session_paused: bool = Field(
+        default=False, description="True if session trading is currently paused due to streak"
+    )
+    last_trade_pnl: Decimal | None = Field(
+        default=None, description="P&L of most recent completed trade"
     )
 
 

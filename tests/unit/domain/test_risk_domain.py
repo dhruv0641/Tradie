@@ -13,6 +13,7 @@ from src.domain.risk import (
     RiskCheckResult,
     StreakState,
 )
+from src.domain.streak_state import StreakState as ReexportedStreakState
 
 
 def test_candidate_trade_valid_buy() -> None:
@@ -30,6 +31,7 @@ def test_candidate_trade_valid_buy() -> None:
         timestamp=now,
     )
     assert trade.instrument == "RELIANCE"
+    assert trade.symbol == "RELIANCE"
     assert trade.direction == "BUY"
     assert trade.entry_price == Decimal("2500.00")
     assert trade.stop_price == Decimal("2450.00")
@@ -141,8 +143,18 @@ def test_capital_state_validation() -> None:
 
 def test_streak_and_market_state() -> None:
     """Test StreakState and MarketState instantiation."""
-    streak = StreakState(consecutive_losses=2)
+    streak = StreakState(
+        consecutive_losses=2,
+        is_tier1_active=False,
+        is_tier2_active=False,
+        session_paused=False,
+        last_trade_pnl=Decimal("-50.00"),
+    )
     assert streak.consecutive_losses == 2
+    assert streak.last_trade_pnl == Decimal("-50.00")
+
+    streak_reexport = ReexportedStreakState(consecutive_losses=0)
+    assert streak_reexport.consecutive_losses == 0
 
     mkt = MarketState(
         instrument="SBIN",

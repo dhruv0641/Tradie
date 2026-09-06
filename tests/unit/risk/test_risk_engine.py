@@ -492,3 +492,9 @@ def test_check_per_trade_undefined_stop(
     assert res.failed_check == "undefined_stop"
     assert res.rtld_param_id == "RTLD-3"
     assert qty == 0
+
+
+def test_risk_engine_sizer_property(risk_engine: RiskEngine) -> None:
+    """Verify sizer property returns initialized PositionSizer."""
+    assert risk_engine.sizer is not None
+    assert risk_engine.sizer.config == risk_engine.config

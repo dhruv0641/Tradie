@@ -14,6 +14,7 @@ from src.domain.risk import (
 )
 from src.risk.config import RiskConfig
 from src.risk.kill_switch import KillSwitchProtocol
+from src.risk.sizer import PositionSizer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,9 +29,16 @@ class RiskEngine:
         self,
         config: RiskConfig,
         kill_switch: KillSwitchProtocol,
+        sizer: PositionSizer | None = None,
     ) -> None:
         self._config = config
         self._kill_switch = kill_switch
+        self._sizer = sizer or PositionSizer(config)
+
+    @property
+    def sizer(self) -> PositionSizer:
+        """Return position sizer instance."""
+        return self._sizer
 
     @property
     def config(self) -> RiskConfig:
@@ -228,58 +236,27 @@ class RiskEngine:
                 0,
             )
 
-        risk_pct = self._config.max_risk_per_trade_pct
-        if streak.consecutive_losses >= self._config.consec_loss_reduce_trigger:
-            risk_pct = risk_pct * Decimal("0.5")
-
-        if (
-            market.trailing_20session_avg_volatility > Decimal("0")
-            and market.current_volatility
-            > market.trailing_20session_avg_volatility * self._config.vol_reduce_multiple
-        ):
-            risk_pct = risk_pct * Decimal("0.5")
-
-        risk_budget = capital.current_capital * risk_pct
-        raw_qty = int(risk_budget // stop_distance)
-        if raw_qty <= 0:
-            msg = (
-                f"risk budget ₹{risk_budget:.2f} cannot purchase 1 unit "
-                f"at stop distance ₹{stop_distance:.2f}"
-            )
+        sizing = self._sizer.calculate(candidate, capital, streak, market)
+        if not sizing.approved:
+            if sizing.binding_constraint == "unsizeable":
+                failed_check = "unsizeable_trade"
+                rtld_id = "RTLD-3"
+            else:
+                failed_check = "position_exposure_headroom_zero"
+                rtld_id = "RTLD-7"
             return (
                 RiskCheckResult(
                     passed=False,
-                    failed_check="unsizeable_trade",
-                    rtld_param_id="RTLD-3",
-                    reason=msg,
+                    failed_check=failed_check,
+                    rtld_param_id=rtld_id,
+                    reason=sizing.reason.lower(),
                     config_version=self._config.version,
                     approved_quantity=0,
                 ),
                 0,
             )
 
-        max_pos_value = capital.current_capital * self._config.max_position_size_pct
-        pos_cap_qty = int(max_pos_value // candidate.entry_price)
-
-        max_exposure = capital.current_capital * self._config.max_portfolio_exposure_pct
-        exposure_headroom = max(Decimal("0"), max_exposure - capital.currently_deployed)
-        exposure_cap_qty = int(exposure_headroom // candidate.entry_price)
-
-        final_qty = min(raw_qty, pos_cap_qty, exposure_cap_qty)
-        if final_qty <= 0:
-            return (
-                RiskCheckResult(
-                    passed=False,
-                    failed_check="position_exposure_headroom_zero",
-                    rtld_param_id="RTLD-7",
-                    reason="exposure headroom or single position cap prevents purchasing 1 unit",
-                    config_version=self._config.version,
-                    approved_quantity=0,
-                ),
-                0,
-            )
-
-        return None, final_qty
+        return None, sizing.final_quantity
 
     def _check_volatility_liquidity_market(self, market: MarketState) -> RiskCheckResult | None:
         """Check 7: Market condition, data staleness, and volatility (RTLD-14, RTLD-19)."""
