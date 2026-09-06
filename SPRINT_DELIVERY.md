@@ -59,6 +59,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-004** | 2026-09-06 | 15:05:00 | `S02.02` | PostgreSQL / TimescaleDB DDL & Parquet Archive | 10 new files | Ruff Clean, Mypy Strict, 97% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-005** | 2026-09-06 | 15:15:00 | `S03.01` | Market Data Adapter Interface & Historical Ingestion | 7 new / 2 modified | Ruff Clean, Mypy Strict, 93% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-006** | 2026-09-06 | 15:25:00 | `S03.02` | Real-Time WebSocket Streaming Pipeline | 3 new / 4 modified | Ruff Clean, Mypy Strict, 91% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-007** | 2026-09-06 | 15:35:00 | `S04.01` | Data Validation Rules & Physical Sanity Checks | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Validator, 92% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -341,9 +342,52 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-007: Sprint S04.01 — Data Validation Rules & Physical Sanity Checks
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `15:35:00 IST` (10:05:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 04 (Data Engineering) / Agent 09 (Risk & Safety)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `DataValidationPipeline` in `src/data/validator.py` strictly enforcing physical market data integrity rules per FRD-DATA-6, DDD §7, and NFR-DATA-2:
+  - Price Positivity & Bounding: $High \ge Low > 0$, $Low \le Open \le High$, $Low \le Close \le High$.
+  - Non-Negativity: $Volume \ge 0$, $Turnover \ge 0$, optional non-zero volume enforcement.
+  - Series Monotonicity & Identity: $Timestamp_{curr} > Timestamp_{prev}$, consistent symbol, matching timeframe.
+  - Single-Bar Jump Filter (FRD-DATA-7): Outlier spike detection flagging single-period jumps exceeding `max_price_jump_pct` (default 20%).
+- Implemented `ValidationResult` immutable Pydantic v2 model capturing `passed: bool`, `status: Literal["VALIDATED", "QUARANTINED"]`, `reasons: list[str]`, and `candle: OHLCVCandle`.
+- Implemented `InMemoryQuarantineStore` dead-letter audit queue providing quarantine storage, filtering by instrument, counting, and draining.
+- Updated `OHLCVCandle` in `src/domain/market_data.py` to support `Literal["RAW", "VALIDATED", "QUARANTINED", "STALE"]` with relaxed price bound validator on RAW and QUARANTINED states to enable dead-letter ingestion and quarantine without model instantiation failure.
+- Exported all validator types in `src/data/__init__.py`.
+- Implemented unit tests in `tests/unit/data/test_validator.py` covering all physical failure modes, negative volume/turnover, monotonicity breaks, series mismatches, price jumps (>20%), batch sequence partitioning, and quarantine audit store tracking.
+- Achieved **100% statement and 100% branch coverage** on `src/data/validator.py` and **92% global repository coverage** across 86 total tests.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `46 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 46 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `86 passed in 7.49s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `92%` code coverage with branch coverage reporting (`DataValidationPipeline`: 100% statement, 100% branch coverage).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/data/validator.py` — Deterministic market data validation pipeline, validation result model, and in-memory quarantine audit store.
+2. `tests/unit/data/test_validator.py` — Comprehensive unit test suite for validation rules, sanity bounds, spikes, and quarantine tracking.
+
+##### Modified Files:
+1. `src/domain/market_data.py` — Updated `OHLCVCandle.quality_state` to `Literal["RAW", "VALIDATED", "QUARANTINED", "STALE"]` and relaxed price bounds on RAW/QUARANTINED states.
+2. `src/data/__init__.py` — Exported `DataValidationPipeline`, `InMemoryQuarantineStore`, and `ValidationResult`.
+3. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-007.
+4. `STORY.md` — Updated status board marking Sprint S04.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S03.02` — Real-Time WebSocket Streaming Pipeline
-- **Completed Epic**: `EPIC-03` — Market Data Ingestion & Storage Pipelines (Phase V0 Milestone 10 COMPLETE)
-- **Next Sprint Up**: `Sprint S04.01` — Data Validation & Sanity Checks ([docs/sprints/S04.01-data-validation-sanity-checks.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md))
-- **Next Task Up**: `TASK-04-01-001` — Implement Market Data Validation Pipeline & Outlier Detection
+- **Completed Sprint**: `Sprint S04.01` — Data Validation Rules & Physical Sanity Checks
+- **Active Epic**: `EPIC-04` — Data Quality, Validation & Quarantine Framework
+- **Next Sprint Up**: `Sprint S04.02` — Staleness & Quarantine Gate ([docs/sprints/S04.02-staleness-quarantine-gate.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md))
+- **Next Task Up**: `TASK-04-02-001` — Implement Real-Time Staleness Monitor & Quarantine Gate Pipeline

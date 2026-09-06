@@ -27,7 +27,7 @@ class OHLCVCandle(BaseModel):
         description="Total turnover traded in currency",
     )
     timeframe: str = Field(min_length=1, description="Candle timeframe interval (e.g. 1m, 5m, 1d)")
-    quality_state: Literal["VALIDATED", "QUARANTINED", "STALE"] = Field(
+    quality_state: Literal["RAW", "VALIDATED", "QUARANTINED", "STALE"] = Field(
         default="VALIDATED", description="Data hygiene and validation status"
     )
 
@@ -42,7 +42,13 @@ class OHLCVCandle(BaseModel):
 
     @model_validator(mode="after")
     def validate_price_bounds(self) -> Self:
-        """Enforce strict candle price boundaries: Low <= Open, Close <= High."""
+        """Enforce strict candle price boundaries: Low <= Open, Close <= High.
+
+        Only validated and stale candles are subject to this check; raw or quarantined
+        candles are preserved for debugging and dead-letter analysis.
+        """
+        if self.quality_state in ("RAW", "QUARANTINED"):
+            return self
         if self.high < self.low:
             msg = f"High price ({self.high}) cannot be less than low price ({self.low})"
             raise ValueError(msg)
