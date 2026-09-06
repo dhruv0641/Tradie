@@ -67,6 +67,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-012** | 2026-09-06 | 16:25:00 | `S06.02` | Order Fill Simulation & Next-Bar Execution Engine | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (177 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-013** | 2026-09-06 | 16:35:00 | `S07.01` | Out-of-Sample Split & Walk-Forward Protocol | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (195 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-014** | 2026-09-06 | 16:45:00 | `S07.02` | Stress Testing & Monte Carlo Resampling Engine | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (211 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-015** | 2026-09-06 | 16:55:00 | `S08.01` | Rule-Based Momentum & Trend Baseline Strategies | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (224 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -741,10 +742,54 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-015: Sprint S08.01 — Rule-Based Momentum & Trend Baseline Strategies
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:55:00 IST` (11:25:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 05 (Backtesting) / Agent 09 (Risk) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `BaseStrategy` abstract interface in `src/strategies/base.py` per SOW §6.2, BTD §12, and MLD §8:
+  - Strong typing with abstract `on_bar(engine, bar_idx, candle)` evaluation contract.
+  - Position query helpers (`has_position`, `get_position`).
+  - Risk-defined position sizing (`calculate_position_size`) respecting capital cash margin and ATR-based stop distance.
+  - Callable protocol adapter (`__call__`) enabling zero-glue integration as `strategy_callback` with `BacktestEngine.run()` and `WalkForwardOptimizer`.
+- Implemented rule-based trend-following strategies in `src/strategies/trend_baseline.py`:
+  - `DualEMACrossoverStrategy`: Classic EMA 20/50 crossover with dynamic ATR stop-loss (2x ATR) and profit target (2:1 reward/risk ratio). Emits SELL order on bearish crossover to close active long positions.
+  - `DonchianBreakoutStrategy`: 20-bar Donchian Channel breakout with strictly shifted prior-window boundaries ($t-N$ to $t-1$) structurally guaranteeing zero look-ahead bias. Emits SELL order when candle breaks below lower channel.
+- Enhanced `BacktestEngine._execute_pending_orders` in `src/backtesting/engine.py` to seamlessly execute signal-based exit orders (`SIGNAL_EXIT`) when an opposite-direction order is submitted for an existing position.
+- Delivered test suites in `tests/unit/strategies/test_base.py` and `tests/unit/strategies/test_trend_baseline.py` (13 tests) achieving **100% coverage on base.py and 92% coverage on trend_baseline.py**.
+- Global repository test suite now stands at **224 passing tests with 96% coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `83 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 84 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `224 passed in 9.14s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/strategies/base.py` — Strongly typed abstract base strategy interface with risk sizing and callable adapter.
+2. `src/strategies/trend_baseline.py` — Dual EMA crossover and Donchian breakout rule-based strategies.
+3. `src/strategies/__init__.py` — Module exports for strategy classes.
+4. `tests/unit/strategies/test_base.py` — Unit tests for BaseStrategy interface, position helpers, and risk sizing.
+5. `tests/unit/strategies/test_trend_baseline.py` — Unit and integration tests for Dual EMA and Donchian strategies with walk-forward and stress testing.
+
+##### Modified Files:
+1. `src/backtesting/engine.py` — Added signal exit execution handling for opposite-direction orders in `_execute_pending_orders`.
+2. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-015.
+3. `STORY.md` — Updated status board marking Sprint S08.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S07.02` — Stress Testing & Monte Carlo Resampling Engine
-- **Active Epic**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols (**100% COMPLETE**)
-- **Next Epic Up**: `EPIC-08` — Baseline Rule-Based Strategy Generation
-- **Next Sprint Up**: `Sprint S08.01` — Rule-Based Momentum & Trend Following Baseline Strategy ([docs/sprints/S08.01-rule-based-momentum-trend-baseline.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md))
-- **Next Task Up**: `TASK-08-01-001` — Implement Rule-Based Trend Following Strategy (EMA Cross + ATR Breakout)
+- **Completed Sprint**: `Sprint S08.01` — Rule-Based Momentum & Trend Baseline Strategies
+- **Active Epic**: `EPIC-08` — Baseline Quantitative Trading Strategies (In Progress)
+- **Next Sprint Up**: `Sprint S08.02` — Mean-Reversion Baseline Strategy & Reporting ([docs/sprints/S08.02-mean-reversion-baseline-strategy.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md))
+- **Next Task Up**: `TASK-08-02-001` — Implement Bollinger Band Mean-Reversion Strategy and Comprehensive Reporter

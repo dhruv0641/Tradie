@@ -251,6 +251,35 @@ class BacktestEngine:
             )
 
             try:
+                if order.symbol in self.portfolio.positions:
+                    existing_pos = self.portfolio.positions[order.symbol]
+                    if existing_pos.direction != order.direction:
+                        # Signal exit order closing existing position
+                        self.portfolio.close_position(
+                            symbol=order.symbol,
+                            exit_price=exec_price,
+                            timestamp=bar.timestamp,
+                            exit_cost=cost_breakdown.total_cost,
+                            exit_reason="SIGNAL_EXIT",
+                        )
+                        self._order_history.append(
+                            {
+                                "symbol": order.symbol,
+                                "status": "FILLED",
+                                "fill_price": exec_price,
+                                "action": "CLOSED",
+                                "bar_index": self._current_bar_index,
+                            }
+                        )
+                        logger.info(
+                            "position_closed_signal",
+                            symbol=order.symbol,
+                            exit_price=str(exec_price),
+                            cost=str(cost_breakdown.total_cost),
+                            bar_index=self._current_bar_index,
+                        )
+                        continue
+
                 self.portfolio.open_position(
                     symbol=order.symbol,
                     direction=order.direction,

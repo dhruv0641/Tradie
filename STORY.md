@@ -4,10 +4,10 @@
 |---|---|
 | **Project** | AI Trader — Autonomous Intelligent Trading System |
 | **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V0: Research Foundation** (Capital: ₹0) |
-| **Current Target Gate** | Gate G1 Precondition | **Current Active Sprint** | **Sprint S08.01** — Rule-Based Momentum & Trend Following Baseline Strategy |
-| **Current Active Task** | **TASK-08-01-001** — Implement Rule-Based Trend Following Strategy (EMA Cross + ATR Breakout) |
+| **Current Target Gate** | Gate G1 Exit Criteria (Phase V1 Completion) | **Current Active Sprint** | **Sprint S08.02** — Mean-Reversion Baseline Strategy & Reporting |
+| **Current Active Task** | **TASK-08-02-001** — Implement Bollinger Band Mean-Reversion Strategy and Comprehensive Reporter |
 | **Last Updated** | 2026-09-06 |
-| **State** | **Ready for Code Execution** (Epic 07 & Sprint S07.02 Complete & Delivered) |
+| **State** | **Ready for Code Execution** (Sprint S08.01 Complete & Delivered) |
 
 ---
 
@@ -126,6 +126,13 @@
 - Delivered test suites in `tests/unit/backtesting/test_stress_test.py`, `tests/unit/backtesting/test_monte_carlo.py`, and `tests/unit/domain/test_validation.py` (16 new tests), raising repository total to 211 passing tests and 96% global coverage.
 - **EPIC-07: Bias Guardrails & Multi-Stage Testing Protocols is 100% COMPLETE.**
 
+### Milestone 19: Sprint S08.01 Rule-Based Momentum & Trend Baseline Strategies (Complete)
+- Implemented `BaseStrategy(ABC)` interface in `src/strategies/base.py` providing strongly-typed evaluation contracts, risk-based position sizing, position tracking helpers, and zero-glue callable adapter with `BacktestEngine.run()` and `WalkForwardOptimizer`.
+- Implemented `DualEMACrossoverStrategy` in `src/strategies/trend_baseline.py` executing 20/50 EMA crossover entries with dynamic ATR stop-loss (2x ATR) and profit targets (2:1 reward/risk ratio), with bearish crossover exit signal generation.
+- Implemented `DonchianBreakoutStrategy` in `src/strategies/trend_baseline.py` executing 20-bar Donchian channel breakout entries with strictly shifted prior-window boundaries ($t-N$ to $t-1$) structurally guaranteeing zero look-ahead bias.
+- Enhanced `BacktestEngine._execute_pending_orders` in `src/backtesting/engine.py` to seamlessly execute signal exit orders (`SIGNAL_EXIT`) when closing open positions.
+- Delivered test suites in `tests/unit/strategies/test_base.py` and `tests/unit/strategies/test_trend_baseline.py` (13 new tests), raising repository total to 224 passing tests and 96% global coverage.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -153,7 +160,8 @@
 | Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
 | **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
 | Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
-| **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **UP NEXT** |
+| **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
+| Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **UP NEXT** |
 
 ---
 
@@ -161,11 +169,12 @@
 
 When resuming execution:
 
-### Sprint S08.01: Rule-Based Momentum & Trend Following Baseline Strategy
-Execute all deliverables for [Sprint S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md):
-- Implement base strategy interface `Strategy(ABC)` with canonical signal generation contracts.
-- Implement rule-based trend-following strategy using EMA crossovers and ATR breakout volatility filters.
-- Backtest strategy through `BacktestEngine`, `WalkForwardOptimizer`, and `StressTestRunner`.
+### Sprint S08.02: Mean-Reversion Baseline Strategy & Reporting
+Execute all deliverables for [Sprint S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md):
+- Implement `BollingerBandsRSIMeanReversionStrategy` in `src/strategies/mean_reversion_baseline.py`.
+- Implement `BacktestReporter` in `src/backtesting/reporting.py` formatting complete PRD §10 metrics with sample-size caveats and cost breakdown.
+- Implement production CLI runner `scripts/run_v1_baseline.py`.
+- Deliver unit test suites in `tests/unit/strategies/test_mean_reversion.py` and `tests/unit/backtesting/test_reporting.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -192,3 +201,4 @@ Execute all deliverables for [Sprint S08.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S06.02 Delivered | `src/backtesting/*`, `src/domain/backtest_result.py`, `tests/unit/backtesting/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.02 & Epic 06, Next-Bar Open fill simulator, intra-bar stop/target evaluation, conservative tie-breaking, 95% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S07.01 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.01, ChronologicalSplitter (70/30, 3-way, rolling), WalkForwardOptimizer, WFER >= 0.50 gating, 95% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S07.02 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.02 & Epic 07, StressTestRunner with 5 scenarios, MonteCarloSimulator with 1,000 resamples, drawdown halt & kill switch probabilities, 96% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S08.01 Delivered | `src/strategies/*`, `src/backtesting/engine.py`, `tests/unit/strategies/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.01, BaseStrategy abstract interface, DualEMACrossoverStrategy, DonchianBreakoutStrategy, signal exit handling in BacktestEngine, 96% global coverage, pushed to implementation-develop. |
