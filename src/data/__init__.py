@@ -10,7 +10,9 @@ from src.data.adapter import (
 from src.data.aggregator import CandleAggregator
 from src.data.csv_adapter import CSVDataSourceAdapter
 from src.data.historical_loader import HistoricalDataLoader, IngestionResult
+from src.data.staleness_monitor import StalenessMonitor, StalenessStatus
 from src.data.streaming import WebSocketFeedHandler
+from src.data.suppression_gate import SuppressionGate, SuppressionResult
 from src.data.validator import (
     DataValidationPipeline,
     InMemoryQuarantineStore,
@@ -27,6 +29,10 @@ __all__ = [
     "InMemoryQuarantineStore",
     "IngestionResult",
     "MockDataSourceAdapter",
+    "StalenessMonitor",
+    "StalenessStatus",
+    "SuppressionGate",
+    "SuppressionResult",
     "ValidationResult",
     "WebSocketFeedHandler",
     "create_sample_candle",

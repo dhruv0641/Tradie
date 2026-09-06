@@ -90,6 +90,29 @@ class BrokerConfig(BaseModel):
     )
 
 
+class DataConfig(BaseModel):
+    """Market data validation, staleness SLA, and pipeline configuration."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    max_staleness_seconds: float = Field(
+        default=10.0,
+        ge=1.0,
+        le=300.0,
+        description="Maximum allowable market feed staleness in seconds (NFR-DATA-1)",
+    )
+    max_price_jump_pct: float = Field(
+        default=0.20,
+        ge=0.01,
+        le=1.0,
+        description="Single-bar percentage return threshold for anomaly filtering (FRD-DATA-7)",
+    )
+    allow_zero_volume: bool = Field(
+        default=True,
+        description="Whether zero-volume bars are permitted without quarantine",
+    )
+
+
 class AppConfig(BaseModel):
     """Master application configuration encapsulating all architectural subsystems."""
 
@@ -103,3 +126,6 @@ class AppConfig(BaseModel):
     db: DatabaseConfig = Field(default_factory=DatabaseConfig, description="Database settings")
     risk: RiskConfig = Field(default_factory=RiskConfig, description="Risk boundaries")
     broker: BrokerConfig = Field(default_factory=BrokerConfig, description="Broker settings")
+    data: DataConfig = Field(
+        default_factory=DataConfig, description="Market data pipeline settings"
+    )

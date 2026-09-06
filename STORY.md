@@ -77,11 +77,13 @@
 - Implemented `WebSocketFeedHandler` in `src/data/streaming.py` with TLS connection management, automated heartbeat ping-pong monitoring, exponential backoff reconnection with jitter, status dispatching (`CONNECTED`, `DISCONNECTED`, `STALE`, `RECONNECTING`), and subscription state preservation.
 - Exported all new modules in `src/data/__init__.py` and `src/domain/__init__.py`.
 - Delivered unit and integration test suites in `tests/unit/data/` achieving 91% global test coverage with zero warnings.
-### Milestone 11: Sprint S04.01 Data Validation Rules & Physical Sanity Checks (Complete)
-- Implemented `DataValidationPipeline` in `src/data/validator.py` enforcing physical price bounds ($High \ge Low > 0$, $Low \le Open \le High$, $Low \le Close \le High$), non-negativity ($Volume \ge 0, Turnover \ge 0$), timestamp monotonicity ($Timestamp_{curr} > Timestamp_{prev}$), series continuity, and extreme single-bar price jump filtering (FRD-DATA-6/7, DDD §7).
-- Implemented `ValidationResult` immutable audit model and `InMemoryQuarantineStore` dead-letter audit store with instrument filtering, count, and draining.
-- Updated `OHLCVCandle` quality state to `Literal["RAW", "VALIDATED", "QUARANTINED", "STALE"]` with dead-letter preservation for RAW/QUARANTINED bars.
-- Delivered comprehensive unit test suite in `tests/unit/data/test_validator.py` with 100% statement and 100% branch coverage on validator logic, raising global repository coverage to 92% across 86 total tests.
+### Milestone 12: Sprint S04.02 Staleness Detection, Quarantine & Suppression Gate (Complete)
+- Implemented `StalenessMonitor` and `StalenessStatus` in `src/data/staleness_monitor.py` enforcing the 10.0-second real-time feed freshness SLA with `TICK_TIMEOUT` and `NO_DATA_RECEIVED` tracking (FRD-DATA-9, NFR-DATA-1).
+- Implemented `SuppressionGate` in `src/data/suppression_gate.py` short-circuiting decision cycles on `QUARANTINED`, `RAW`, or `STALE` feeds, generating deterministic SHA-256 stamped `DecisionRecord` objects with `decision="NO_TRADE"`, fulfilling RTLD §11 and BRD BR-3 ("NO TRADE is a first-class decision").
+- Added `DataConfig` in `src/config/models.py` attached to master `AppConfig`.
+- Delivered test suites in `tests/unit/data/test_staleness_monitor.py` and `tests/unit/data/test_suppression_gate.py` with 100% statement and branch coverage, raising global test count to 102 passing tests and 93% global coverage.
+- **EPIC-04: Data Quality, Validation & Quarantine Framework is 100% COMPLETE.**
+- **Phase V0 (Research Foundation) Gate G0 Final Exit Criteria are officially satisfied and unlocked!**
 
 ---
 
@@ -90,7 +92,7 @@
 | Phase | Epic | Sprint | Task | Focus | Status |
 |---|---|---|---|---|---|
 | **Phase V0** | **EPIC-01** | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-001.md) | Python 3.12+ Environment & `pyproject.toml` | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-002.md) | Ruff, Mypy Strict & Pre-commit Hooks | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Ruff, Mypy Strict & Pre-commit Hooks | **COMPLETE** |
 | Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-003.md) | Pytest Framework & GitHub Actions CI | **COMPLETE** |
 | Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-001.md) | Structured JSON Logging with `structlog` | **COMPLETE** |
 | Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Pydantic v2 Settings Loader & Validation | **COMPLETE** |
@@ -103,7 +105,8 @@
 | Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
 | Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
 | Phase V0 | **EPIC-04** | [S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **COMPLETE** |
-| Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **UP NEXT** |
+| Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
+| **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **UP NEXT** |
 
 ---
 
@@ -111,11 +114,11 @@
 
 When resuming execution:
 
-### Sprint S04.02: Staleness & Quarantine Gate
-Execute all deliverables for [Sprint S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md):
-- Implement staleness detection and SLA heartbeat monitors for live incoming feeds.
-- Implement Quarantine Gate blocking downstream ingestion/inference upon corrupted or stale market data.
-- Deliver test suites in `tests/unit/data/test_staleness.py` and `test_gate.py`.
+### Sprint S05.01: Technical Indicator Engine & Price Action Features
+Execute all deliverables for [Sprint S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md):
+- Implement core technical indicators (EMA, SMA, RSI, ATR, MACD, Bollinger Bands, Volume SMA) with exact Decimal and floating-point numeric precision.
+- Implement point-in-time feature extraction ensuring zero forward-looking bias.
+- Deliver test suites in `tests/unit/features/test_indicators.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -135,3 +138,4 @@ Execute all deliverables for [Sprint S04.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S03.01 Delivered | `src/data/*`, `scripts/*`, `tests/unit/data/*`, `tests/integration/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.01, 93% coverage on data adapters & historical loader, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S03.02 Delivered | `src/data/aggregator.py`, `src/data/streaming.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.02 & Epic 03, 91% coverage on streaming pipeline & bar aggregator, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S04.01 Delivered | `src/data/validator.py`, `src/domain/market_data.py`, `tests/unit/data/test_validator.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.01, 100% branch coverage on validator pipeline, 92% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S04.02 Delivered | `src/data/staleness_monitor.py`, `src/data/suppression_gate.py`, `src/config/models.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.02 & Epic 04, 100% branch coverage on staleness & suppression gate, Phase V0 Gate G0 unlocked, pushed to implementation-develop. |

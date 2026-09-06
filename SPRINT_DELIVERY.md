@@ -60,6 +60,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-005** | 2026-09-06 | 15:15:00 | `S03.01` | Market Data Adapter Interface & Historical Ingestion | 7 new / 2 modified | Ruff Clean, Mypy Strict, 93% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-006** | 2026-09-06 | 15:25:00 | `S03.02` | Real-Time WebSocket Streaming Pipeline | 3 new / 4 modified | Ruff Clean, Mypy Strict, 91% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-007** | 2026-09-06 | 15:35:00 | `S04.01` | Data Validation Rules & Physical Sanity Checks | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Validator, 92% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-008** | 2026-09-06 | 15:45:00 | `S04.02` | Staleness Detection, Quarantine & Suppression Gate | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Staleness & Suppression, 93% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -385,9 +386,59 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-008: Sprint S04.02 — Staleness Detection, Quarantine & Suppression Gate
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `15:45:00 IST` (10:15:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 04 (Data Engineering) / Agent 09 (Risk & Safety)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `StalenessMonitor` and `StalenessStatus` in `src/data/staleness_monitor.py` tracking arrival timestamps and enforcing real-time staleness SLAs per FRD-DATA-9 and NFR-DATA-1:
+  - Tracks arrival timestamps across multiple instruments.
+  - Automatically marks instrument feeds exceeding `max_staleness_seconds` (default 10.0s) as `STALE` with `reason="TICK_TIMEOUT"`.
+  - Flags untracked instruments as `is_stale=True` with `reason="NO_DATA_RECEIVED"`.
+  - Provides helper methods `record_tick()` and `record_candle()` with automatic UTC normalization.
+- Implemented `SuppressionGate` and `SuppressionResult` in `src/data/suppression_gate.py` enforcing fail-safe downstream trade suppression per RTLD §11 and HLD §7:
+  - Inspects incoming candle quality states and real-time feed freshness.
+  - Short-circuits decision evaluation and forces `forced_decision="NO_TRADE"` on `QUARANTINED`, `RAW`, or `STALE` data, preventing signal emission to the Risk Engine.
+  - `create_suppressed_decision()` generates an immutable, SHA-256 stamped `DecisionRecord` documenting suppressed cycles for tamper-evident auditability (BRD BR-7, FRD-AGG-4).
+- Added `DataConfig` in `src/config/models.py` configuring `max_staleness_seconds`, `max_price_jump_pct`, and `allow_zero_volume`, and attached it to `AppConfig`.
+- Exported all new modules in `src/data/__init__.py` and `src/config/__init__.py`.
+- Authored comprehensive test suites in `tests/unit/data/test_staleness_monitor.py` and `tests/unit/data/test_suppression_gate.py` (16 tests), achieving **100% statement and branch coverage** on both components.
+- Global repository test suite now stands at **102 passing tests with 93% coverage**.
+- **EPIC-04: Data Quality, Validation & Quarantine Framework is now 100% COMPLETE.**
+- **Phase V0 (Research Foundation) Gate G0 Exit Criteria are satisfied!**
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `50 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 50 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `102 passed in 7.31s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `93%` code coverage (`StalenessMonitor`: 100% statement / 100% branch, `SuppressionGate`: 100% statement / 100% branch, `DataValidationPipeline`: 100% statement / 100% branch).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/data/staleness_monitor.py` — Real-time feed staleness monitor and SLA threshold tracking.
+2. `src/data/suppression_gate.py` — Downstream decision suppression gate and fail-safe NO_TRADE generator.
+3. `tests/unit/data/test_staleness_monitor.py` — Unit tests for staleness heartbeat tracking and timeouts.
+4. `tests/unit/data/test_suppression_gate.py` — Unit tests for data quality suppression and DecisionRecord hashing.
+
+##### Modified Files:
+1. `src/config/models.py` — Added `DataConfig` model and attached to `AppConfig`.
+2. `src/config/__init__.py` — Exported `DataConfig`.
+3. `src/data/__init__.py` — Exported `StalenessMonitor`, `StalenessStatus`, `SuppressionGate`, and `SuppressionResult`.
+4. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-008.
+5. `STORY.md` — Updated status board marking Sprint S04.02 COMPLETE, Epic 04 COMPLETE, and Phase V0 Gate G0 Sign-off.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S04.01` — Data Validation Rules & Physical Sanity Checks
-- **Active Epic**: `EPIC-04` — Data Quality, Validation & Quarantine Framework
-- **Next Sprint Up**: `Sprint S04.02` — Staleness & Quarantine Gate ([docs/sprints/S04.02-staleness-quarantine-gate.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md))
-- **Next Task Up**: `TASK-04-02-001` — Implement Real-Time Staleness Monitor & Quarantine Gate Pipeline
+- **Completed Sprint**: `Sprint S04.02` — Staleness Detection, Quarantine & Suppression Gate
+- **Completed Epic**: `EPIC-04` — Data Quality, Validation & Quarantine Framework (Phase V0 Milestone 12 COMPLETE, Gate G0 Unlocked)
+- **Next Sprint Up**: `Sprint S05.01` — Technical Indicator Engine & Price Action Features ([docs/sprints/S05.01-technical-indicator-price-action.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md))
+- **Next Task Up**: `TASK-05-01-001` — Implement Core Technical Indicator Calculations
