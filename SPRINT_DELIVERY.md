@@ -55,6 +55,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 |---|---|---|---|---|---|---|---|
 | **DELIV-001** | 2026-09-06 | 14:38:00 | `S01.01` | Repository Setup, Tooling & Quality Toolchain | 17 new / 19 modified | Ruff Clean, Mypy Strict, 100% Test Pass, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-002** | 2026-09-06 | 14:45:00 | `S01.02` | Environment Configuration & Structured Logging Framework | 8 new files | Ruff Clean, Mypy Strict, 98% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-003** | 2026-09-06 | 14:52:00 | `S02.01` | Canonical Pydantic v2 Domain Models | 11 new files | Ruff Clean, Mypy Strict, 99% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -160,8 +161,53 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-003: Sprint S02.01 — Canonical Pydantic v2 Domain Models
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `14:52:00 IST` (09:22:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 04 (Data Engineering) / Agent 12 (Low-Level Engineering)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical market data domain entities in `src/domain/market_data.py` (`OHLCVCandle`, `MarketDepthLevel`, `MarketDepthQuote`, `CorporateAction`) enforcing strict `Decimal` precision for prices/turnover, and strict boundary validation ($Low \le Open \le High$, $Low \le Close \le High$, $High \ge Low > 0$, non-inverted market depth spread).
+- Implemented point-in-time quantitative feature vector entity in `src/domain/features.py` (`FeatureSet`) with UTC timestamp enforcement and quality metrics.
+- Implemented master audit contract in `src/domain/decision.py` (`DecisionRecord`) with canonical SHA-256 cryptographic hash computation for tamper-evident trade auditability (BRD BR-7).
+- Implemented post-trade evaluation model in `src/domain/evaluation.py` (`TradeEvaluation`) linking entry and exit decision IDs with gross/net P&L attribution and categorized variance drivers (`STRATEGY_EDGE`, `SLIPPAGE`, `MARKET_GAP`, etc.).
+- Implemented execution lifecycle and position tracking models in `src/domain/execution.py` (`OrderSubmission`, `Position`) and ML model version registry model in `src/domain/governance.py` (`ModelVersion`).
+- Implemented exhaustive unit tests in `tests/unit/domain/` verifying validation rules, boundary constraints, P&L calculations, and model immutability.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `25 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 25 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `31 passed in 1.95s` (Code 0)
+- **Code Coverage**: Global `99%` code coverage with branch coverage reporting (`src/domain`: 99-100%).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly; 0 secret leaks detected by `gitleaks`.
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/__init__.py` — Domain package root exporting all canonical entities.
+2. `src/domain/market_data.py` — Canonical OHLCV candle, market depth, and corporate action entities.
+3. `src/domain/features.py` — Quantitative feature set model with point-in-time cutoff enforcement.
+4. `src/domain/decision.py` — Master decision record model with deterministic SHA-256 hash generation.
+5. `src/domain/evaluation.py` — Completed trade attribution entity with variance driver classification.
+6. `src/domain/execution.py` — Order submission and portfolio position tracking models.
+7. `src/domain/governance.py` — Model version governance and promotion registry entity.
+8. `tests/unit/domain/__init__.py` — Domain unit test package marker.
+9. `tests/unit/domain/test_market_data.py` — Unit tests for OHLCV bounds, market depth, and features.
+10. `tests/unit/domain/test_decision.py` — Unit tests for DecisionRecord hashing, NO_TRADE, and TradeEvaluation.
+11. `tests/unit/domain/test_execution.py` — Unit tests for order states, positions, and model promotion.
+
+##### Modified Files:
+1. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-003.
+2. `STORY.md` — Updated live tracker marking Sprint S02.01 COMPLETE and advancing next sprint to S02.02.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S01.02` — Environment Configuration & Structured Logging Framework
-- **Next Sprint Up**: `Sprint S02.01` — Canonical Domain Models ([docs/sprints/S02.01-canonical-domain-models.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md))
-- **Next Task Up**: `TASK-02-01-001` — Implement Core Market Data & Candle Models (`OHLCVBar`, `Tick`, `OrderBookSnapshot`)
+- **Completed Sprint**: `Sprint S02.01` — Canonical Pydantic v2 Domain Models
+- **Next Sprint Up**: `Sprint S02.02` — PostgreSQL / TimescaleDB DDL & Parquet Archive ([docs/sprints/S02.02-timescaledb-parquet-storage.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md))
+- **Next Task Up**: `TASK-02-02-001` — Setup PostgreSQL / TimescaleDB Database and Alembic Migrations
