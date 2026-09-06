@@ -300,6 +300,17 @@
 - Implemented simulation helpers: `set_market_price(instrument, price)`, `set_connection_alive(alive)`, and tick-driven matching engine `on_tick(instrument, price)` that evaluates working limit and market orders against streaming ticks and updates mark-to-market valuations dynamically.
 - Delivered 24 comprehensive unit tests in `tests/unit/execution/test_paper_adapter.py`, achieving **99% statement and branch coverage** on `paper_adapter.py` with **492 tests passing repository-wide at 97% global branch coverage**.
 
+### Milestone 34: Continuous Paper Trading Market-Hours Harness (Sprint S16.02)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `TradingBrainRunner` orchestrator in `src/core/runner.py` connecting the complete 11-step Trading Brain evaluation loop: Feed/Buffer -> Feature Engine -> Regime Detector & Hysteresis -> 4-Agent Intelligence Roster -> Weighted Consensus Aggregator -> Deterministic Risk Engine -> Supervisor Decision Gate -> Idempotent Order Dispatcher -> Broker Adapter -> Position Ledger.
+  - Added IST market-hours phase tracking: `PRE_MARKET` (09:00-09:15), `REGULAR_HOURS` (09:15-15:30), `POST_MARKET` (15:30-16:00), `CLOSED`, and `STOPPED`.
+  - Implemented pre-market connectivity reconciliation and post-market EOD limit order auto-cancellation with `SessionSummary` compilation.
+  - Implemented standalone CLI harness `scripts/run_paper_trader.py` executing fast-forward paper sessions and producing structured JSON performance reports.
+  - Authored 18 comprehensive unit tests in `tests/unit/core/test_runner.py`, achieving **94% coverage** on `src/core/runner.py` with **565 total tests passing repository-wide at 97% global branch coverage**.
+  - **EPIC-16 IS 100% COMPLETE!**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -343,7 +354,8 @@
 | **Phase V3 / V4** | **EPIC-15** | [S15.01](docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **COMPLETE** |
 | Phase V3 / V4 | EPIC-15 | [S15.02](docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **COMPLETE** |
 | **Phase V4 / V5** | **EPIC-16** | [S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md) | [TASK-16-01-001](docs/tasks/TASK-16-01-001.md) | Paper Trading Simulation Environment & Virtual Account | **COMPLETE** |
-| Phase V4 / V5 | EPIC-16 | [S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md) | [TASK-16-02-001](docs/tasks/TASK-16-02-001.md) | Continuous Paper Trading Market-Hours Harness | **UP NEXT** |
+| Phase V4 / V5 | EPIC-16 | [S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md) | [TASK-16-02-001](docs/tasks/TASK-16-02-001.md) | Continuous Paper Trading Market-Hours Harness | **COMPLETE** |
+| **Phase V6** | **EPIC-17** | [S17.01](docs/sprints/S17.01-post-trade-evaluation-attribution.md) | [TASK-17-01-001](docs/tasks/TASK-17-01-001.md) | Post-Trade Evaluation Engine & Outcome Attribution | **UP NEXT** |
 
 ---
 
@@ -351,11 +363,11 @@
 
 When resuming execution:
 
-### Sprint S16.02: Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
-Execute all deliverables for [Sprint S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md):
-- Implement continuous market-hours paper trading runner harness connecting real-time streaming market data (`WebSocketStreamer` / `BarAggregator`), feature generation, multi-agent signal generation, aggregator, risk engine, supervisor decision gate, and `PaperBrokerAdapter`.
-- Run continuous simulation cycles during simulated market hours (09:15 to 15:30 IST).
-- Deliver end-to-end integration and unit tests with $\ge 80\%$ line coverage.
+### Sprint S17.01: Post-Trade Evaluation Engine & Outcome Attribution
+Execute all deliverables for [Sprint S17.01](docs/sprints/S17.01-post-trade-evaluation-attribution.md):
+- Implement the `TradeEvaluator` engine evaluating closed trade executions against original hypotheses (`TradeEvaluation` canonical domain model).
+- Classify variance drivers across execution slippage, regime shift, market timing, model misprediction, and unexpected volatility shocks.
+- Deliver comprehensive unit tests with $\ge 80\%$ line coverage and safety branch guarantees.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 
@@ -399,3 +411,4 @@ Execute all deliverables for [Sprint S16.02](docs/sprints/S16.02-continuous-pape
 | **2026-09-06** | Sprint S15.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.01, BrokerAdapter protocol, BaseBrokerAdapter ABC, IdempotentOrderDispatcher with DB transactional support, OrderTranslator with bounded slippage & tick constraints, 454 tests passing, 97% global coverage. |
 | **2026-09-06** | Sprint S15.02 Delivered (EPIC-15 Complete) | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.02, OrderManager with 5s timeout manager & DB sync, ConnectionMonitor with 30s outage circuit breaker & safe-state hold, 468 tests passing, 97% global coverage, 100% coverage on S15.02 modules, EPIC-15 100% complete. |
 | **2026-09-06** | Sprint S16.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.01, PaperBrokerAdapter, virtual portfolio accounting, Indian statutory tax & cost deduction, tick matching engine, 492 tests passing, 99% coverage on PaperBrokerAdapter, 97% global coverage. |
+| **2026-09-06** | Sprint S16.02 Delivered (EPIC-16 Complete) | `src/core/*`, `scripts/run_paper_trader.py`, `tests/unit/core/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.02, TradingBrainRunner continuous market-hours orchestrator, CLI paper trading harness, 565 tests passing, 94% runner coverage, 97% global coverage, EPIC-16 100% complete. |

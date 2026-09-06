@@ -83,6 +83,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-028** | 2026-09-06 | 19:05:00 | `S15.01` | Broker Adapter Interface & Idempotency Engine | 6 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (454 tests), 100% Adapter & Idempotency Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-029** | 2026-09-06 | 19:25:00 | `S15.02` | Order Lifecycle State Machine & Reconnection Logic | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (468 tests), 100% OrderManager & ConnectionMonitor Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-030** | 2026-09-06 | 19:35:00 | `S16.01` | Simulated Paper Broker Adapter & Virtual Account Engine | 2 new / 5 modified | Ruff Clean, Mypy Strict, 100% Test Pass (492 tests), 99% PaperAdapter Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-031** | 2026-09-06 | 19:55:00 | `S16.02` | Continuous Paper Trading Market-Hours Harness | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (565 tests), 94% Runner Coverage, 97% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1525,10 +1526,71 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-031: Sprint S16.02 — Continuous Paper Trading Market-Hours Harness
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `19:55:00 IST` (14:25:00 UTC)
+- **Sprint Identifier**: `Sprint S16.02`
+- **Sprint Name**: Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
+- **Epic**: `EPIC-16` — Real-Time Paper Trading Subsystem (Phase V4 / V5) (**100% COMPLETE**)
+- **Tasks Addressed**:
+  - `TASK-16-02-001`: Continuous Market-Hours Trading Brain Loop & Integration Harness (SOW §6.5, PRD §13, HLD §7, EDD §12)
+- **Primary Agent**: `Agent 10 (Execution / Broker Agent)` & `Agent 00 (Chief Architect)`
+- **Approving Agents**: `Agent 09 (Risk & Safety Agent)`, `Agent 14 (QA / Testing Agent)`, `Agent 16 (Code Review Agent)`
+
+#### 1. Implementation Highlights
+- **TradingBrainRunner Orchestrator (`src/core/runner.py`)**:
+  - Implemented `MarketSessionPhase` enum tracking Indian equity market sessions in IST (`Asia/Kolkata`): `PRE_MARKET` (09:00-09:15), `REGULAR_HOURS` (09:15-15:30), `POST_MARKET` (15:30-16:00), `CLOSED`, and `STOPPED`.
+  - Implemented configurable `RunnerConfig` managing `enforce_market_hours`, `warmup_bars`, `risk_reward_ratio`, `default_stop_loss_pct`, and `git_commit` audit lineage.
+  - Implemented pre-market connectivity reconciliation querying broker heartbeat and positions, and notifying `StreakTracker.on_session_start(date)`.
+  - Implemented continuous 11-step Trading Brain evaluation loop:
+    1. Buffer warm-up OHLCV candles until `warmup_bars` is satisfied.
+    2. Synchronize market valuations and match resting limit orders on candle tick.
+    3. Monitor pending order timeouts in `OrderManager`.
+    4. Guard against connection outages via `ConnectionMonitor.should_suppress_trading()`.
+    5. Extract point-in-time features via `FeatureEngine`.
+    6. Classify 5-dimensional market regime and apply 2-cycle hysteresis filtering.
+    7. Query 4-agent intelligence roster (`TrendAgent`, `MomentumAgent`, `MeanReversionAgent`, `PriceActionAgent`).
+    8. Calculate weighted consensus score and dispersion via `SignalAggregator`.
+    9. Formulate `CandidateTrade` with tick-rounded protective stops and 1:2 R:R targets.
+    10. Enforce deterministic fail-fast safety checks and kill-switch veto via `Supervisor.decide()`.
+    11. Dispatch risk-approved orders idempotently via `IdempotentOrderDispatcher` and record fills on `PositionLedger`.
+  - Implemented post-market EOD auto-cancellation of resting limit orders and compilation of `SessionSummary`.
+  - Implemented continuous execution loop with graceful OS signal traps (`SIGINT`, `SIGTERM`).
+- **CLI Paper Trading Harness (`scripts/run_paper_trader.py`)**:
+  - Authored standalone CLI tool accepting `--symbol`, `--bars`, `--capital`, `--slippage-bps`, `--enforce-market-hours`, and `--output-report`.
+  - Generates realistic Indian equity market candles, executes fast-forward paper sessions, outputs JSON performance summaries, and displays clean CLI summary tables.
+- **Unit & Integration Test Suite (`tests/unit/core/test_runner.py`)**:
+  - Authored 18 exhaustive unit tests achieving **94% statement and branch coverage** on `src/core/runner.py`.
+  - Verified IST market hours boundary transitions, pre-market health checks, warm-up buffering, connection monitor trading suppression, kill-switch veto precedence, full buy/sell candidate execution, resting order tick fills, and graceful shutdown.
+
+#### 2. Quality Gate Verification Evidence
+- **Unit Tests**: 18 tests passing in `tests/unit/core/test_runner.py`.
+- **Global Test Suite**: **565 tests passing repository-wide** with **97% global branch coverage**.
+- **Runner Coverage**: **94% line and branch coverage** on `src/core/runner.py` ($\ge 80\%$ line coverage mandate exceeded).
+- **Type Checking**: Zero errors across 160 source files (`uv run mypy src tests scripts`).
+- **Linter & Formatting**: Zero errors across all files (`uv run ruff check` & `uv run ruff format --check`).
+- **Safety Isolation Audit**: Clean pass on AST safety precedence linter (`scripts/verify_safety_isolation.py`).
+- **Secret Scanning**: Zero secrets detected (`pre-commit run --all-files`).
+
+#### 3. Modified & Created Artifacts
+##### New Files:
+1. `src/core/__init__.py` — Package export for `TradingBrainRunner`, `RunnerConfig`, `MarketSessionPhase`, `CycleResult`, `SessionSummary`.
+2. `src/core/runner.py` — Autonomous Trading Brain market-hours runner and lifecycle orchestrator.
+3. `scripts/run_paper_trader.py` — CLI harness script for simulated paper trading execution.
+4. `tests/unit/core/__init__.py` — Unit test package marker for core module.
+5. `tests/unit/core/test_runner.py` — 18 unit tests covering all phases, buffering, gates, order dispatch, and fills.
+
+##### Modified Files:
+1. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-031.
+2. `STORY.md` — Updated status board marking Sprint S16.02 and Milestone 34 COMPLETE; EPIC-16 100% Complete.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S16.01` — Simulated Paper Broker Adapter & Virtual Account Engine
-- **Active Epic**: `EPIC-16` — Real-Time Paper Trading Subsystem (Phase V4 / V5) (**50% COMPLETE**)
-- **Next Phase Up**: **PHASE V4 / V5: EXECUTION ARCHITECTURE & PAPER TRADING**
-- **Next Epic Up**: `EPIC-16` — Real-Time Paper Trading Subsystem
-- **Next Sprint Up**: `Sprint S16.02` — Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
+- **Completed Sprint**: `Sprint S16.02` — Continuous Paper Trading Market-Hours Harness & Live Pipeline Integration
+- **Active Epic**: `EPIC-16` — Real-Time Paper Trading Subsystem (Phase V4 / V5) (**100% COMPLETE!**)
+- **Next Phase Up**: **PHASE V6: POST-TRADE EVALUATION & SELF-LEARNING FOUNDATION**
+- **Next Epic Up**: `EPIC-17` — Post-Trade Evaluation & Feedback Subsystem
+- **Next Sprint Up**: `Sprint S17.01` — Post-Trade Evaluation Engine & Outcome Attribution (Phase V6)
