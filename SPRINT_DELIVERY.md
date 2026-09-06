@@ -64,6 +64,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-009** | 2026-09-06 | 15:55:00 | `S05.01` | Technical Indicator & Price Action Feature Engine | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Features, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-010** | 2026-09-06 | 16:05:00 | `S05.02` | Point-in-Time Calculation Guarantees & Versioning | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Engine, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-011** | 2026-09-06 | 16:15:00 | `S06.01` | Indian Statutory Charges & Brokerage Cost Model | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Cost & Slippage, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-012** | 2026-09-06 | 16:25:00 | `S06.02` | Order Fill Simulation & Next-Bar Execution Engine | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (177 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -583,9 +584,60 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-012: Sprint S06.02 — Order Fill Simulation & Next-Bar Execution Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:25:00 IST` (10:55:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 05 (Backtesting) / Agent 03 (Quant) / Agent 10 (Execution) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `BacktestEngine` in `src/backtesting/engine.py` enforcing strict Next-Bar Open fill protocol per BTD §7 and FRD-BACK-1:
+  - **Zero Same-Bar Lookahead Bias**: Decisions made on Bar $T$ close execute strictly at Bar $T+1$ Open.
+  - **Friction Integration**: Every fill incorporates adverse half-spread, volume-scaled slippage tiers, and Indian statutory taxes/brokerage via `CostModel` and `SlippageModel`.
+  - **Overnight Gap Handling**: Orders gap-adjusted if Bar $T+1$ opens with a gap beyond threshold.
+  - **Intra-Bar Stop-Loss / Take-Profit Triggers**: Positions evaluated against Bar $T+1$ $[Low, High]$ range.
+  - **Conservative Tie-Breaking (BTD §7 item 4)**: If both stop-loss and take-profit target are breached within the same bar, stop-loss is executed first.
+- Implemented `SimulatedPortfolio` and `SimulatedPosition` in `src/backtesting/portfolio.py`:
+  - Starting baseline capital of ₹10,000 (PRD §9, BRD BR-2).
+  - Cash deductions, margin sufficiency gating, active position management.
+  - Mark-to-market revaluation at bar close, peak equity tracking, and maximum drawdown calculation.
+  - Summary metrics computation: win rate, profit factor, gross profit/loss, total costs, net profit, Sharpe ratio, and Sortino ratio.
+- Implemented canonical domain models in `src/domain/backtest_result.py`:
+  - `BacktestTrade`, `EquityPoint`, `BacktestMetrics`, and `BacktestResult` with strict UTC validation and Pydantic v2 immutability.
+- Authored test suites in `tests/unit/backtesting/test_portfolio.py`, `tests/unit/backtesting/test_backtest_engine.py`, and `tests/unit/domain/test_backtest_result.py` (28 new tests), raising total test count to **177 passing tests** with **95% global coverage** (`engine.py`: 99%, `portfolio.py`: 97%, `cost_model.py`: 100%, `slippage_model.py`: 100%).
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `68 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 68 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `177 passed in 8.78s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `95%` code coverage (`engine.py`: 99% statement / 96% branch, `portfolio.py`: 97% statement / 88% branch).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/backtest_result.py` — Domain models for backtest trades, equity points, metrics, and result containers.
+2. `src/backtesting/portfolio.py` — Event-driven simulated portfolio and position state tracker.
+3. `src/backtesting/engine.py` — Next-Bar Open event-driven backtesting execution engine.
+4. `tests/unit/backtesting/test_portfolio.py` — Unit tests for simulated portfolio operations and performance metrics.
+5. `tests/unit/backtesting/test_backtest_engine.py` — Unit and known-answer synthetic series tests for backtesting engine.
+6. `tests/unit/domain/test_backtest_result.py` — Unit tests and UTC validation for backtest domain models.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported backtest domain models (`BacktestTrade`, `EquityPoint`, etc.).
+2. `src/backtesting/__init__.py` — Exported `BacktestEngine`, `BacktestConfig`, `OrderIntent`, `SimulatedPortfolio`, `SimulatedPosition`.
+3. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-012.
+4. `STORY.md` — Updated status board marking Sprint S06.02 COMPLETE (EPIC-06 100% COMPLETE).
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S06.01` — Indian Statutory Charges & Brokerage Cost Model
-- **Active Epic**: `EPIC-06` — Realistic Backtesting & Indian Market Cost Engine
-- **Next Sprint Up**: `Sprint S06.02` — Order Fill Simulation & Next-Bar Execution Engine ([docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md))
-- **Next Task Up**: `TASK-06-02-001` — Implement Next-Bar Open Fill Simulator (BTD §7, FRD-BACK-1)
+- **Completed Sprint**: `Sprint S06.02` — Order Fill Simulation & Next-Bar Execution Engine
+- **Active Epic**: `EPIC-06` — Realistic Backtesting & Indian Market Cost Engine (**100% COMPLETE**)
+- **Next Epic Up**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols
+- **Next Sprint Up**: `Sprint S07.01` — Out-of-Sample Split & Walk-Forward Protocol ([docs/sprints/S07.01-out-of-sample-split-walk-forward.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md))
+- **Next Task Up**: `TASK-07-01-001` — Implement Chronological Out-of-Sample Splitter (BTD §8.2, FR-27)

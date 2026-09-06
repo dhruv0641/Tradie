@@ -6,6 +6,15 @@ from src.backtesting.cost_model import (
     CostModelConfig,
     RoundTripCostBreakdown,
 )
+from src.backtesting.engine import (
+    BacktestConfig,
+    BacktestEngine,
+    OrderIntent,
+)
+from src.backtesting.portfolio import (
+    SimulatedPortfolio,
+    SimulatedPosition,
+)
 from src.backtesting.slippage_model import (
     SlippageConfig,
     SlippageModel,
@@ -13,10 +22,15 @@ from src.backtesting.slippage_model import (
 )
 
 __all__ = [
+    "BacktestConfig",
+    "BacktestEngine",
     "CostBreakdown",
     "CostModel",
     "CostModelConfig",
+    "OrderIntent",
     "RoundTripCostBreakdown",
+    "SimulatedPortfolio",
+    "SimulatedPosition",
     "SlippageConfig",
     "SlippageModel",
     "SlippageResult",

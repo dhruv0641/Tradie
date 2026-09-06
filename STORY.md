@@ -104,6 +104,14 @@
 - Implemented `SlippageModel` in `src/backtesting/slippage_model.py` modeling adverse half-spread drag and 3-tier liquidity-scaled slippage with excessive volume gating (>5% volume rejection) per BTD §6.1 and RTLD §11.
 - Delivered unit test suites in `tests/unit/backtesting/` (17 tests) with 100% statement and branch coverage, raising total test count to 149 passing tests and 94% global coverage.
 
+### Milestone 16: Sprint S06.02 Order Fill Simulation & Next-Bar Execution Engine (Complete — EPIC-06 100% Complete)
+- Implemented event-driven `BacktestEngine` in `src/backtesting/engine.py` enforcing strict Next-Bar Open fill protocol ($T+1$ Open) per BTD §7, FRD-BACK-1, and NFR-TEST-4, structurally eliminating same-bar look-ahead bias.
+- Implemented `SimulatedPortfolio` and `SimulatedPosition` in `src/backtesting/portfolio.py` with baseline capital ₹10,000, margin gating, mark-to-market revaluation, peak equity/drawdown tracking, and complete performance metrics (win rate, profit factor, Sharpe, Sortino).
+- Implemented canonical domain entities `BacktestTrade`, `EquityPoint`, `BacktestMetrics`, and `BacktestResult` in `src/domain/backtest_result.py`.
+- Integrated overnight gap adjustments, intra-bar stop-loss/take-profit triggers against bar $[Low, High]$, and conservative tie-breaking (stop loss executed first per BTD §7 item 4).
+- Added comprehensive unit and known-answer synthetic test suites (28 new tests), reaching 177 passing tests and 95% global repository coverage.
+- EPIC-06 (Realistic Backtesting & Indian Market Cost Engine) is now 100% COMPLETE.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -128,7 +136,8 @@
 | **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
 | Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
 | **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
-| Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **UP NEXT** |
+| Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
+| **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **UP NEXT** |
 
 ---
 
@@ -136,10 +145,11 @@
 
 When resuming execution:
 
-### Sprint S06.02: Order Fill Simulation & Next-Bar Execution Engine
-Execute all deliverables for [Sprint S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md):
-- Implement `FillSimulator` in `src/backtesting/fill_simulator.py` simulating fills strictly at bar $T+1$ open (BTD §7, FRD-BACK-1) with adverse spread, slippage, and gap handling.
-- Deliver unit test suites in `tests/unit/backtesting/test_fill_simulator.py`.
+### Sprint S07.01: Out-of-Sample Split & Walk-Forward Protocol
+Execute all deliverables for [Sprint S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md):
+- Implement chronological train/validation/test splitter enforcing 70/30 split (BTD §8.2, FR-27).
+- Implement rolling walk-forward protocol (train 6 months / test 1 month) and Walk-Forward Efficiency Ratio gating ($\ge 0.5$).
+- Deliver unit test suites in `tests/unit/backtesting/test_walk_forward.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -163,3 +173,4 @@ Execute all deliverables for [Sprint S06.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S05.01 Delivered | `src/features/technical.py`, `src/features/price_action.py`, `src/features/__init__.py`, `tests/unit/features/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.01, 100% branch coverage on technical & price action feature engines, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S05.02 Delivered | `src/features/engine.py`, `src/features/__init__.py`, `tests/unit/features/test_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.02 & Epic 05, 100% branch coverage on FeatureEngine, zero look-ahead leak detection verified, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S06.01 Delivered | `src/backtesting/*`, `tests/unit/backtesting/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.01, 100% branch coverage on Indian market cost model & liquidity-scaled slippage model, 94% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S06.02 Delivered | `src/backtesting/*`, `src/domain/backtest_result.py`, `tests/unit/backtesting/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.02 & Epic 06, Next-Bar Open fill simulator, intra-bar stop/target evaluation, conservative tie-breaking, 95% global coverage, pushed to implementation-develop. |

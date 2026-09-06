@@ -1,5 +1,11 @@
 """Canonical Pydantic v2 domain models for AI Trader."""
 
+from src.domain.backtest_result import (
+    BacktestMetrics,
+    BacktestResult,
+    BacktestTrade,
+    EquityPoint,
+)
 from src.domain.decision import DecisionRecord
 from src.domain.evaluation import TradeEvaluation
 from src.domain.execution import OrderSubmission, Position
@@ -14,8 +20,12 @@ from src.domain.market_data import (
 )
 
 __all__ = [
+    "BacktestMetrics",
+    "BacktestResult",
+    "BacktestTrade",
     "CorporateAction",
     "DecisionRecord",
+    "EquityPoint",
     "FeatureSet",
     "MarketDepthLevel",
     "MarketDepthQuote",
