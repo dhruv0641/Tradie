@@ -33,6 +33,8 @@ repos:
           - websockets>=12.0
           - pyarrow>=17.0.0
           - httpx>=0.27.0
+          - fastapi>=0.115.0
+          - starlette>=0.38.0
         args: [--config-file=mypy.ini]
 
   - repo: https://github.com/gitleaks/gitleaks

@@ -18,6 +18,20 @@ class TriggerSource(StrEnum):
 
 
 @runtime_checkable
+class OperatorAuthTokenProtocol(Protocol):
+    """Protocol for operator authentication token per TRD-SEC-3."""
+
+    @property
+    def operator_id(self) -> str:
+        """Return operator identifier."""
+        ...
+
+    def is_valid(self) -> bool:
+        """Return True if token is authenticated and valid."""
+        ...
+
+
+@runtime_checkable
 class KillSwitchProtocol(Protocol):
     """Protocol for checking kill switch status and activating emergency halts."""
 
@@ -29,6 +43,10 @@ class KillSwitchProtocol(Protocol):
         """Trigger emergency trading halt."""
         ...
 
+    def reset(self, auth_token: str | OperatorAuthTokenProtocol) -> None:
+        """Explicit, authenticated operator reset per RTLD §16 and LLD §6.1."""
+        ...
+
 
 @runtime_checkable
 class AuditLogProtocol(Protocol):
@@ -37,18 +55,6 @@ class AuditLogProtocol(Protocol):
     def record_sync(self, event: str, **kwargs: Any) -> None:
         """Synchronously write audit log event."""
         ...
-
-
-@runtime_checkable
-class OperatorAuthTokenProtocol(Protocol):
-    """Protocol for operator authentication token per TRD-SEC-3."""
-
-    @property
-    def operator_id(self) -> str:
-        """Return operator identifier."""
-        ...
-
-    def is_valid(self) -> bool:
         """Return True if token is authenticated and valid."""
         ...
 

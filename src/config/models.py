@@ -8,6 +8,7 @@ from src.risk.config import RiskConfig
 
 __all__ = [
     "AggregatorConfig",
+    "ApiConfig",
     "AppConfig",
     "BrokerConfig",
     "DataConfig",
@@ -164,6 +165,33 @@ class AggregatorConfig(BaseModel):
     )
 
 
+class ApiConfig(BaseModel):
+    """FastAPI Control Backend and Operator Dashboard configuration."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    host: str = Field(default="127.0.0.1", description="API host address")
+    port: int = Field(default=8000, ge=1, le=65535, description="API listen port")
+    operator_token: SecretStr = Field(
+        default=SecretStr("operator-secret-token"),
+        description="Bearer token required for operator control endpoints (masked)",
+    )
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:3000",
+        ],
+        description="Allowed CORS origin URLs",
+    )
+    docs_enabled: bool = Field(
+        default=True, description="Whether OpenAPI / Swagger UI documentation is enabled"
+    )
+    static_ui_dir: str = Field(
+        default="ui", description="Directory path containing operator dashboard static assets"
+    )
+
+
 class AppConfig(BaseModel):
     """Master application configuration encapsulating all architectural subsystems."""
 
@@ -186,4 +214,8 @@ class AppConfig(BaseModel):
     aggregator: AggregatorConfig = Field(
         default_factory=AggregatorConfig,
         description="Multi-agent signal aggregation settings",
+    )
+    api: ApiConfig = Field(
+        default_factory=ApiConfig,
+        description="FastAPI control backend and dashboard settings",
     )

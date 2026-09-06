@@ -94,6 +94,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-039** | 2026-09-06 | 21:25:00 | `S20.02` | Scoped Hypothesis & Candidate Generation Workflow | 2 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (662 tests), 100% Candidate Generator Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-040** | 2026-09-07 | 00:30:00 | `S21.01` | Multi-Stage Model Validation Pipeline Runner | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (682 tests), 100% ValidationRunner Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-041** | 2026-09-07 | 00:40:00 | `S21.02` | Model Promotion Gate & Automated Rollback Monitor | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (703 tests), 100% Gate & Rollback Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-042** | 2026-09-07 | 00:50:00 | `S22.01` | FastAPI Control Backend & `/health` Endpoint | 8 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (716 tests), 95% API Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -2063,10 +2064,55 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-042: Sprint S22.01 — FastAPI Control Backend & `/health` Endpoint
+
+- **Execution Date**: `2026-09-07`
+- **Execution Time**: `00:50:00 IST` (19:20:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 11 (Technology) / Agent 13 (Security) / Agent 15 (DevOps) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `ApiConfig` in `src/config/models.py` with secret-masked `operator_token`, listen host/port, CORS origins, and static UI directory settings.
+- Implemented operator authentication dependency in `src/api/auth.py` with constant-time token comparison (`hmac.compare_digest`) via Bearer credentials or `X-Operator-Token` header per TRD-SEC-3.
+- Implemented strongly typed Pydantic response models in `src/api/models.py` for all operator dashboard views:
+  - `AccountResponse`: Capital, P&L, drawdown (FRD-DASH-1)
+  - `TradingResponse`: Positions, open working orders, completed trades (FRD-DASH-2)
+  - `AIStateResponse`: 5-dimensional regime, active model version, agent signals (FRD-DASH-3)
+  - `RiskStateResponse`: Portfolio exposure, daily loss limit, streak state, kill switch (FRD-DASH-4)
+  - `HealthResponse`: Diagnostic statuses across broker, feed, db, model, kill switch (TRD-OBS-4)
+  - `ControlStopResponse` & `ControlResetResponse`: 1-Click emergency halt and resume (FRD-DASH-7)
+- Implemented `TradingSystemState` runtime container in `src/api/state.py` bridging live `PositionLedger`, `OrderManager`, `StreakTracker`, and `KillSwitchProtocol`.
+- Implemented FastAPI router in `src/api/routes.py` exposing `/api/account`, `/api/trading`, `/api/ai`, `/api/risk`, `/api/health`, and authenticated control endpoints `/api/control/stop` (< 2s SLA execution) and `/api/control/reset`.
+- Implemented application factory in `src/api/main.py` with CORS middleware, static UI mounting, and structured error handlers.
+- Delivered 13 unit/integration tests in `tests/unit/api/test_routes.py` achieving **95% code coverage** on `src/api`.
+- Full test suite: **716 passed, 0 failed, 95% global branch coverage**.
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/api/__init__.py` — Package export.
+2. `src/api/auth.py` — Operator token authentication dependency.
+3. `src/api/models.py` — Pydantic schemas for dashboard and health diagnostics.
+4. `src/api/state.py` — Runtime state container and query aggregator.
+5. `src/api/routes.py` — REST API endpoints for monitoring and control.
+6. `src/api/main.py` — FastAPI application factory.
+7. `tests/unit/api/__init__.py` — Test package init.
+8. `tests/unit/api/test_routes.py` — 13 API integration and unit tests.
+
+##### Modified Files:
+1. `src/config/models.py` — Added `ApiConfig` and embedded into `AppConfig`.
+2. `src/risk/kill_switch.py` — Added `reset` method to `KillSwitchProtocol` and reordered definitions.
+3. `docs/tasks/TASK-22-01-001.md` — Marked task as COMPLETE.
+4. `docs/sprints/S22.01-fastapi-control-backend-health-endpoint.md` — Marked sprint as COMPLETE.
+5. `SPRINT_DELIVERY.md` — Recorded DELIV-042 in master register and chronological audit logs.
+6. `STORY.md` — Updated status board and changelog.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprints**: `Sprint S01.01` through `Sprint S21.02` (41 Sprints Delivered)
+- **Completed Sprints**: `Sprint S01.01` through `Sprint S22.01` (42 Sprints Delivered)
 - **Completed Epics**: `EPIC-01` through `EPIC-21` (**100% COMPLETE**)
 - **Completed Phases**: Phase V0, Phase V1, Phase V2, Phase V3, Phase V4, Phase V5, Phase V6, **Phase V7 (100% COMPLETE)**
-- **Next Epic Up**: `EPIC-22` — Operator Interface, Dashboard & Manual Control (Phase V8)
-- **Next Sprint Up**: `Sprint S22.01` — FastAPI Control Backend & `/health` Endpoint (`TASK-22-01-001`)
+- **In Progress Epic**: `EPIC-22` — Operator Interface, Dashboard & Manual Control (Phase V8)
+- **Next Sprint Up**: `Sprint S22.02` — Operator Web Dashboard & 1-Click Emergency STOP UI (`TASK-22-02-001`)
