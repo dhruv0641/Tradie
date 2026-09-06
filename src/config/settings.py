@@ -1,6 +1,7 @@
 """Environment-aware configuration loader using pydantic-settings."""
 
 import os
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -93,12 +94,12 @@ def load_settings(
     )
 
     risk_config = RiskConfig(
-        max_daily_loss_pct=loader.risk_max_daily_loss_pct,
-        max_drawdown_pct=loader.risk_max_drawdown_pct,
-        max_position_size_pct=loader.risk_max_position_size_pct,
-        max_exposure_pct=loader.risk_max_exposure_pct,
+        max_daily_loss_pct=Decimal(str(loader.risk_max_daily_loss_pct)),
+        max_drawdown_pct=Decimal(str(loader.risk_max_drawdown_pct)),
+        max_position_size_pct=Decimal(str(loader.risk_max_position_size_pct)),
+        max_exposure_pct=Decimal(str(loader.risk_max_exposure_pct)),
         max_consecutive_losses=loader.risk_max_consecutive_losses,
-        initial_capital_inr=loader.risk_initial_capital_inr,
+        initial_capital_inr=Decimal(str(loader.risk_initial_capital_inr)),
     )
 
     broker_config = BrokerConfig(

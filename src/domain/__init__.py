@@ -29,6 +29,13 @@ from src.domain.regime import (
     TrendState,
     VolatilityLevel,
 )
+from src.domain.risk import (
+    CandidateTrade,
+    CapitalState,
+    MarketState,
+    RiskCheckResult,
+    StreakState,
+)
 from src.domain.validation import (
     ChronologicalSplit,
     MonteCarloSimulationResult,
@@ -45,6 +52,8 @@ __all__ = [
     "BacktestMetrics",
     "BacktestResult",
     "BacktestTrade",
+    "CandidateTrade",
+    "CapitalState",
     "ChronologicalSplit",
     "CorporateAction",
     "DecisionRecord",
@@ -54,6 +63,7 @@ __all__ = [
     "LiquidityCondition",
     "MarketDepthLevel",
     "MarketDepthQuote",
+    "MarketState",
     "MarketTick",
     "ModelVersion",
     "MonteCarloSimulationResult",
@@ -62,8 +72,10 @@ __all__ = [
     "Position",
     "RegimeClassification",
     "RegimeTransitionEvent",
+    "RiskCheckResult",
     "RiskSentiment",
     "SignalDirection",
+    "StreakState",
     "StressScenarioResult",
     "StressScenarioType",
     "StressTestReport",

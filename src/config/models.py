@@ -4,6 +4,18 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
+from src.risk.config import RiskConfig
+
+__all__ = [
+    "AggregatorConfig",
+    "AppConfig",
+    "BrokerConfig",
+    "DataConfig",
+    "DatabaseConfig",
+    "RegimeConfig",
+    "RiskConfig",
+]
+
 
 class DatabaseConfig(BaseModel):
     """PostgreSQL and TimescaleDB storage configuration."""
@@ -25,48 +37,6 @@ class DatabaseConfig(BaseModel):
         driver = "postgresql+asyncpg" if async_driver else "postgresql"
         pwd = self.password.get_secret_value()
         return f"{driver}://{self.user}:{pwd}@{self.host}:{self.port}/{self.database}"
-
-
-class RiskConfig(BaseModel):
-    """Deterministic hard risk limits defined per RTLD §14 and BRD BR-1/BR-4."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    max_daily_loss_pct: float = Field(
-        default=0.02,
-        ge=0.001,
-        le=0.10,
-        description="Maximum daily loss percentage before kill-switch triggers (e.g. 0.02 = 2%)",
-    )
-    max_drawdown_pct: float = Field(
-        default=0.05,
-        ge=0.005,
-        le=0.20,
-        description="Maximum peak-to-trough drawdown percentage allowed",
-    )
-    max_position_size_pct: float = Field(
-        default=0.05,
-        ge=0.005,
-        le=0.20,
-        description="Maximum capital allocation to a single position",
-    )
-    max_exposure_pct: float = Field(
-        default=0.50,
-        ge=0.05,
-        le=1.00,
-        description="Maximum aggregated portfolio exposure across all active positions",
-    )
-    max_consecutive_losses: int = Field(
-        default=3,
-        ge=1,
-        le=10,
-        description="Consecutive losing trades triggering temporary cooling-off breaker",
-    )
-    initial_capital_inr: float = Field(
-        default=10000.0,
-        ge=1000.0,
-        description="Initial live trading capital in INR (₹10,000 baseline per BRD BR-2)",
-    )
 
 
 class BrokerConfig(BaseModel):

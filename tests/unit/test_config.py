@@ -1,5 +1,6 @@
 """Unit tests for the centralized configuration engine and Pydantic models."""
 
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -23,11 +24,11 @@ def test_default_settings_loading() -> None:
     config = load_settings(environment_override="test")
     assert config.environment == "test"
     assert config.version == "0.1.0"
-    assert config.risk.initial_capital_inr == 10000.0
-    assert config.risk.max_daily_loss_pct == 0.02
-    assert config.risk.max_drawdown_pct == 0.05
-    assert config.risk.max_position_size_pct == 0.05
-    assert config.risk.max_exposure_pct == 0.50
+    assert config.risk.initial_capital_inr == Decimal("10000.0")
+    assert config.risk.max_daily_loss_pct == Decimal("0.02")
+    assert config.risk.max_drawdown_pct == Decimal("0.05")
+    assert config.risk.max_position_size_pct == Decimal("0.05")
+    assert config.risk.max_exposure_pct == Decimal("0.50")
     assert config.risk.max_consecutive_losses == 3
     assert config.broker.paper_trading is True
 

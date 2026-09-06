@@ -75,8 +75,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-020** | 2026-09-06 | 17:45:00 | `S10.02` | Rule-Based Agent Roster Implementation | 8 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (315 tests), 96% Global Coverage (100% on agents), Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-021** | 2026-09-06 | 17:55:00 | `S11.01` | Weighted Signal Aggregator & Score Normalization | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (332 tests), 96% Global Coverage (100% on aggregator), Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-022** | 2026-09-06 | 18:05:00 | `S11.02` | Dynamic Timeframe Intelligence & Disagreement Metric | 2 new / 1 modified | Ruff Clean, Mypy Strict, 100% Test Pass (339 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
-
-
+| **DELIV-023** | 2026-09-06 | 18:15:00 | `S12.01` | Deterministic Risk Engine Core & Parameter Register | 7 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (358 tests), 100% Risk Branch Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1131,10 +1130,71 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-023: Sprint S12.01 — Deterministic Risk Engine Core & Parameter Register
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `18:15:00 IST` (12:45:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 09 (Risk & Safety) / Agent 03 (Quant) / Agent 12 (Low-Level) / Agent 14 (QA)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent with Veto Authority)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical domain risk entities in `src/domain/risk.py` per RTLD §13, LLD §5, and FRD Module 6:
+  - `CandidateTrade`: Validates candidate order parameters, enforces strict timezone-aware UTC timestamps, and validates protective stop direction relative to entry price (for LONG: `stop_loss < entry_price`, for SHORT: `stop_loss > entry_price`).
+  - `CapitalState`: Tracks current capital, peak capital, cash, deployed capital, open trade count, and current drawdown. Enforces that deployed capital cannot exceed current capital.
+  - `StreakState`: Tracks consecutive loss count and active cooldown pause timestamps.
+  - `MarketState`: Captures market-wide volatility multiple relative to baseline and circuit status.
+  - `RiskCheckResult`: Immutable outcome model enforcing strict approval invariants: passed checks require positive approved quantity and valid stop loss; rejected checks strictly require 0 approved quantity.
+  - Exported in `src/domain/__init__.py`.
+- Implemented `RiskConfig` in `src/risk/config.py` externalizing all 17 RTLD §14 numeric parameters (RTLD-1 through RTLD-17) with immutable defaults and backward-compatible aliases:
+  - Initial capital ₹10,000, 1% per-trade risk, 3% daily loss limit, 8% hard halt limit, 10% extreme circuit breaker, 50% max exposure, 20% max single position, 3 max open positions, 5 max daily trades, 3 consecutive losses -> 50% size reduction, 5 consecutive losses -> session pause, $2\times$ volatility -> 50% size reduction, $3\times$ volatility -> trade block, 0.60 min model confidence.
+  - Attached to `AppConfig` in `src/config/models.py`.
+- Implemented `InMemoryKillSwitch` in `src/risk/kill_switch.py` conforming to `KillSwitchProtocol` with $O(1)$ state evaluation, operator token authentication for resets, and trigger source tracking (`TriggerSource.OPERATOR_MANUAL`, `TriggerSource.SYSTEM_CIRCUIT`).
+- Implemented `RiskEngine` in `src/risk/engine.py` executing the fail-fast 8-step sequential risk evaluation pipeline in strict deterministic order per LLD §5.2 and RTLD §13.1:
+  1. Kill switch state (RTLD-17)
+  2. Daily loss limit (RTLD-4)
+  3. Drawdown tiers (RTLD-5, RTLD-6)
+  4. Exposure & position caps (RTLD-7, 8, 9, 10)
+  5. Consecutive loss tier (RTLD-12)
+  6. Per-trade risk & sizing (RTLD-3, 11, 13)
+  7. Volatility, liquidity & market state (RTLD-14, 19)
+  8. Model confidence & expected value (RTLD-16)
+- Designed with strict deterministic isolation: no LLM, AI model, or async bus exists on the risk evaluation path (BRD BR-1, BR-4, AGENTS.md §3.1).
+- Delivered unit test suites in `tests/unit/domain/test_risk_domain.py` and `tests/unit/risk/test_risk_engine.py` (19 new tests) achieving **100% statement and branch coverage on all risk modules**, raising repository total to **358 passing tests and 96% global branch coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `110 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 122 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `358 passed in 13.54s` (Code 0, 0 warnings)
+- **Safety Path Coverage**: **100% branch coverage** on `src/risk/engine.py`, `src/risk/config.py`, `src/risk/kill_switch.py`, and `src/domain/risk.py`.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/risk.py` — Canonical Pydantic v2 domain models for risk management (`CandidateTrade`, `CapitalState`, `StreakState`, `MarketState`, `RiskCheckResult`).
+2. `src/risk/config.py` — Canonical `RiskConfig` binding all RTLD §14 numeric parameters.
+3. `src/risk/kill_switch.py` — `InMemoryKillSwitch` with $O(1)$ state checks and operator token authenticated resets.
+4. `src/risk/engine.py` — Deterministic `RiskEngine` implementing fail-fast 8-step risk evaluation checklist.
+5. `src/risk/__init__.py` — Package exports for risk subsystem.
+6. `tests/unit/domain/test_risk_domain.py` — Unit tests for risk domain validation and invariants.
+7. `tests/unit/risk/test_risk_engine.py` — Unit tests for 8-step risk checklist, boundary conditions, and isolation.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported risk domain entities.
+2. `src/config/models.py` — Attached `RiskConfig` to `AppConfig`.
+3. `src/config/settings.py` — Decimal conversion handling for strict arithmetic typing.
+4. `tests/unit/test_config.py` — Updated test assertions for Decimal risk parameters.
+5. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-023.
+6. `STORY.md` — Updated status board marking Sprint S12.01 and Milestone 27 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S11.02` — Dynamic Timeframe Intelligence & Disagreement Metric
+- **Completed Sprint**: `Sprint S12.01` — Deterministic Risk Engine Core & Parameter Register
 - **Active Epic**: `EPIC-12` — Deterministic Risk Engine & Safety Isolation
 - **Active Phase**: **PHASE V3: RISK SYSTEM & EXECUTION ARCHITECTURE**
-- **Next Sprint Up**: `Sprint S12.01` — Deterministic Risk Engine Core & Parameter Register ([docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md))
-- **Next Task Up**: `TASK-12-01-001` — Implement RiskConfig and RiskEngine Fail-Fast Checklist
+- **Next Sprint Up**: `Sprint S12.02` — Sizing Engine & Consecutive Loss Circuit Breakers ([docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md))
+- **Next Task Up**: `TASK-12-02-001` — Implement PositionSizer with Multi-Constraint Bounding
