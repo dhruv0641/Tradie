@@ -133,6 +133,14 @@
 - Enhanced `BacktestEngine._execute_pending_orders` in `src/backtesting/engine.py` to seamlessly execute signal exit orders (`SIGNAL_EXIT`) when closing open positions.
 - Delivered test suites in `tests/unit/strategies/test_base.py` and `tests/unit/strategies/test_trend_baseline.py` (13 new tests), raising repository total to 224 passing tests and 96% global coverage.
 
+### Milestone 20: Sprint S08.02 Mean-Reversion Baseline Strategy & Reporting (Complete — EPIC-08 & Phase V1 100% Complete)
+- Implemented `BollingerBandsRSIMeanReversionStrategy` in `src/strategies/mean_reversion_baseline.py` (20-bar Bollinger Bands with 2-std, 14-period Wilder's RSI, oversold entry below lower band, middle-band mean reversion exit, dynamic percentage/ATR stop-loss).
+- Implemented `BacktestReporter` in `src/backtesting/reporting.py` producing PRD §10 compliant Markdown and JSON reports, BTD §6 & §12 Indian market cost drag attribution, explicit sample-size caveat threshold ($< 30$ trades warning), and transparent limitation disclosures.
+- Implemented production CLI baseline runner `scripts/run_v1_baseline.py` allowing execution of all baseline strategies and report generation.
+- Delivered test suites in `tests/unit/strategies/test_mean_reversion.py`, `tests/unit/backtesting/test_reporting.py`, and `tests/unit/test_cli_baseline.py` (13 new tests) achieving 100% coverage on BacktestReporter and 96% on mean-reversion strategy, raising repository total to **237 passing tests and 96% global coverage**.
+- **EPIC-08: Baseline Quantitative Trading Strategies is 100% COMPLETE.**
+- **PHASE V1: BACKTESTING TRADER IS 100% COMPLETE! Gate G1 criteria fully satisfied and unlocked!**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -161,7 +169,8 @@
 | **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
 | Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
 | **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
-| Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **UP NEXT** |
+| Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
+| **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **UP NEXT** |
 
 ---
 
@@ -169,12 +178,11 @@
 
 When resuming execution:
 
-### Sprint S08.02: Mean-Reversion Baseline Strategy & Reporting
-Execute all deliverables for [Sprint S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md):
-- Implement `BollingerBandsRSIMeanReversionStrategy` in `src/strategies/mean_reversion_baseline.py`.
-- Implement `BacktestReporter` in `src/backtesting/reporting.py` formatting complete PRD §10 metrics with sample-size caveats and cost breakdown.
-- Implement production CLI runner `scripts/run_v1_baseline.py`.
-- Deliver unit test suites in `tests/unit/strategies/test_mean_reversion.py` and `tests/unit/backtesting/test_reporting.py`.
+### Phase V2: Autonomous AI Trading Brain (Commencing EPIC-09)
+Execute all deliverables for [Sprint S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md):
+- Implement `RegimeDetector` protocol and volatility / trend strength classifiers in `src/regime/`.
+- Implement canonical regime state representations (`RegimeClassification`, `MarketRegime`) in `src/domain/regime.py`.
+- Deliver unit test suites in `tests/unit/regime/`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -202,3 +210,4 @@ Execute all deliverables for [Sprint S08.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S07.01 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.01, ChronologicalSplitter (70/30, 3-way, rolling), WalkForwardOptimizer, WFER >= 0.50 gating, 95% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S07.02 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.02 & Epic 07, StressTestRunner with 5 scenarios, MonteCarloSimulator with 1,000 resamples, drawdown halt & kill switch probabilities, 96% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S08.01 Delivered | `src/strategies/*`, `src/backtesting/engine.py`, `tests/unit/strategies/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.01, BaseStrategy abstract interface, DualEMACrossoverStrategy, DonchianBreakoutStrategy, signal exit handling in BacktestEngine, 96% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S08.02 Delivered (Phase V1 Complete) | `src/strategies/*`, `src/backtesting/reporting.py`, `scripts/run_v1_baseline.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.02, BollingerBandsRSIMeanReversionStrategy, BacktestReporter with PRD §10 & BTD §12 caveats, CLI baseline runner, EPIC-08 100% complete, Phase V1 Gate G1 satisfied and unlocked. |

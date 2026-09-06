@@ -61,3 +61,4 @@ htmlcov/
 *.sqlite
 *.sqlite3
 data/cache/
+reports/

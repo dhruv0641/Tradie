@@ -16,6 +16,7 @@ from src.backtesting.portfolio import (
     SimulatedPortfolio,
     SimulatedPosition,
 )
+from src.backtesting.reporting import BacktestReporter
 from src.backtesting.slippage_model import (
     SlippageConfig,
     SlippageModel,
@@ -38,6 +39,7 @@ from src.backtesting.walk_forward import (
 __all__ = [
     "BacktestConfig",
     "BacktestEngine",
+    "BacktestReporter",
     "ChronologicalSplitter",
     "CostBreakdown",
     "CostModel",

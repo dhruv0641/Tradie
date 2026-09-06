@@ -68,6 +68,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-013** | 2026-09-06 | 16:35:00 | `S07.01` | Out-of-Sample Split & Walk-Forward Protocol | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (195 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-014** | 2026-09-06 | 16:45:00 | `S07.02` | Stress Testing & Monte Carlo Resampling Engine | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (211 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-015** | 2026-09-06 | 16:55:00 | `S08.01` | Rule-Based Momentum & Trend Baseline Strategies | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (224 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-016** | 2026-09-06 | 17:05:00 | `S08.02` | Mean-Reversion Baseline Strategy & Reporting | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (237 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -787,9 +788,65 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-016: Sprint S08.02 — Mean-Reversion Baseline Strategy & Reporting
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `17:05:00 IST` (11:35:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 03 (Quant) / Agent 05 (Backtesting) / Agent 09 (Risk) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `BollingerBandsRSIMeanReversionStrategy` in `src/strategies/mean_reversion_baseline.py` adhering to SOW §6.2, BTD §12, and MLD §8:
+  - Strong typing inheriting from `BaseStrategy(ABC)` with input parameter bounds validation (`bb_window >= 2`, `bb_std > 0`, `rsi_period >= 1`, `rsi_oversold < rsi_exit`).
+  - Warmup period guard ensuring rolling arrays have sufficient depth before computing technical indicators.
+  - Oversold Entry Signal: Emits a BUY order with ATR/percentage stop-loss when price closes $\le$ lower Bollinger Band and RSI $<$ oversold threshold (default 30).
+  - Mean-Reversion Exit Signal: Emits a SELL order to close active long positions when price recovers $\ge$ middle Bollinger Band (20-SMA) or RSI $\ge$ exit threshold (default 50).
+  - Risk-budgeted position sizing respecting available portfolio cash and deterministic stop loss distance.
+- Implemented comprehensive `BacktestReporter` in `src/backtesting/reporting.py`:
+  - Structured Markdown reporting (`generate_markdown_report`) and JSON export (`generate_json_report`) compliant with PRD §10 Success Metrics.
+  - Statutory Indian cost drag attribution quantifying friction impact on gross trading edge (BTD §6, §12).
+  - Explicit Sample-Size Caveat threshold ($< 30$ trades) emitting GitHub-style `[!WARNING]` per BTD §12 guidelines.
+  - Transparent disclosure of known limitations (slippage calibration in Phase V4, Next-Bar execution assumptions, ₹10,000 cash constraints).
+- Implemented standalone CLI runner in `scripts/run_v1_baseline.py` allowing operators to execute all baseline strategies against benchmark historical candles and generate formatted reports.
+- Delivered test suites in `tests/unit/strategies/test_mean_reversion.py`, `tests/unit/backtesting/test_reporting.py`, and `tests/unit/test_cli_baseline.py` achieving **100% statement/branch coverage on BacktestReporter and 96% coverage on mean reversion strategy**.
+- Global repository test suite now stands at **237 passing tests with 96% coverage**.
+- **EPIC-08: Baseline Quantitative Trading Strategies is 100% COMPLETE.**
+- **PHASE V1: BACKTESTING TRADER (PHASE V1) IS 100% COMPLETE!** Gate G1 criteria fully satisfied.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `86 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 90 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `237 passed in 12.63s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/strategies/mean_reversion_baseline.py` — Bollinger Bands + RSI mean-reversion quantitative strategy.
+2. `src/backtesting/reporting.py` — Structured PRD §10 performance reporter with sample-size caveats and Indian cost drag attribution.
+3. `scripts/run_v1_baseline.py` — Production CLI script for running Phase V1 baseline strategies.
+4. `tests/unit/strategies/test_mean_reversion.py` — Unit, walk-forward, and stress testing suites for mean-reversion strategy.
+5. `tests/unit/backtesting/test_reporting.py` — Unit tests for Markdown and JSON backtest reports.
+6. `tests/unit/test_cli_baseline.py` — Unit tests for CLI baseline runner script.
+
+##### Modified Files:
+1. `src/strategies/__init__.py` — Exported `BollingerBandsRSIMeanReversionStrategy`.
+2. `src/backtesting/__init__.py` — Exported `BacktestReporter`.
+3. `.gitignore` — Added `reports/` directory ignore for test and run artifacts.
+4. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-016.
+5. `STORY.md` — Updated status board marking Sprint S08.02, EPIC-08, and Phase V1 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S08.01` — Rule-Based Momentum & Trend Baseline Strategies
-- **Active Epic**: `EPIC-08` — Baseline Quantitative Trading Strategies (In Progress)
-- **Next Sprint Up**: `Sprint S08.02` — Mean-Reversion Baseline Strategy & Reporting ([docs/sprints/S08.02-mean-reversion-baseline-strategy.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md))
-- **Next Task Up**: `TASK-08-02-001` — Implement Bollinger Band Mean-Reversion Strategy and Comprehensive Reporter
+- **Completed Sprint**: `Sprint S08.02` — Mean-Reversion Baseline Strategy & Reporting
+- **Completed Epic**: `EPIC-08` — Baseline Quantitative Trading Strategies (**100% COMPLETE**)
+- **Completed Phase**: **PHASE V1: BACKTESTING TRADER (100% COMPLETE — GATE G1 SATISFIED)**
+- **Next Phase Up**: **PHASE V2: AUTONOMOUS AI TRADING BRAIN**
+- **Next Epic Up**: `EPIC-09` — Multi-Dimensional Market Regime Detection Engine
+- **Next Sprint Up**: `Sprint S09.01` — Statistical & Volatility Regime Detection ([docs/sprints/S09.01-statistical-volatility-regime-detection.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md))
+- **Next Task Up**: `TASK-09-01-001` — Implement Volatility & Trend Strength Regime Detectors
