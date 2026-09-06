@@ -361,6 +361,17 @@
   - Full test suite: **614 tests passing repository-wide** at **95% global branch coverage** with zero Ruff, Mypy, or security issues.
   - **EPIC-18 IS 100% COMPLETE!**
 
+### Milestone 39: Research Brain Physical Isolation & Sandboxing (Sprint S19.01)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `ResearchBrainEnvironment` in `src/research/environment.py` enforcing strict physical separation per TRD-ARCH-2, FRD-X-4, and BRD BR-6.
+  - Structurally denied order placement and position mutation, raising `ResearchIsolationError` fail-stop exception on any live execution attempt.
+  - Implemented automatic process credential scrubbing of live broker secrets from `os.environ` and runtime boundary guards audit.
+  - Implemented static AST isolation checker `check_research_ast_isolation()` verifying zero live execution imports inside `src/research/`.
+  - Created standalone Docker container `docker/Dockerfile.research` with non-privileged `researcher` user and read-only environment.
+  - Delivered 12 unit tests and 2 integration tests achieving **94% line coverage** on `environment.py` and bringing global suite to **628 passed tests**.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -412,7 +423,8 @@
 | Phase V5 / V6 | EPIC-18 | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-002](docs/tasks/TASK-18-01-002.md) | Production `LiveBrokerAdapter` Class | **COMPLETE** |
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-001](docs/tasks/TASK-18-02-001.md) | `StartupReconciler` Safe-State Startup Gate | **COMPLETE** |
 | Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-002](docs/tasks/TASK-18-02-02.md) | Deploy Phase V5 Autonomous Risk-Controlled Live Trading | **COMPLETE** |
-| **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **UP NEXT** |
+| **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **COMPLETE** |
+| Phase V6 | EPIC-19 | [S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md) | [TASK-19-02-001](docs/tasks/TASK-19-02-001.md) | Implement Gymnasium Trading Environment & Reward Function | **UP NEXT** |
 
 ---
 
@@ -420,12 +432,12 @@
 
 When resuming execution:
 
-### Sprint S19.01: Research Brain Physical Isolation & Sandboxing
-Execute all deliverables for [Sprint S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md):
-- Setup `src/research/` execution environment running as separate isolated process / sandbox (TRD-ARCH-2, HLD §10).
-- Enforce strict physical boundary guards: Research Brain has zero live broker credentials, zero network access to live execution endpoints, and cannot import live trading execution modules.
-- Implement read-only data access for Research Brain from TimescaleDB / Parquet historical data.
-- Deliver unit and integration tests with 100% safety branch coverage and run `.\scripts\deliver_sprint.ps1`.
+### Sprint S19.02: RL Sandboxed Training Environment (Optional)
+Execute all deliverables for [Sprint S19.02](docs/sprints/S19.02-rl-sandboxed-training-environment.md):
+- Implement Gymnasium-compliant `TradingEnv` in `src/research/rl/environment.py`.
+- Implement `MultiFactorRewardCalculator` in `src/research/rl/reward.py` with drawdown, volatility, and transaction cost penalties.
+- Constrain action space strictly to `AgentSignalOutput` ($[0, 1]$ confidence and direction) with zero access to risk engine or sizing.
+- Deliver unit tests with $\ge 80\%$ line coverage and run `.\scripts\deliver_sprint.ps1`.
 
 ---
 

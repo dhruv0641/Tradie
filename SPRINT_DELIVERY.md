@@ -88,6 +88,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-033** | 2026-09-06 | 20:10:00 | `S17.02` | Post-Trade Evaluation & Operator Query Interface | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (586 tests), 93% Evaluator Coverage, 86% Explainer Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-034** | 2026-09-06 | 20:30:00 | `S18.01` | Pre-Live SOW §9 Precondition Audit & Credential Setup | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass, 100% Preconditions Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-035** | 2026-09-06 | 20:38:00 | `S18.02` | Live Trading Activation & Startup Reconciliation Gate | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (614 tests), 100% Reconciler Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-036** | 2026-09-06 | 20:55:00 | `S19.01` | Research Brain Physical Isolation & Sandboxing | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (628 tests), 94% Environment Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -1798,10 +1799,54 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-036: Sprint S19.01 — Research Brain Physical Isolation & Sandboxing
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `20:55:00 IST` (15:25:00 UTC)
+- **Sprint Identifier**: `Sprint S19.01`
+- **Sprint Name**: Research Brain Physical Isolation & Sandboxing
+- **Epic**: `EPIC-19` — Research Brain Infrastructure & Sandboxing (Phase V6)
+- **Tasks Addressed**:
+  - `TASK-19-01-001`: Setup Research Brain Process Isolation and Access Controls (`src/research/environment.py`, `docker/Dockerfile.research`)
+- **Primary Agent**: `Agent 02 (Architecture Agent)` & `Agent 13 (Security Agent)`
+- **Approving Agents**: `Agent 09 (Risk & Safety Agent)` [Veto Authority], `Agent 00 (Chief Architect)`
+
+#### 1. Implementation Highlights
+- **ResearchBrainEnvironment (`src/research/environment.py`)**:
+  - Implemented `ResearchBrainEnvironment` enforcing strict physical and architectural isolation per TRD-ARCH-2, FRD-X-4, and BRD BR-6.
+  - Structurally denies live order execution (`can_place_orders() == False`) and position mutation (`can_mutate_positions() == False`).
+  - Attempting to invoke `attempt_order_placement()` or `attempt_position_mutation()` raises `ResearchIsolationError` fail-stop exception.
+  - Implemented automatic process-level credential scrubbing: strips prohibited live keys (`BROKER_API_KEY`, `BROKER_API_SECRET`, `BROKER_ACCESS_TOKEN`, `BROKER_TOTP_SECRET`) on initialization.
+  - Implemented runtime boundary guards verification (`verify_boundary_guards()`) returning structured violation alerts on detected leakage.
+- **AST Architecture Isolation Linter (`check_research_ast_isolation`)**:
+  - Implemented static AST syntax tree scanner verifying that no Python module inside `src/research/` imports live broker execution adapters, order managers, or live trading runners.
+- **Docker Container Sandboxing (`docker/Dockerfile.research`)**:
+  - Created standalone Docker container with non-privileged `researcher` user, read-only environment variables (`RESEARCH_SANDBOX=1`, `RESEARCH_READONLY=1`), and zero live execution credentials.
+- **Testing Suites**:
+  - Delivered 12 unit tests in `tests/unit/research/test_environment.py` achieving **94% line coverage**.
+  - Delivered 2 integration tests in `tests/integration/test_research_isolation.py` verifying structural AST isolation and boundary failure enforcement.
+  - Full test suite: **628 passed, 0 failed, 95% global branch coverage**.
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/research/__init__.py` — Package export marker.
+2. `src/research/environment.py` — `ResearchBrainEnvironment`, `ResearchBrainConfig`, `ResearchIsolationError`, `check_research_ast_isolation`.
+3. `docker/Dockerfile.research` — Physically isolated Research Brain container definition.
+4. `tests/unit/research/__init__.py` — Test package marker.
+5. `tests/unit/research/test_environment.py` — 12 unit tests for environment and AST linter.
+6. `tests/integration/test_research_isolation.py` — 2 integration tests for structural isolation.
+
+##### Modified Files:
+1. `docs/tasks/TASK-19-01-001.md` — Marked task as COMPLETE.
+2. `docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md` — Marked sprint as COMPLETE.
+3. `SPRINT_DELIVERY.md` — Recorded DELIV-036 in master register and chronological audit logs.
+4. `STORY.md` — Recorded Milestone 39 and advanced active sprint to S19.02.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprints**: `Sprint S18.01` & `Sprint S18.02`
-- **Active Epic**: `EPIC-18` — Live Trading Activation & Safety Preconditions (Phase V5) (**100% COMPLETE!**)
-- **Next Phase Up**: **PHASE V6: SELF-LEARNING & CONTINUOUS IMPROVEMENT PIPELINE**
-- **Next Epic Up**: `EPIC-19` — Post-Trade Variance Attribution & Metrics Aggregation
-- **Next Sprint Up**: `Sprint S19.01` — Post-Trade Variance Driver Classification Pipeline
+- **Completed Sprints**: `Sprint S18.01`, `Sprint S18.02`, `Sprint S19.01`
+- **Active Epic**: `EPIC-19` — Research Brain Infrastructure & Sandboxing (Phase V6) (**50% COMPLETE**)
+- **Next Sprint Up**: `Sprint S19.02` — RL Sandboxed Training Environment (Optional)
+- **Next Task Up**: `TASK-19-02-001` — Implement Gymnasium Trading Environment with Multi-Factor Reward Function
