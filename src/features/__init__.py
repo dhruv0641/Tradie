@@ -1,5 +1,6 @@
 """Feature engineering, technical indicators, and price action feature extractors."""
 
+from src.features.engine import FeatureEngine
 from src.features.price_action import (
     compute_candlestick_anatomy,
     compute_support_resistance,
@@ -24,6 +25,7 @@ from src.features.technical import (
 )
 
 __all__ = [
+    "FeatureEngine",
     "compute_adx",
     "compute_all_technical_features",
     "compute_atr",

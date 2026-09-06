@@ -91,6 +91,13 @@
 - Verified Zero Look-Ahead Invariant (BTD §5.2) ensuring mutating future data $t > T$ produces zero change in computed features at $t \le T$.
 - Delivered test suites in `tests/unit/features/test_technical.py` and `tests/unit/features/test_price_action.py` (20 tests) with 100% statement and branch coverage, raising total test count to 122 passing tests and 94% global coverage.
 
+### Milestone 14: Sprint S05.02 Point-in-Time Calculation Guarantees & Versioning (Complete)
+- Implemented `FeatureEngine` in `src/features/engine.py` orchestrating point-in-time quantitative feature calculation and versioned `FeatureSet` assembly per FRD-FEAT-3/4, BTD §5.2, and DDD §5.1.
+- Guaranteed strict point-in-time cutoff ($t \le T$) with zero look-ahead data leakage across backtesting and real-time execution.
+- Verified zero look-ahead bias via failure injection test mutating $t > T$ data with 50x price shocks and asserting exact bit-for-bit numerical invariance.
+- Delivered test suite in `tests/unit/features/test_engine.py` (10 tests) with 100% statement and branch coverage, raising repository total to 132 passing tests and 94% global coverage.
+- **EPIC-05: Point-in-Time Feature Engineering Engine is 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -108,12 +115,13 @@
 | Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **COMPLETE** |
 | Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
 | Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **COMPLETE** |
-| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
+| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
 | Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
 | Phase V0 | **EPIC-04** | [S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **COMPLETE** |
 | Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
 | **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
-| Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **UP NEXT** |
+| Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
+| **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Volatility & Trend Regime Classification Engine | **UP NEXT** |
 
 ---
 
@@ -121,11 +129,10 @@
 
 When resuming execution:
 
-### Sprint S05.02: Point-in-Time Calculation Guarantees & Versioning
-Execute all deliverables for [Sprint S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md):
-- Implement `FeatureEngine` in `src/features/engine.py` orchestrating technical indicators and price action features into versioned `FeatureSet` domain models (DDD §5.1).
-- Enforce strict point-in-time cutoff invariant ($t \le T$) preventing look-ahead data leakage across backtesting and real-time execution.
-- Deliver test suites in `tests/unit/features/test_engine.py`.
+### Sprint S06.01: Volatility & Trend Regime Classification Engine
+Execute all deliverables for [Sprint S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md):
+- Implement rule-based/statistical `RegimeDetector` in `src/models/regime_detector.py` classifying market states into 4 canonical regimes (`TRENDING_BULLISH`, `TRENDING_BEARISH`, `RANGING_COMPRESSED`, `RANGING_VOLATILE`) per FRD-REGIME-1/2, MLD §5, and RTLD §11.
+- Deliver unit test suites in `tests/unit/models/test_regime_detector.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -147,3 +154,4 @@ Execute all deliverables for [Sprint S05.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S04.01 Delivered | `src/data/validator.py`, `src/domain/market_data.py`, `tests/unit/data/test_validator.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.01, 100% branch coverage on validator pipeline, 92% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S04.02 Delivered | `src/data/staleness_monitor.py`, `src/data/suppression_gate.py`, `src/config/models.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.02 & Epic 04, 100% branch coverage on staleness & suppression gate, Phase V0 Gate G0 unlocked, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S05.01 Delivered | `src/features/technical.py`, `src/features/price_action.py`, `src/features/__init__.py`, `tests/unit/features/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.01, 100% branch coverage on technical & price action feature engines, 94% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S05.02 Delivered | `src/features/engine.py`, `src/features/__init__.py`, `tests/unit/features/test_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.02 & Epic 05, 100% branch coverage on FeatureEngine, zero look-ahead leak detection verified, 94% global coverage, pushed to implementation-develop. |

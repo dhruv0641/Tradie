@@ -62,6 +62,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-007** | 2026-09-06 | 15:35:00 | `S04.01` | Data Validation Rules & Physical Sanity Checks | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Validator, 92% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-008** | 2026-09-06 | 15:45:00 | `S04.02` | Staleness Detection, Quarantine & Suppression Gate | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Staleness & Suppression, 93% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-009** | 2026-09-06 | 15:55:00 | `S05.01` | Technical Indicator & Price Action Feature Engine | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Features, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-010** | 2026-09-06 | 16:05:00 | `S05.02` | Point-in-Time Calculation Guarantees & Versioning | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Engine, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -486,9 +487,55 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-010: Sprint S05.02 — Point-in-Time Calculation Guarantees & Versioning
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:05:00 IST` (10:35:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 07 (ML Engineering) / Agent 04 (Data) / Agent 05 (Backtest) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `FeatureEngine` in `src/features/engine.py` orchestrating point-in-time quantitative feature calculation and versioned `FeatureSet` assembly per FRD-FEAT-3/4, BTD §5.2, and DDD §5.1:
+  - Strict Point-in-Time Cutoff Enforcement: Accepts evaluation timestamp $T$ (UTC-aware); slices market data strictly such that $t \le T$, ensuring zero forward-looking data leakage across real-time execution and backtesting.
+  - Supports both explicit cutoff timestamps and default latest-available bar timestamp.
+  - Supports market data with either a timezone-aware `'timestamp'` column or a timezone-aware `pd.DatetimeIndex`.
+  - Enriched feature vector generation combining 48 distinct quantitative indicators (trend, momentum, mean-reversion, volatility, volume, candlestick anatomy, formations, and market structure).
+  - Empirical Quality Scoring: Evaluates $\text{quality\_score} = \frac{\text{finite feature count}}{\text{total feature count}}$ to monitor warmup completeness.
+  - Optional NaN/Inf Imputation: Configurable `impute_missing: bool = False` supporting both raw floating representations and finite zero-imputation.
+  - Historical Batch Calculation: `compute_historical_features(df)` generating strictly backward-looking feature series across entire historical windows.
+- Stamped and returned canonical frozen `FeatureSet` domain models (`src/domain/features.py`) with UUIDv4 identifiers, symbol, UTC cutoff timestamp, timeframe, feature version string (`feat-v1.0`), and quality score.
+- Exported `FeatureEngine` in `src/features/__init__.py`.
+- Authored comprehensive test suite in `tests/unit/features/test_engine.py` (10 tests) achieving **100% statement and 100% branch coverage** on `src/features/engine.py`:
+  - Critical Look-Ahead Leak Detection Test (BTD §5.2): Injected 50x price shocks and volume spikes into future data ($t > T$) and proved exact bit-for-bit equality between baseline and mutated feature vectors at $T$.
+  - Timezone validation, empty DataFrame handling, early cutoff errors, and domain immutability checks.
+- Global repository test suite now stands at **132 passing tests with 94% coverage**.
+- **EPIC-05: Point-in-Time Feature Engineering Engine is now 100% COMPLETE.**
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `57 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 57 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `132 passed in 8.19s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `94%` code coverage (`engine.py`: 100% statement / 100% branch).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/features/engine.py` — Point-in-time feature engineering engine with versioning and quality scoring.
+2. `tests/unit/features/test_engine.py` — Unit tests for FeatureEngine and zero look-ahead leak detection.
+
+##### Modified Files:
+1. `src/features/__init__.py` — Exported FeatureEngine.
+2. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-010.
+3. `STORY.md` — Updated status board marking Sprint S05.02 and EPIC-05 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S05.01` — Technical Indicator & Price Action Feature Engine
-- **Active Epic**: `EPIC-05` — Point-in-Time Feature Engineering Engine (Phase V1 Milestone 13 COMPLETE)
-- **Next Sprint Up**: `Sprint S05.02` — Point-in-Time Calculation Guarantees & Versioning ([docs/sprints/S05.02-point-in-time-calculation-guarantees.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md))
-- **Next Task Up**: `TASK-05-02-001` — Implement FeatureEngine and FeatureSet Versioning
+- **Completed Sprint**: `Sprint S05.02` — Point-in-Time Calculation Guarantees & Versioning
+- **Completed Epic**: `EPIC-05` — Point-in-Time Feature Engineering Engine (**100% COMPLETE**)
+- **Next Sprint Up**: `Sprint S06.01` — Volatility & Trend Regime Classification Engine ([docs/sprints/S06.01-regime-detector-classifier.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-regime-detector-classifier.md))
+- **Next Task Up**: `TASK-06-01-001` — Implement Rule-Based Market Regime Detector (FRD-REGIME-1/2, MLD §5)
