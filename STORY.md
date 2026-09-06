@@ -158,8 +158,15 @@
 - Delivered test suites in `tests/unit/regime/test_transition.py` and `tests/unit/domain/test_regime.py` (14 new tests) achieving 99% branch coverage on `transition.py` and 100% on domain entities, raising repository total to **269 passing tests and 96% global coverage**.
 - **EPIC-09: Market Regime Intelligence Subsystem is now 100% COMPLETE.**
 
----
+### Milestone 23: Sprint S10.01 Trading Agent Interface & Normalized Output Contract (Complete)
+- Implemented canonical agent signal domain models in `src/domain/agent_signal.py`: `SignalDirection` (`LONG`, `SHORT`, `NO_VIEW`), and `AgentSignalOutput` immutable Pydantic v2 model with timezone-aware UTC validation, $[0.0, 1.0]$ bounded confidence, point-in-time `inputs_used`, and strict enforcement of `confidence=0.0` on `NO_VIEW` direction (FRD-SIG-3).
+- Implemented `TradingAgent` protocol and `BaseAgent(ABC)` template in `src/agents/base.py`:
+  - `@runtime_checkable class TradingAgent(Protocol)` standardizing the agent inference interface.
+  - `BaseAgent(ABC)` template method with fault-isolation wrapper: intercepts exceptions or corrupted feature inputs, logs structured warnings, and safely returns safe `NO_VIEW` with `confidence=0.0` fallback (FRD-SIG-3).
+  - Strict confidence clamping to $[0.0, 1.0]$.
+- Delivered test suites in `tests/unit/domain/test_agent_signal.py` and `tests/unit/agents/test_agent_base.py` (15 new tests) achieving **100% coverage on both base.py and agent_signal.py**, raising repository total to **284 passing tests and 96% global coverage**.
 
+---
 
 ## 3. Current Live State & Status Board
 
@@ -190,7 +197,8 @@
 | Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
 | **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
 | Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
-| **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-multi-agent-trend-momentum.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Multi-Agent Roster (Trend & Momentum Agents) | **UP NEXT** |
+| **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
+| Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **UP NEXT** |
 
 ---
 
@@ -198,10 +206,11 @@
 
 When resuming execution:
 
-### Sprint S10.01: Multi-Agent Roster (Trend & Momentum Agents)
-Execute all deliverables for [Sprint S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-multi-agent-trend-momentum.md):
-- Implement `TrendAgent` and `MomentumAgent` in `src/agents/trend.py` and `src/agents/momentum.py` adhering to `subsystem-contracts.md` §3 and MLD §6.
-- Deliver unit test suites in `tests/unit/agents/`.
+### Sprint S10.02: Rule-Based Agent Roster Implementation
+Execute all deliverables for [Sprint S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md):
+- Implement `TrendAgent` and `MomentumAgent` in `src/agents/trend.py` and `src/agents/momentum.py` per MLD §6.1 and §6.2.
+- Implement `MeanReversionAgent` and `PriceActionAgent` in `src/agents/mean_reversion.py` and `src/agents/price_action.py` per MLD §6.3 and §6.4.
+- Deliver unit test suites across `tests/unit/agents/`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -232,3 +241,4 @@ Execute all deliverables for [Sprint S10.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S08.02 Delivered (Phase V1 Complete) | `src/strategies/*`, `src/backtesting/reporting.py`, `scripts/run_v1_baseline.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.02, BollingerBandsRSIMeanReversionStrategy, BacktestReporter with PRD §10 & BTD §12 caveats, CLI baseline runner, EPIC-08 100% complete, Phase V1 Gate G1 satisfied and unlocked. |
 | **2026-09-06** | Sprint S09.01 Delivered | `src/domain/regime.py`, `src/domain/__init__.py`, `src/config/models.py`, `src/regime/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.01, 5-dimensional RegimeDetector, canonical StrEnums & RegimeClassification domain entity, 255 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S09.02 Delivered (EPIC-09 Complete) | `src/regime/transition.py`, `src/domain/regime.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.02, RegimeTransitionFilter with 2-cycle hysteresis, boundary noise suppression, RegimeTransitionEvent, 269 tests passing, 96% global coverage, EPIC-09 100% complete. |
+| **2026-09-06** | Sprint S10.01 Delivered | `src/domain/agent_signal.py`, `src/agents/base.py`, `src/agents/__init__.py`, `tests/unit/domain/test_agent_signal.py`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.01, TradingAgent protocol, BaseAgent fault-tolerant execution contract with exception safety, AgentSignalOutput model, 284 tests passing, 96% global coverage. |

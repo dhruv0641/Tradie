@@ -71,6 +71,8 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-016** | 2026-09-06 | 17:05:00 | `S08.02` | Mean-Reversion Baseline Strategy & Reporting | 5 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (237 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-017** | 2026-09-06 | 17:15:00 | `S09.01` | Multi-Dimensional Regime Classification Engine | 4 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (255 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-018** | 2026-09-06 | 17:25:00 | `S09.02` | Regime Transition Detection & Hysteresis Filtering | 2 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (269 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-019** | 2026-09-06 | 17:35:00 | `S10.01` | Trading Agent Interface & Normalized Output Contract | 6 new / 1 modified | Ruff Clean, Mypy Strict, 100% Test Pass (284 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+
 
 
 ---
@@ -939,10 +941,55 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-019: Sprint S10.01 — Trading Agent Interface & Normalized Output Contract
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `17:35:00 IST` (12:05:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 06 (AI Architecture) / Agent 02 (Architecture) / Agent 12 (Low-Level Engineering) / Agent 14 (QA)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented canonical agent signal domain entities in `src/domain/agent_signal.py` adhering to ADD §4, LLD §8.1, and `subsystem-contracts.md` §2:
+  - `SignalDirection(StrEnum)`: `LONG`, `SHORT`, `NO_VIEW`.
+  - `AgentSignalOutput`: Immutable Pydantic v2 model with timezone-aware UTC validation, agent identifier, directional conviction, strictly bounded $[0.0, 1.0]$ normalized confidence, point-in-time `inputs_used` tracking, raw score, and strict invariant requiring `confidence=0.0` when `direction=NO_VIEW` (FRD-SIG-3).
+  - Exported in `src/domain/__init__.py`.
+- Implemented `TradingAgent` protocol and `BaseAgent` abstract class in `src/agents/base.py`:
+  - `@runtime_checkable class TradingAgent(Protocol)` defining the standard evaluation contract: `(instrument, timeframe, FeatureSet, RegimeClassification) -> AgentSignalOutput`.
+  - `BaseAgent(ABC)` template method pattern wrapping subclass `_compute_signal(...)` with an exception-safety harness (FRD-SIG-3). If an agent computation raises an exception or encounters missing data, the failure is safely caught, logged via structlog, and returns `direction=NO_VIEW` with `confidence=0.0`, ensuring fault isolation across the agent roster.
+  - Automatic confidence clamping to $[0.0, 1.0]$ and zeroing on `NO_VIEW`.
+  - Exported in `src/agents/__init__.py`.
+- Delivered test suites in `tests/unit/domain/test_agent_signal.py` and `tests/unit/agents/test_agent_base.py` (15 new tests) achieving **100% statement and branch coverage on both base.py and agent_signal.py**, raising repository total to **284 passing tests and 96% global coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests` → `99 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests` → `Success: no issues found in 99 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `284 passed in 13.45s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage (`src/agents/base.py` at 100%, `src/domain/agent_signal.py` at 100%).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/agent_signal.py` — Canonical Pydantic v2 models for agent signal output and direction.
+2. `src/agents/__init__.py` — Package initialization exporting BaseAgent and TradingAgent.
+3. `src/agents/base.py` — TradingAgent protocol interface and BaseAgent fault-tolerant execution contract.
+4. `tests/unit/domain/test_agent_signal.py` — Unit tests for AgentSignalOutput validation and serialization.
+5. `tests/unit/agents/__init__.py` — Unit test package marker for agents.
+6. `tests/unit/agents/test_agent_base.py` — Unit tests for BaseAgent protocol conformance, clamping, and error isolation.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported AgentSignalOutput and SignalDirection.
+2. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-019.
+3. `STORY.md` — Updated status board marking Sprint S10.01 and Milestone 23 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S09.02` — Regime Transition Detection & Hysteresis Filtering
-- **Completed Epic**: `EPIC-09` — Multi-Dimensional Market Regime Detection Engine (100% COMPLETE)
+- **Completed Sprint**: `Sprint S10.01` — Trading Agent Interface & Normalized Output Contract
+- **Active Epic**: `EPIC-10` — Multi-Agent Signal Generation Roster (In Progress)
 - **Active Phase**: **PHASE V2: AUTONOMOUS AI TRADING BRAIN**
-- **Next Sprint Up**: `Sprint S10.01` — Multi-Agent Roster (Trend & Momentum Agents) ([docs/sprints/S10.01-multi-agent-trend-momentum.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-multi-agent-trend-momentum.md))
-- **Next Task Up**: `TASK-10-01-001` — Implement Trend Agent and Momentum Agent Contracts
+- **Next Sprint Up**: `Sprint S10.02` — Rule-Based Agent Roster Implementation ([docs/sprints/S10.02-rule-based-agent-roster.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md))
+- **Next Task Up**: `TASK-10-02-001` — Implement Trend and Momentum Trading Agents

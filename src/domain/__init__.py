@@ -1,5 +1,6 @@
 """Canonical Pydantic v2 domain models for AI Trader."""
 
+from src.domain.agent_signal import AgentSignalOutput, SignalDirection
 from src.domain.backtest_result import (
     BacktestMetrics,
     BacktestResult,
@@ -38,6 +39,7 @@ from src.domain.validation import (
 )
 
 __all__ = [
+    "AgentSignalOutput",
     "BacktestMetrics",
     "BacktestResult",
     "BacktestTrade",
@@ -59,6 +61,7 @@ __all__ = [
     "RegimeClassification",
     "RegimeTransitionEvent",
     "RiskSentiment",
+    "SignalDirection",
     "StressScenarioResult",
     "StressScenarioType",
     "StressTestReport",
