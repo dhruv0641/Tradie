@@ -311,6 +311,29 @@
   - Authored 18 comprehensive unit tests in `tests/unit/core/test_runner.py`, achieving **94% coverage** on `src/core/runner.py` with **565 total tests passing repository-wide at 97% global branch coverage**.
   - **EPIC-16 IS 100% COMPLETE!**
 
+### Milestone 35: Immutable Decision Record Audit Logging (Sprint S17.01)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `DecisionAuditService` in `src/audit/decision_logger.py` persisting complete `DecisionRecord` objects unconditionally to `DecisionRecordModel` (PostgreSQL / SQLite).
+  - Enforced 100% decision persistence guarantee across all cycle outcomes (`BUY`, `SELL`, `HOLD`, `NO_TRADE`) per BRD BR-7, FRD-EVAL-1, and NFR-AUDIT-1.
+  - Implemented deterministic fail-stop protection: database write failures trigger an emergency alarm and immediate Kill Switch halt (`KillSwitch.activate()`), preventing unlogged live trades per FRD-X-3.
+  - Implemented cryptographic SHA-256 tamper-evidence detection raising `TamperEvidenceViolationError` on payload corruption.
+  - Extended canonical `DecisionRecord` domain entity with backward-compatible audit metadata fields.
+  - Authored 7 unit tests and 2 integration tests achieving **92% line coverage** on `decision_logger.py`.
+
+### Milestone 36: Post-Trade Evaluation Engine & Operator Query Interface (Sprint S17.02)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `TradeEvaluator` in `src/audit/trade_evaluator.py` attributing exact Indian statutory charges (brokerage, STT, turnover fees, GST, stamp duty) via `CostModel` and slippage drag against original hypotheses.
+  - Implemented 9-category deterministic variance driver classification per FRD-EVAL-3 / DDD §5.3 (`good_trade`, `bad_signal`, `bad_timing`, `bad_sizing`, `bad_execution`, `unexpected_event`, `regime_change`, `data_problem`, `model_problem`).
+  - Implemented `DecisionExplainer` in `src/audit/explain.py` delivering non-fabricated explanations answering the 5 core operator questions with execution latency $<5$s per NFR-AUDIT-2.
+  - Implemented standalone CLI query tool `scripts/explain_decision.py` (`--id`, `--recent`, `--instrument`, `--json`).
+  - Integrated `DecisionAuditService` and `TradeEvaluator` directly into continuous market-hours orchestrator `TradingBrainRunner`.
+  - Authored comprehensive test suites bringing total repository tests to **586 passing tests** at **97% global branch coverage** with zero Ruff or Mypy issues.
+  - **EPIC-17 IS 100% COMPLETE!**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -355,7 +378,10 @@
 | Phase V3 / V4 | EPIC-15 | [S15.02](docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **COMPLETE** |
 | **Phase V4 / V5** | **EPIC-16** | [S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md) | [TASK-16-01-001](docs/tasks/TASK-16-01-001.md) | Paper Trading Simulation Environment & Virtual Account | **COMPLETE** |
 | Phase V4 / V5 | EPIC-16 | [S16.02](docs/sprints/S16.02-continuous-paper-trading-harness.md) | [TASK-16-02-001](docs/tasks/TASK-16-02-001.md) | Continuous Paper Trading Market-Hours Harness | **COMPLETE** |
-| **Phase V6** | **EPIC-17** | [S17.01](docs/sprints/S17.01-post-trade-evaluation-attribution.md) | [TASK-17-01-001](docs/tasks/TASK-17-01-001.md) | Post-Trade Evaluation Engine & Outcome Attribution | **UP NEXT** |
+| **Phase V4 / V5** | **EPIC-17** | [S17.01](docs/sprints/S17.01-immutable-decision-record-audit.md) | [TASK-17-01-001](docs/tasks/TASK-17-01-001.md) | Immutable Decision Record Audit Logging | **COMPLETE** |
+| Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-001](docs/tasks/TASK-17-02-001.md) | Post-Trade Evaluation Engine & Variance Classifier | **COMPLETE** |
+| Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-002](docs/tasks/TASK-17-02-002.md) | Decision Explainability Query CLI (`aitrader explain`) | **COMPLETE** |
+| **Phase V5 / V6** | **EPIC-18** | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit.md) | [TASK-18-01-001](docs/tasks/TASK-18-01-001.md) | Pre-Live Precondition Audit & Credential Validation | **UP NEXT** |
 
 ---
 
@@ -363,13 +389,12 @@
 
 When resuming execution:
 
-### Sprint S17.01: Post-Trade Evaluation Engine & Outcome Attribution
-Execute all deliverables for [Sprint S17.01](docs/sprints/S17.01-post-trade-evaluation-attribution.md):
-- Implement the `TradeEvaluator` engine evaluating closed trade executions against original hypotheses (`TradeEvaluation` canonical domain model).
-- Classify variance drivers across execution slippage, regime shift, market timing, model misprediction, and unexpected volatility shocks.
-- Deliver comprehensive unit tests with $\ge 80\%$ line coverage and safety branch guarantees.
-- Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
-
+### Sprint S18.01: Pre-Live Precondition Audit & Credential Validation
+Execute all deliverables for [Sprint S18.01](docs/sprints/S18.01-pre-live-precondition-audit.md):
+- Implement pre-live readiness checks verifying broker API credentials, database connectivity, data feed freshness, and risk parameters.
+- Verify capital ceiling constraints and zero unapproved credential exposure.
+- Enforce strict operator sign-off gates prior to live order routing.
+- Deliver unit and integration tests with 100% safety branch coverage and run `.\scripts\deliver_sprint.ps1`.
 
 ---
 
@@ -412,3 +437,5 @@ Execute all deliverables for [Sprint S17.01](docs/sprints/S17.01-post-trade-eval
 | **2026-09-06** | Sprint S15.02 Delivered (EPIC-15 Complete) | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.02, OrderManager with 5s timeout manager & DB sync, ConnectionMonitor with 30s outage circuit breaker & safe-state hold, 468 tests passing, 97% global coverage, 100% coverage on S15.02 modules, EPIC-15 100% complete. |
 | **2026-09-06** | Sprint S16.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.01, PaperBrokerAdapter, virtual portfolio accounting, Indian statutory tax & cost deduction, tick matching engine, 492 tests passing, 99% coverage on PaperBrokerAdapter, 97% global coverage. |
 | **2026-09-06** | Sprint S16.02 Delivered (EPIC-16 Complete) | `src/core/*`, `scripts/run_paper_trader.py`, `tests/unit/core/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.02, TradingBrainRunner continuous market-hours orchestrator, CLI paper trading harness, 565 tests passing, 94% runner coverage, 97% global coverage, EPIC-16 100% complete. |
+| **2026-09-06** | Sprint S17.01 Delivered | `src/audit/decision_logger.py`, `src/domain/decision.py`, `tests/unit/audit/*`, `tests/integration/test_decision_audit.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S17.01, DecisionAuditService with unconditional persistence, cryptographic SHA-256 tamper evidence, and fail-stop Kill Switch trigger on DB failure. |
+| **2026-09-06** | Sprint S17.02 Delivered (EPIC-17 Complete) | `src/audit/*`, `src/domain/evaluation.py`, `src/core/runner.py`, `scripts/explain_decision.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S17.02, TradeEvaluator with Indian cost drag attribution, 9 variance categories, DecisionExplainer with CLI query interface, 586 tests passing, EPIC-17 100% complete. |

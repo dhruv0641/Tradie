@@ -32,6 +32,17 @@ class TradeEvaluation(BaseModel):
         description="Total Indian statutory charges (STT, GST, Stamp Duty)",
     )
     variance_driver: Literal[
+        # Canonical DDD §5.3 / FRD-EVAL-3 drivers:
+        "good_trade",
+        "bad_signal",
+        "bad_timing",
+        "bad_sizing",
+        "bad_execution",
+        "unexpected_event",
+        "regime_change",
+        "data_problem",
+        "model_problem",
+        # Legacy uppercase drivers:
         "STRATEGY_EDGE",
         "SLIPPAGE",
         "MARKET_GAP",
@@ -43,13 +54,32 @@ class TradeEvaluation(BaseModel):
         default=True,
         description="Flag confirming execution adhered 100% to deterministic risk parameters",
     )
+    entry_timestamp: datetime | None = Field(
+        default=None, description="Trade entry fill timestamp in UTC"
+    )
+    exit_timestamp: datetime | None = Field(
+        default=None, description="Trade exit fill timestamp in UTC"
+    )
+    total_cost_drag: Decimal = Field(
+        default=Decimal("0"),
+        description="Total execution drag (statutory charges + execution slippage)",
+    )
+    expected_pnl: Decimal = Field(
+        default=Decimal("0"), description="Mathematical expected P&L at entry"
+    )
+    pnl_variance: Decimal = Field(
+        default=Decimal("0"), description="Variance between realized net P&L and expected P&L"
+    )
+    evaluation_notes: str = Field(
+        default="", description="Operator or automated post-trade analysis notes"
+    )
     evaluated_at: datetime = Field(description="Post-trade evaluation timestamp in UTC")
 
-    @field_validator("evaluated_at")
+    @field_validator("evaluated_at", "entry_timestamp", "exit_timestamp")
     @classmethod
-    def validate_utc_timestamp(cls, v: datetime) -> datetime:
+    def validate_utc_timestamp(cls, v: datetime | None) -> datetime | None:
         """Enforce that timestamp is timezone-aware."""
-        if v.tzinfo is None:
+        if v is not None and v.tzinfo is None:
             msg = "Evaluation timestamp must be timezone-aware UTC"
             raise ValueError(msg)
         return v

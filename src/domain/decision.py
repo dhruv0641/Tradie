@@ -84,6 +84,29 @@ class DecisionRecord(BaseModel):
         default=None, description="Deterministic hard stop-loss price"
     )
     target_price: Decimal | None = Field(default=None, description="Profit target price level")
+    timeframe: str = Field(default="1m", description="Timeframe of the decision candle")
+    environment: Literal["research", "paper", "live"] = Field(
+        default="paper", description="Operating environment"
+    )
+    data_quality_state: Literal["VALIDATED", "STALE", "QUARANTINED"] = Field(
+        default="VALIDATED", description="Data quality state"
+    )
+    disagreement_metric: float = Field(
+        default=0.0, description="Agent opportunity disagreement metric"
+    )
+    expected_value: Decimal = Field(
+        default=Decimal("0.0000"), description="Mathematical expected trade value"
+    )
+    client_order_id: str | None = Field(
+        default=None, description="Linked client order ID if dispatched"
+    )
+    reason: str = Field(default="", description="Decision justification / rationale")
+    inputs_used: dict[str, Any] = Field(
+        default_factory=dict, description="Raw model and market inputs used"
+    )
+    features: dict[str, float] = Field(
+        default_factory=dict, description="Derived features computed for this cycle"
+    )
     config_version: str = Field(default="0.1.0", description="Active RiskConfig version tag")
     git_commit: str = Field(default="unknown", description="Source code git commit hash")
     decision_hash: str | None = Field(

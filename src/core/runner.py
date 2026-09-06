@@ -157,9 +157,14 @@ class TradingBrainRunner:
         streak_tracker: StreakTracker | None = None,
         connection_monitor: ConnectionMonitor | None = None,
         config: RunnerConfig | None = None,
+        audit_service: Any | None = None,
+        trade_evaluator: Any | None = None,
     ) -> None:
         self.config = config or RunnerConfig()
         self.broker = broker
+        self.audit_service = audit_service
+        self.trade_evaluator = trade_evaluator
+        self._evaluations: list[Any] = []
 
         self.feature_engine = feature_engine or FeatureEngine()
         self.regime_detector = regime_detector or RegimeDetector()
@@ -211,6 +216,11 @@ class TradingBrainRunner:
     def fills_executed(self) -> int:
         """Total trade fills recorded."""
         return self._fills_executed
+
+    @property
+    def evaluations(self) -> list[Any]:
+        """Total post-trade evaluations recorded."""
+        return list(self._evaluations)
 
     def get_market_session_phase(self, dt: datetime) -> MarketSessionPhase:
         """Determine Indian Market session phase for a given timestamp in IST."""
