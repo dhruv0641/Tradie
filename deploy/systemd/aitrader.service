@@ -1,0 +1,26 @@
+[Unit]
+Description=AI Trader Autonomous Trading System Engine
+Documentation=https://github.com/dhruv0641/Tradie
+After=docker.service postgresql.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/aitrader
+EnvironmentFile=-/opt/aitrader/.env
+ExecStart=/usr/bin/docker compose up trading-brain dashboard
+ExecStop=/usr/bin/docker compose down
+# CRITICAL SAFETY INVARIANT (TRD-COMPUTE-4 / BRD BR-1):
+# Automatic restart on failure is strictly forbidden. A crash in the trading engine
+# indicates an anomalous market event or assertion failure; the process must halt
+# safely until explicit human operator inspection and authorization.
+Restart=no
+TimeoutStopSec=30
+KillMode=mixed
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

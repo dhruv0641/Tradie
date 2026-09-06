@@ -1,0 +1,49 @@
+# Dockerfile.trading
+# Production Trading Brain & FastAPI Control Dashboard container environment
+# Enforces TRD-DEPLOY-1, TRD-DEPLOY-4, TRD-COMPUTE-1, TRD-COMPUTE-4, and TTD §15
+
+FROM python:3.12-slim
+
+# Prevent interactive prompts during installation and buffer output
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_ENV=production
+
+# Install minimal OS runtime dependencies and create non-root trader user
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --shell /bin/bash trader
+
+WORKDIR /app
+
+# Copy project dependency definitions
+COPY pyproject.toml uv.lock ./
+
+# Install uv package manager and dependencies
+RUN pip install --no-cache-dir uv && \
+    uv sync --frozen --no-install-project
+
+# Copy application source code, UI, scripts, and alembic migrations
+COPY src/ ./src/
+COPY ui/ ./ui/
+COPY scripts/ ./scripts/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+
+# Ensure permissions for non-root user
+RUN mkdir -p /app/data /app/logs /app/backups && \
+    chown -R trader:trader /app
+
+# Switch to non-privileged user (zero root execution in production)
+USER trader
+
+# Expose FastAPI Dashboard port
+EXPOSE 8000
+
+# Default entrypoint starts the Trading Brain runner in safe paper mode
+ENTRYPOINT ["python", "-m", "src.core.runner"]
+CMD ["--mode", "paper"]

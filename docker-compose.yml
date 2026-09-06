@@ -1,0 +1,107 @@
+# docker-compose.yml — Multi-Container Production Topology
+# Adheres strictly to TRD-COMPUTE-1, TRD-COMPUTE-4, TRD-DEPLOY-1, TRD-DEPLOY-4, and TTD §15.
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: aitrader-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-aitrader}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - aitrader-network
+
+  trading-brain:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.trading
+    container_name: aitrader-trading-brain
+    # CRITICAL: Auto-restart strictly disabled for safety on failure (TRD-COMPUTE-4).
+    # Crashed trading process halts immediately and requires explicit human inspection.
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-aitrader}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      ENVIRONMENT: ${ENVIRONMENT:-paper}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: ["python", "-m", "src.core.runner", "--mode", "${ENVIRONMENT:-paper}"]
+    networks:
+      - aitrader-network
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.trading
+    container_name: aitrader-dashboard
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-aitrader}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      API_PORT: 8000
+      OPERATOR_AUTH_TOKEN: ${OPERATOR_AUTH_TOKEN:-change-me-operator-token}
+      ENVIRONMENT: ${ENVIRONMENT:-paper}
+    volumes:
+      - ./logs:/app/logs
+    command: ["uvicorn", "src.api.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--factory"]
+    networks:
+      - aitrader-network
+
+  research-brain:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.research
+    container_name: aitrader-research-brain
+    restart: "no"
+    profiles:
+      - research
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      RESEARCH_SANDBOX: "1"
+      RESEARCH_READONLY: "1"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-aitrader}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    networks:
+      - aitrader-network
+
+volumes:
+  pgdata:
+    name: aitrader-pgdata
+
+networks:
+  aitrader-network:
+    name: aitrader-network
+    driver: bridge

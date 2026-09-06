@@ -467,8 +467,8 @@
 | **Phase V8** | **EPIC-22** | [S22.01](docs/sprints/S22.01-fastapi-control-backend-health-endpoint.md) | [TASK-22-01-001](docs/tasks/TASK-22-01-001.md) | FastAPI Control Backend & `/health` Endpoint | **COMPLETE** |
 | Phase V8 | EPIC-22 | [S22.02](docs/sprints/S22.02-operator-web-dashboard-manual-stop-ui.md) | [TASK-22-02-001](docs/tasks/TASK-22-02-001.md) | Operator Web Dashboard & Manual STOP UI | **COMPLETE** |
 | **Phase V8** | **EPIC-23** | [S23.01](docs/sprints/S23.01-secrets-management-tls-enforcement.md) | [TASK-23-01-001](docs/tasks/TASK-23-01-001.md) | Implement Secrets Management and TLS Transport Verifier | **COMPLETE** |
-| Phase V8 | EPIC-23 | [S23.02](docs/sprints/S23.02-docker-topology-process-supervision-dr.md) | [TASK-23-02-001](docs/tasks/TASK-23-02-001.md) | Docker Compose Multi-Container Production Topology | In Progress |
-| Phase V8 | EPIC-23 | [S23.02](docs/sprints/S23.02-docker-topology-process-supervision-dr.md) | [TASK-23-02-002](docs/tasks/TASK-23-02-002.md) | Automated Database Backup & Disaster Recovery Verification | In Progress |
+| Phase V8 | EPIC-23 | [S23.02](docs/sprints/S23.02-docker-topology-process-supervision-dr.md) | [TASK-23-02-001](docs/tasks/TASK-23-02-001.md) | Docker Compose Multi-Container Production Topology | **COMPLETE** |
+| Phase V8 | EPIC-23 | [S23.02](docs/sprints/S23.02-docker-topology-process-supervision-dr.md) | [TASK-23-02-002](docs/tasks/TASK-23-02-002.md) | Automated Database Backup & Disaster Recovery Verification | **COMPLETE** |
 | **Phase V8** | **EPIC-24** | [S24.01](docs/sprints/S24.01-capital-scaling-evaluation-engine.md) | [TASK-24-01-001](docs/tasks/TASK-24-01-001.md) | Capital Scaling Metric Evaluation Engine | Planned |
 | Phase V8 | EPIC-24 | [S24.02](docs/sprints/S24.02-capital-manager-operator-authorization.md) | [TASK-24-02-001](docs/tasks/TASK-24-02-001.md) | CapitalManager & Operator Authorization Workflow | Planned |
 
@@ -478,10 +478,10 @@
 
 When resuming execution:
 
-### Next Focus: Sprint S23.02 (Docker Topology, Process Supervision & Disaster Recovery)
-Proceed to [Sprint S23.02](docs/sprints/S23.02-docker-topology-process-supervision-dr.md):
-- Implement `docker-compose.yml` multi-container architecture.
-- Implement automated DB backup (`scripts/backup_db.py`) and restore (`scripts/restore_db.py`).
+### Next Focus: Sprint S24.01 (Capital Scaling Metric Evaluation Engine)
+Proceed to [Sprint S24.01](docs/sprints/S24.01-capital-scaling-evaluation-engine.md):
+- Implement `src/capital/scaling_evaluator.py` evaluating all 9 criteria from RTLD §15 and PRD §14.
+- Implement unit test suite verifying each threshold gate.
 
 ---
 
@@ -489,6 +489,7 @@ Proceed to [Sprint S23.02](docs/sprints/S23.02-docker-topology-process-supervisi
 
 | Date | Action | Changed Artifacts | Summary |
 |---|---|---|---|
+| **2026-09-07** | Sprint S23.02 Delivered (EPIC-23 Complete) | `docker-compose.yml`, `docker/Dockerfile.trading`, `deploy/systemd/aitrader.service`, `scripts/backup_db.*`, `scripts/restore_db.*`, `tests/unit/infrastructure/*` | Completed Sprint S23.02, production multi-container Docker topology with Restart=no safety policy, automated gzip database backup with SHA-256 manifest, disaster recovery restore verifier, 733 tests passing, EPIC-23 100% complete. |
 | **2026-09-07** | Sprint S23.01 Delivered | `src/utils/secrets.py`, `src/utils/__init__.py`, `.github/workflows/security_scan.yml`, `tests/unit/utils/test_secrets.py` | Completed Sprint S23.01, SecretsManager with rotation age tracking, credential auditing, and TLS verification enforcement, 725 tests passing. |
 | **2026-09-07** | Sprint S21.02 Delivered (EPIC-21 & Phase V7 Complete) | `src/governance/promotion_gate.py`, `src/governance/rollback_monitor.py`, `src/domain/governance_event.py`, `tests/unit/governance/*`, `tests/unit/domain/*` | Completed Sprint S21.02, ModelPromotionGate with operator sign-off and RollbackMonitor with automated production reversion, 703 tests passing, EPIC-21 100% complete, Phase V7 100% complete. |
 | **2026-09-07** | Sprint S21.01 Delivered | `src/governance/validation_runner.py`, `src/domain/validation_record.py`, `src/domain/governance.py`, `tests/unit/governance/test_validation_runner.py`, `tests/unit/domain/test_validation_record.py` | Completed Sprint S21.01, multi-stage ValidationRunner executing 6 sequential gates with fail-fast guarantee, 682 tests passing, 100% line & branch coverage on validation runner. |
