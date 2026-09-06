@@ -185,6 +185,17 @@
   - Enforces threshold gating (FRD-AGG-6) with explicit deadlock rejection for equal conflicting conviction.
 - Delivered test suites in `tests/unit/domain/test_aggregation_result.py` and `tests/unit/aggregation/test_aggregator.py` (17 new tests) achieving **100% coverage on both aggregator.py and aggregation_result.py**, raising repository total to **332 passing tests and 96% global coverage**.
 
+### Milestone 26: Sprint S11.02 Dynamic Timeframe Intelligence & Disagreement Metric (Complete — EPIC-11 100% Complete)
+- Implemented `TimeframeSelector` in `src/aggregation/timeframe_selector.py` per LLD §8.3, ADD §7.3, and FRD Module 5 (FRD-AGG-4, FRD-AGG-5):
+  - Ingests candidate opportunities across multiple timeframes (e.g., `["5m", "15m", "1h"]`).
+  - Evaluates each timeframe candidate independently using `SignalAggregator` to produce an `AggregationResult`.
+  - Filters candidates that pass consensus threshold (`passed == True`), sorting deterministically by trade quality score $Q = \text{score}$ descending, breaking ties by lowest disagreement $\sigma_w = \text{disagreement}$ ascending.
+  - Enforces strict NO TRADE discipline per FRD-AGG-4 and AGENTS.md §3.3: if all candidate timeframes fail threshold (or no signals are provided), the selector returns `passed=False, direction=None` with a diagnostic reason (e.g., `all_timeframes_below_threshold`). Best-of-rejected candidates are strictly NEVER approved.
+  - Preserves the raw disagreement dispersion metric $\sigma_w$ in the winning or rejected `AggregationResult` for downstream audit logging and self-learning post-trade analysis.
+  - Exported in `src/aggregation/__init__.py`.
+- Delivered unit test suite in `tests/unit/aggregation/test_timeframe_selector.py` (7 new tests) achieving **100% statement and branch coverage on timeframe_selector.py**, raising repository total to **339 passing tests and 96% global branch coverage**.
+- **EPIC-11: Signal Aggregation & Dynamic Timeframe Selection is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -219,7 +230,9 @@
 | **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
 | Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **COMPLETE** |
 | **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-weighted-signal-aggregator-score-normalization.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Weighted Signal Aggregator & Score Normalization | **COMPLETE** |
-| Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **UP NEXT** |
+| Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **COMPLETE** |
+| **Phase V3** | **EPIC-12** | [S12.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md) | [TASK-12-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-01-001.md) | Deterministic Risk Engine Core & Parameter Register | **UP NEXT** |
+| Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | QUEUED |
 
 ---
 
@@ -227,14 +240,13 @@
 
 When resuming execution:
 
-### Sprint S11.02: Dynamic Timeframe Intelligence & Disagreement Metric
-Execute all deliverables for [Sprint S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md):
-- Implement `TimeframeSelector` in `src/aggregation/timeframe_selector.py` per LLD §8.3 and ADD §7.3.
-- Evaluate candidate opportunities independently across multiple candidate timeframes.
-- Filter passing timeframes and select optimal candidate by highest trade quality score $Q$.
-- Enforce strict NO TRADE discipline: if no timeframe clears threshold, output NO TRADE (FRD-AGG-4).
-- Preserve raw disagreement dispersion metric $\sigma_w$ in final `AggregationResult`.
-- Deliver unit test suites across `tests/unit/aggregation/test_timeframe_selector.py`.
+### Sprint S12.01: Deterministic Risk Engine Core & Parameter Register
+Execute all deliverables for [Sprint S12.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md):
+- Implement externalized `RiskConfig` adhering strictly to RTLD §14 parameter register (hard risk parameters, initial live capital ₹10,000).
+- Implement `RiskEngine` in `src/risk/engine.py` per LLD §5, RTLD §4–§14, and FRD Module 6.
+- Enforce the fail-fast sequential risk check pipeline with deterministic veto authority (Agent 09).
+- Enforce that AI and probabilistic models cannot override hard risk boundaries (BRD BR-1, BR-4).
+- Deliver unit test suites across `tests/unit/risk/test_risk_engine.py` with 100% branch coverage on safety-critical paths.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -268,3 +280,4 @@ Execute all deliverables for [Sprint S11.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S10.01 Delivered | `src/domain/agent_signal.py`, `src/agents/base.py`, `src/agents/__init__.py`, `tests/unit/domain/test_agent_signal.py`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.01, TradingAgent protocol, BaseAgent fault-tolerant execution contract with exception safety, AgentSignalOutput model, 284 tests passing, 96% global coverage. |
 | **2026-09-06** | Sprint S10.02 Delivered (EPIC-10 Complete) | `src/agents/*`, `tests/unit/agents/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S10.02, TrendAgent, MomentumAgent, MeanReversionAgent, PriceActionAgent adhering to MLD §6, 315 tests passing, 100% coverage on agent roster, EPIC-10 100% complete. |
 | **2026-09-06** | Sprint S11.01 Delivered | `src/domain/aggregation_result.py`, `src/config/*`, `src/aggregation/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.01, canonical AggregationResult, AggregatorConfig, deterministic SignalAggregator with dynamic weight re-normalization, disagreement dispersion, 332 tests passing, 96% global coverage. |
+| **2026-09-06** | Sprint S11.02 Delivered (EPIC-11 Complete) | `src/aggregation/timeframe_selector.py`, `src/aggregation/__init__.py`, `tests/unit/aggregation/test_timeframe_selector.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S11.02, TimeframeSelector multi-timeframe scoring, best-of-rejected NO TRADE discipline, disagreement preservation, 339 tests passing, 96% global coverage, EPIC-11 100% complete. |
