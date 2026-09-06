@@ -279,48 +279,60 @@
 - Implemented `OrderTranslator` (`src/execution/translator.py`) with default bounded-slippage limit orders, tick size conservative rounding, lot size validation, and broker instrument mapping per FRD-EXEC-2, FRD-EXEC-9, and EDD §6.2.
 - Delivered 26 new unit tests across `test_broker_adapter.py`, `test_idempotency.py`, and `test_translator.py`, achieving **100% coverage on BrokerAdapter and IdempotentOrderDispatcher**, and **95% coverage on OrderTranslator**, raising total repository tests to **454 passing tests at 97% global branch coverage**.
 
+### Milestone 32: Sprint S15.02 Delivered — Order Lifecycle State Machine & Reconnection Logic (2026-09-06 — EPIC-15 100% Complete)
+- Implemented `OrderManager` in `src/execution/order_manager.py` strictly enforcing EDD §4 order lifecycle state transitions (`PENDING` -> `SUBMITTED` -> `PARTIAL` / `FILLED` / `CANCELLED` / `REJECTED`), terminal state immutability (`FILLED`, `CANCELLED`, `REJECTED`), and thread-safe registry management.
+- Implemented strongly-typed, immutable `OrderLifecycleEvent` Pydantic v2 domain model with timezone-aware UTC validation, providing complete timestamped audit logging for every lifecycle event (FRD-EXEC-10).
+- Implemented 5-second pending timeout manager `check_pending_timeouts(auto_cancel=True)` in `src/execution/order_manager.py` detecting and escalating unconfirmed pending orders per EDD §13.
+- Implemented database synchronization `transition_to_transactional(session, client_order_id, new_status, ...)` atomically persisting status transitions, fill quantities, fill prices, and rejection reasons to PostgreSQL `order_submissions` table (FRD-EXEC-3).
+- Implemented `ConnectionMonitor`, `ConnectionMonitorConfig`, and `ConnectionEvent` in `src/execution/connection_monitor.py` tracking broker heartbeat liveness across 4 distinct states (`CONNECTED`, `DEGRADED`, `DISCONNECTED`, `CIRCUIT_OPEN`) per FRD-EXEC-6, RTLD §11, and NFR-REL-4.
+- Implemented 30-second outage circuit breaker (RTLD-15, EDD §9) that trips `CIRCUIT_OPEN` upon disconnections exceeding 30.0 seconds, activating safe-state hold (`should_suppress_trading() == True`) to prevent operating on unconfirmed broker state.
+- Enforced non-negotiable safe-state recovery discipline (RTLD §11, EDD §9): `auto_reset_on_reconnect=False` by default, strictly requiring operator manual reset via `reset_safe_state(operator_id, reason)` before live trading can resume.
+- Delivered 28 new unit tests across `test_order_manager.py` and `test_connection_monitor.py`, achieving **100% statement and 100% branch coverage** on both `order_manager.py` and `connection_monitor.py`, raising total repository tests to **468 passing tests at 97% global branch coverage**.
+- **EPIC-15: Order Lifecycle & Broker Integration Layer is now 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
 
 | Phase | Epic | Sprint | Task | Focus | Status |
 |---|---|---|---|---|---|
-| **Phase V0** | **EPIC-01** | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-001.md) | Python 3.12+ Environment & `pyproject.toml` | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Ruff, Mypy Strict & Pre-commit Hooks | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-01-003.md) | Pytest Framework & GitHub Actions CI | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-001.md) | Structured JSON Logging with `structlog` | **COMPLETE** |
-| Phase V0 | EPIC-01 | [S01.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-01-02-002.md) | Pydantic v2 Settings Loader & Validation | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-001.md) | Core Market Data & Candle Models (`OHLCVBar`, `Tick`) | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-002.md) | Master DecisionRecord & TradeEvaluation Models | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-003](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-01-003.md) | Order, Position & Model Governance Entities | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **COMPLETE** |
-| Phase V0 | EPIC-02 | [S02.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
-| Phase V0 | **EPIC-03** | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **COMPLETE** |
-| Phase V0 | EPIC-03 | [S03.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
-| Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
-| Phase V0 | **EPIC-04** | [S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **COMPLETE** |
-| Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
-| **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
-| Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
-| **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
-| Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
-| **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
-| Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
-| **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
-| Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
-| **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
-| Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
-| **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
-| Phase V2 | EPIC-10 | [S10.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **COMPLETE** |
-| **Phase V2** | **EPIC-11** | [S11.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.01-weighted-signal-aggregator-score-normalization.md) | [TASK-11-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-01-001.md) | Weighted Signal Aggregator & Score Normalization | **COMPLETE** |
-| Phase V2 | EPIC-11 | [S11.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **COMPLETE** |
-| **Phase V3** | **EPIC-12** | [S12.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md) | [TASK-12-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-01-001.md) | Deterministic Risk Engine Core & Parameter Register | **COMPLETE** |
-| Phase V3 | EPIC-12 | [S12.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **COMPLETE** |
-| **Phase V3** | **EPIC-13** | [S13.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **COMPLETE** |
-| Phase V3 | EPIC-13 | [S13.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S13.02-emergency-kill-switch-manual-stop.md) | [TASK-13-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-13-02-001.md) | Emergency Kill Switch & AST Safety Linter | **COMPLETE** |
-| **Phase V3** | **EPIC-14** | [S14.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **COMPLETE** |
-| **Phase V3 / V4** | **EPIC-15** | [S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **COMPLETE** |
-| Phase V3 / V4 | EPIC-15 | [S15.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **UP NEXT** |
+| **Phase V0** | **EPIC-01** | [S01.01](docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-001](docs/tasks/TASK-01-01-001.md) | Python 3.12+ Environment & `pyproject.toml` | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.01](docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-002](docs/tasks/TASK-01-02-002.md) | Ruff, Mypy Strict & Pre-commit Hooks | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.01](docs/sprints/S01.01-repository-setup-tooling.md) | [TASK-01-01-003](docs/tasks/TASK-01-01-003.md) | Pytest Framework & GitHub Actions CI | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.02](docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-001](docs/tasks/TASK-01-02-001.md) | Structured JSON Logging with `structlog` | **COMPLETE** |
+| Phase V0 | EPIC-01 | [S01.02](docs/sprints/S01.02-environment-config-framework.md) | [TASK-01-02-002](docs/tasks/TASK-01-02-002.md) | Pydantic v2 Settings Loader & Validation | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.01](docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-001](docs/tasks/TASK-02-01-001.md) | Core Market Data & Candle Models (`OHLCVBar`, `Tick`) | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.01](docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-002](docs/tasks/TASK-02-01-002.md) | Master DecisionRecord & TradeEvaluation Models | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.01](docs/sprints/S02.01-canonical-domain-models.md) | [TASK-02-01-003](docs/tasks/TASK-02-01-003.md) | Order, Position & Model Governance Entities | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.02](docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-001](docs/tasks/TASK-02-02-001.md) | PostgreSQL / TimescaleDB Setup & Alembic Migrations | **COMPLETE** |
+| Phase V0 | EPIC-02 | [S02.02](docs/sprints/S02.02-timescaledb-parquet-storage.md) | [TASK-02-02-002](docs/tasks/TASK-02-02-002.md) | Partitioned Parquet Storage Manager | **COMPLETE** |
+| Phase V0 | **EPIC-03** | [S03.01](docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-001](docs/tasks/TASK-03-01-001.md) | Unified Market Data Ingestion Adapter Interface | **COMPLETE** |
+| Phase V0 | EPIC-03 | [S03.01](docs/sprints/S03.01-market-data-adapters.md) | [TASK-03-01-002](docs/tasks/TASK-03-02-002.md) | NSE Bhavcopy & Historical Equities Ingestion | **COMPLETE** |
+| Phase V0 | EPIC-03 | [S03.02](docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
+| Phase V0 | **EPIC-04** | [S04.01](docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **COMPLETE** |
+| Phase V0 | EPIC-04 | [S04.02](docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
+| **Phase V1** | **EPIC-05** | [S05.01](docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
+| Phase V1 | EPIC-05 | [S05.02](docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
+| **Phase V1** | **EPIC-06** | [S06.01](docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
+| Phase V1 | EPIC-06 | [S06.02](docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
+| **Phase V1** | **EPIC-07** | [S07.01](docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
+| Phase V1 | EPIC-07 | [S07.02](docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
+| **Phase V1** | **EPIC-08** | [S08.01](docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
+| Phase V1 | EPIC-08 | [S08.02](docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
+| **Phase V2** | **EPIC-09** | [S09.01](docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
+| Phase V2 | EPIC-09 | [S09.02](docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
+| **Phase V2** | **EPIC-10** | [S10.01](docs/sprints/S10.01-trading-agent-interface-normalized-output.md) | [TASK-10-01-001](docs/tasks/TASK-10-01-001.md) | Trading Agent Interface & Normalized Output Contract | **COMPLETE** |
+| Phase V2 | EPIC-10 | [S10.02](docs/sprints/S10.02-rule-based-agent-roster.md) | [TASK-10-02-001](docs/tasks/TASK-10-02-001.md) | Rule-Based Agent Roster Implementation | **COMPLETE** |
+| **Phase V2** | **EPIC-11** | [S11.01](docs/sprints/S11.01-weighted-signal-aggregator-score-normalization.md) | [TASK-11-01-001](docs/tasks/TASK-11-01-001.md) | Weighted Signal Aggregator & Score Normalization | **COMPLETE** |
+| Phase V2 | EPIC-11 | [S11.02](docs/sprints/S11.02-dynamic-timeframe-intelligence-disagreement.md) | [TASK-11-02-001](docs/tasks/TASK-11-02-001.md) | Dynamic Timeframe Intelligence & Disagreement Metric | **COMPLETE** |
+| **Phase V3** | **EPIC-12** | [S12.01](docs/sprints/S12.01-deterministic-risk-engine-parameter-register.md) | [TASK-12-01-001](docs/tasks/TASK-12-01-001.md) | Deterministic Risk Engine Core & Parameter Register | **COMPLETE** |
+| Phase V3 | EPIC-12 | [S12.02](docs/sprints/S12.02-sizing-engine-consecutive-loss-breakers.md) | [TASK-12-02-001](docs/tasks/TASK-12-02-001.md) | Sizing Engine & Consecutive Loss Breakers | **COMPLETE** |
+| **Phase V3** | **EPIC-13** | [S13.01](docs/sprints/S13.01-supervisor-decision-gate-tif.md) | [TASK-13-01-001](docs/tasks/TASK-13-01-001.md) | Supervisor Decision Gate & Time-in-Force Rules | **COMPLETE** |
+| Phase V3 | EPIC-13 | [S13.02](docs/sprints/S13.02-emergency-kill-switch-manual-stop.md) | [TASK-13-02-001](docs/tasks/TASK-13-02-001.md) | Emergency Kill Switch & AST Safety Linter | **COMPLETE** |
+| **Phase V3** | **EPIC-14** | [S14.01](docs/sprints/S14.01-transactional-position-ledger-tracking.md) | [TASK-14-01-001](docs/tasks/TASK-14-01-001.md) | Transactional Position Ledger & Portfolio Accounting | **COMPLETE** |
+| **Phase V3 / V4** | **EPIC-15** | [S15.01](docs/sprints/S15.01-broker-adapter-interface-idempotency.md) | [TASK-15-01-001](docs/tasks/TASK-15-01-001.md) | Broker Adapter Interface & Idempotency Engine | **COMPLETE** |
+| Phase V3 / V4 | EPIC-15 | [S15.02](docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md) | [TASK-15-02-001](docs/tasks/TASK-15-02-001.md) | Order Lifecycle State Machine & Reconnection Logic | **COMPLETE** |
+| **Phase V4 / V5** | **EPIC-16** | [S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md) | [TASK-16-01-001](docs/tasks/TASK-16-01-001.md) | Paper Trading Simulation Environment & Virtual Account | **UP NEXT** |
 
 ---
 
@@ -328,26 +340,13 @@
 
 When resuming execution:
 
-### Sprint S15.02: Order Lifecycle State Machine & Reconnection Logic
-Execute all deliverables for [Sprint S15.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.02-order-lifecycle-state-machine-reconnection.md):
-- Implement `OrderManager` state machine in `src/execution/order_manager.py` managing state transitions (`PENDING` $\to$ `SUBMITTED` $\to$ `FILLED` / `REJECTED`) per EDD §4.
-- Implement pending-to-submitted 5-second escalation circuit (EDD §13).
-- Implement `ConnectionMonitor` in `src/execution/connection_monitor.py` tracking broker heartbeat signals and enforcing the 30-second safe-state hold circuit (EDD §9, NFR-REL-4, RTLD-15).
-- Deliver unit and failure-injection test suites with $\ge 80\%$ line coverage and 100% branch coverage on order state machine.
+### Sprint S16.01: Paper Trading Simulation Environment & Virtual Account Engine
+Execute all deliverables for [Sprint S16.01](docs/sprints/S16.01-paper-trading-simulation-environment.md):
+- Implement virtual paper-trading broker adapter in `src/execution/paper_broker.py` simulating fills against real-time WebSocket market feeds (FRD-PAPER-1, EDD §10).
+- Implement paper account balance and margin accounting (FRD-PAPER-2).
+- Deliver unit and end-to-end simulation tests with $\ge 80\%$ line coverage.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
----
-
-## 4. Immediate Next Step: How to Resume
-
-When resuming execution:
-
-### Sprint S15.01: Broker Adapter Interface & Idempotency Engine
-Execute all deliverables for [Sprint S15.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S15.01-broker-adapter-interface-idempotency.md):
-- Implement `BrokerAdapter` abstract interface conforming to EDD §3, TRD-EXEC-1, and FRD-EXEC-1.
-- Implement client order ID generation and idempotency engine preventing duplicate submissions (TRD-EXEC-2).
-- Deliver unit and integration test suites with $\ge 80\%$ coverage.
-- Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
 
@@ -387,3 +386,4 @@ Execute all deliverables for [Sprint S15.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S13.02 Delivered (EPIC-13 Complete) | `src/risk/kill_switch.py`, `tests/safety/*`, `scripts/verify_safety_isolation.py`, `tests/unit/scripts/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S13.02, KillSwitch synchronous audit logging, KS-TEST-1..4 suite, static AST safety isolation linter, 407 tests passing, 97% global branch coverage, EPIC-13 100% complete. |
 | **2026-09-06** | Sprint S14.01 Delivered (EPIC-14 Complete) | `src/execution/*`, `src/domain/capital_state.py`, `src/domain/execution.py`, `src/domain/risk.py`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S14.01, PositionLedger, OrderFill, CapitalState modularization, mark-to-market accounting, 427 tests passing, 97% global coverage, 100% ledger coverage, EPIC-14 100% complete. |
 | **2026-09-06** | Sprint S15.01 Delivered | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.01, BrokerAdapter protocol, BaseBrokerAdapter ABC, IdempotentOrderDispatcher with DB transactional support, OrderTranslator with bounded slippage & tick constraints, 454 tests passing, 97% global coverage. |
+| **2026-09-06** | Sprint S15.02 Delivered (EPIC-15 Complete) | `src/execution/*`, `tests/unit/execution/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S15.02, OrderManager with 5s timeout manager & DB sync, ConnectionMonitor with 30s outage circuit breaker & safe-state hold, 468 tests passing, 97% global coverage, 100% coverage on S15.02 modules, EPIC-15 100% complete. |

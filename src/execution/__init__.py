@@ -8,9 +8,25 @@ from src.execution.broker_adapter import (
     BrokerOrderNotFoundError,
     BrokerRateLimitError,
 )
+from src.execution.connection_monitor import (
+    ConnectionEvent,
+    ConnectionMonitor,
+    ConnectionMonitorConfig,
+    ConnectionState,
+)
 from src.execution.idempotency import (
     IdempotentOrderDispatcher,
     generate_client_order_id,
+)
+from src.execution.order_manager import (
+    TERMINAL_STATES,
+    VALID_TRANSITIONS,
+    InvalidStateTransitionError,
+    OrderLifecycleError,
+    OrderLifecycleEvent,
+    OrderManager,
+    OrderNotFoundError,
+    OrderStatus,
 )
 from src.execution.position_ledger import PositionLedger, PositionLedgerProtocol
 from src.execution.translator import (
@@ -21,6 +37,8 @@ from src.execution.translator import (
 )
 
 __all__ = [
+    "TERMINAL_STATES",
+    "VALID_TRANSITIONS",
     "BaseBrokerAdapter",
     "BrokerAdapter",
     "BrokerAuthenticationError",
@@ -29,7 +47,17 @@ __all__ = [
     "BrokerOrderError",
     "BrokerOrderNotFoundError",
     "BrokerRateLimitError",
+    "ConnectionEvent",
+    "ConnectionMonitor",
+    "ConnectionMonitorConfig",
+    "ConnectionState",
     "IdempotentOrderDispatcher",
+    "InvalidStateTransitionError",
+    "OrderLifecycleError",
+    "OrderLifecycleEvent",
+    "OrderManager",
+    "OrderNotFoundError",
+    "OrderStatus",
     "OrderTranslationConfig",
     "OrderTranslationError",
     "OrderTranslationResult",
