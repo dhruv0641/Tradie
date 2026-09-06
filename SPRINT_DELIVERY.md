@@ -61,6 +61,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-006** | 2026-09-06 | 15:25:00 | `S03.02` | Real-Time WebSocket Streaming Pipeline | 3 new / 4 modified | Ruff Clean, Mypy Strict, 91% Test Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-007** | 2026-09-06 | 15:35:00 | `S04.01` | Data Validation Rules & Physical Sanity Checks | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Validator, 92% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-008** | 2026-09-06 | 15:45:00 | `S04.02` | Staleness Detection, Quarantine & Suppression Gate | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Staleness & Suppression, 93% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-009** | 2026-09-06 | 15:55:00 | `S05.01` | Technical Indicator & Price Action Feature Engine | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Features, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -436,9 +437,58 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-009: Sprint S05.01 — Technical Indicator & Price Action Feature Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `15:55:00 IST` (10:25:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 07 (ML Engineering) / Agent 04 (Data)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `src/features/technical.py` vectorizing the full suite of canonical quantitative technical indicators per FRD-FEAT-1 and MLD §4.1:
+  - Trend: SMA (5, 10, 20, 50, 200), EMA (5, 10, 20, 50, 200), MACD (12, 26, 9), ADX (14) with +DI and -DI using Wilder's smoothing.
+  - Momentum: RSI (14) with Wilder's exponential smoothing, Rate-of-Change (ROC 10), Stochastic Oscillator (%K, %D).
+  - Mean-Reversion & Volatility: Bollinger Bands (20-period, 2-std with Bandwidth and %b), Rolling Z-Score (20), Average True Range (ATR 14), Rolling Return Volatility (20).
+  - Volume: Volume SMA (20) and Volume Ratio ($Volume / Volume_{SMA}$).
+  - Composite Pipeline: `compute_all_technical_features(df)` generating all standard indicator columns.
+  - Zero Look-Ahead Invariant (BTD §5.2): Verified by test that altering future data $t > T$ produces 0 change in indicators at $t \le T$.
+- Implemented `src/features/price_action.py` vectorizing candlestick anatomy and market structure extraction per FRD-FEAT-1 and MLD §6.4:
+  - Candlestick Geometry: Body size, range, upper wick, lower wick, body ratio, wick ratios.
+  - Formation Classifiers: Doji, Hammer, Shooting Star, Bullish Engulfing, Bearish Engulfing.
+  - Swing Extrema: Backward-looking swing high and swing low detection with zero forward leakage.
+  - Support & Resistance: Rolling support/resistance levels and normalized percentage distances.
+  - Composite Pipeline: `extract_price_action_features(df)` generating complete price action feature columns.
+- Exported all feature engineering calculators in `src/features/__init__.py`.
+- Authored comprehensive test suites in `tests/unit/features/test_technical.py` and `tests/unit/features/test_price_action.py` (20 tests), achieving **100% statement and 100% branch coverage** on both feature modules.
+- Global repository test suite now stands at **122 passing tests with 94% coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `55 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 55 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `122 passed in 7.64s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `94%` code coverage (`technical.py`: 100% statement / 100% branch, `price_action.py`: 100% statement / 100% branch).
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/features/__init__.py` — Feature module initialization and public exports.
+2. `src/features/technical.py` — Vectorized technical indicators calculation engine.
+3. `src/features/price_action.py` — Price action, candlestick anatomy, and market structure extractor.
+4. `tests/unit/features/test_technical.py` — Unit tests for technical indicators and zero look-ahead bias invariant.
+5. `tests/unit/features/test_price_action.py` — Unit tests for candlestick patterns, swing points, and support/resistance.
+
+##### Modified Files:
+1. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-009.
+2. `STORY.md` — Updated status board marking Sprint S05.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S04.02` — Staleness Detection, Quarantine & Suppression Gate
-- **Completed Epic**: `EPIC-04` — Data Quality, Validation & Quarantine Framework (Phase V0 Milestone 12 COMPLETE, Gate G0 Unlocked)
-- **Next Sprint Up**: `Sprint S05.01` — Technical Indicator Engine & Price Action Features ([docs/sprints/S05.01-technical-indicator-price-action.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md))
-- **Next Task Up**: `TASK-05-01-001` — Implement Core Technical Indicator Calculations
+- **Completed Sprint**: `Sprint S05.01` — Technical Indicator & Price Action Feature Engine
+- **Active Epic**: `EPIC-05` — Point-in-Time Feature Engineering Engine (Phase V1 Milestone 13 COMPLETE)
+- **Next Sprint Up**: `Sprint S05.02` — Point-in-Time Calculation Guarantees & Versioning ([docs/sprints/S05.02-point-in-time-calculation-guarantees.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md))
+- **Next Task Up**: `TASK-05-02-001` — Implement FeatureEngine and FeatureSet Versioning

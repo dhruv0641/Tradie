@@ -85,6 +85,12 @@
 - **EPIC-04: Data Quality, Validation & Quarantine Framework is 100% COMPLETE.**
 - **Phase V0 (Research Foundation) Gate G0 Final Exit Criteria are officially satisfied and unlocked!**
 
+### Milestone 13: Sprint S05.01 Technical Indicator & Price Action Feature Engine (Complete)
+- Implemented `src/features/technical.py` vectorizing canonical quantitative indicators: SMA/EMA (5, 10, 20, 50, 200), MACD (12, 26, 9), ADX (14) with +DI/-DI, Wilder's RSI (14), ROC (10), Stochastic (%K, %D), Bollinger Bands (20, 2-std, bandwidth, %b), Rolling Z-Score (20), ATR (14), Rolling Volatility (20), Volume SMA (20), and Volume Ratio.
+- Implemented `src/features/price_action.py` vectorizing candlestick anatomy (range, body size, wicks, ratios), pattern classifiers (Doji, Hammer, Shooting Star, Bullish/Bearish Engulfing), strictly backward-looking swing highs/lows, and rolling support/resistance clusters.
+- Verified Zero Look-Ahead Invariant (BTD §5.2) ensuring mutating future data $t > T$ produces zero change in computed features at $t \le T$.
+- Delivered test suites in `tests/unit/features/test_technical.py` and `tests/unit/features/test_price_action.py` (20 tests) with 100% statement and branch coverage, raising total test count to 122 passing tests and 94% global coverage.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -106,7 +112,8 @@
 | Phase V0 | EPIC-03 | [S03.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S03.02-streaming-websocket-pipeline.md) | [TASK-03-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-03-02-001.md) | Real-Time WebSocket Streaming Pipeline & Aggregator | **COMPLETE** |
 | Phase V0 | **EPIC-04** | [S04.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.01-data-validation-sanity-checks.md) | [TASK-04-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-01-001.md) | Market Data Validation Pipeline & Outlier Detection | **COMPLETE** |
 | Phase V0 | EPIC-04 | [S04.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S04.02-staleness-quarantine-gate.md) | [TASK-04-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-04-02-001.md) | Real-Time Staleness Monitor & Quarantine Gate Pipeline | **COMPLETE** |
-| **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **UP NEXT** |
+| **Phase V1** | **EPIC-05** | [S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md) | [TASK-05-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-01-001.md) | Core Technical Indicator Calculations | **COMPLETE** |
+| Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **UP NEXT** |
 
 ---
 
@@ -114,11 +121,11 @@
 
 When resuming execution:
 
-### Sprint S05.01: Technical Indicator Engine & Price Action Features
-Execute all deliverables for [Sprint S05.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.01-technical-indicator-price-action.md):
-- Implement core technical indicators (EMA, SMA, RSI, ATR, MACD, Bollinger Bands, Volume SMA) with exact Decimal and floating-point numeric precision.
-- Implement point-in-time feature extraction ensuring zero forward-looking bias.
-- Deliver test suites in `tests/unit/features/test_indicators.py`.
+### Sprint S05.02: Point-in-Time Calculation Guarantees & Versioning
+Execute all deliverables for [Sprint S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md):
+- Implement `FeatureEngine` in `src/features/engine.py` orchestrating technical indicators and price action features into versioned `FeatureSet` domain models (DDD §5.1).
+- Enforce strict point-in-time cutoff invariant ($t \le T$) preventing look-ahead data leakage across backtesting and real-time execution.
+- Deliver test suites in `tests/unit/features/test_engine.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -139,3 +146,4 @@ Execute all deliverables for [Sprint S05.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S03.02 Delivered | `src/data/aggregator.py`, `src/data/streaming.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S03.02 & Epic 03, 91% coverage on streaming pipeline & bar aggregator, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S04.01 Delivered | `src/data/validator.py`, `src/domain/market_data.py`, `tests/unit/data/test_validator.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.01, 100% branch coverage on validator pipeline, 92% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S04.02 Delivered | `src/data/staleness_monitor.py`, `src/data/suppression_gate.py`, `src/config/models.py`, `tests/unit/data/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S04.02 & Epic 04, 100% branch coverage on staleness & suppression gate, Phase V0 Gate G0 unlocked, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S05.01 Delivered | `src/features/technical.py`, `src/features/price_action.py`, `src/features/__init__.py`, `tests/unit/features/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.01, 100% branch coverage on technical & price action feature engines, 94% global coverage, pushed to implementation-develop. |
