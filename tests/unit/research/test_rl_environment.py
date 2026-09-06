@@ -202,18 +202,18 @@ class TestTradingEnv:
         assert info["portfolio_value"] == 10_000.0
 
         # Step 0: NO_VIEW
-        obs, reward, term, trunc, step_info = env.step(0)
+        obs, _reward0, term, trunc, step_info = env.step(0)
         assert not term
         assert not trunc
         assert step_info["position"] == 0
 
         # Step 1: LONG
-        obs, reward, term, trunc, step_info = env.step(1)
+        obs, _reward, term, trunc, step_info = env.step(1)
         assert step_info["position"] == 1
         assert step_info["total_trades"] == 1
 
         # Step 2: SHORT
-        obs, reward, term, trunc, step_info = env.step(2)
+        obs, _reward2, term, trunc, step_info = env.step(2)
         assert step_info["position"] == -1
         assert step_info["total_trades"] == 2
 
@@ -230,19 +230,19 @@ class TestTradingEnv:
         )
         env = TradingEnv(df, config=config)
 
-        obs, _ = env.reset()
+        _obs0, _ = env.reset()
         # High positive conviction -> LONG
-        obs, reward, term, trunc, step_info = env.step(np.array([0.85]))
+        _o1, _r1, _t1, _tr1, step_info = env.step(np.array([0.85]))
         assert step_info["signal"]["direction"] == "LONG"
         assert step_info["signal"]["confidence"] == pytest.approx(0.85)
 
         # High negative conviction -> SHORT
-        obs, reward, term, trunc, step_info = env.step(np.array([-0.90]))
+        _o2, _r2, _t2, _tr2, step_info = env.step(np.array([-0.90]))
         assert step_info["signal"]["direction"] == "SHORT"
         assert step_info["signal"]["confidence"] == pytest.approx(0.90)
 
         # Near-zero conviction -> NO_VIEW
-        obs, reward, term, trunc, step_info = env.step(np.array([0.02]))
+        _obs, _reward, _term, _trunc, step_info = env.step(np.array([0.02]))
         assert step_info["signal"]["direction"] == "NO_VIEW"
         assert step_info["signal"]["confidence"] == 0.0
 

@@ -46,6 +46,11 @@ from src.domain.validation import (
     WalkForwardFold,
     WalkForwardReport,
 )
+from src.domain.validation_record import (
+    ValidationRunRecord,
+    ValidationStageResult,
+    ValidationStageType,
+)
 
 __all__ = [
     "AgentSignalOutput",
@@ -85,6 +90,9 @@ __all__ = [
     "StressTestReport",
     "TradeEvaluation",
     "TrendState",
+    "ValidationRunRecord",
+    "ValidationStageResult",
+    "ValidationStageType",
     "VolatilityLevel",
     "WalkForwardFold",
     "WalkForwardReport",
