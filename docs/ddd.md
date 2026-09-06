@@ -143,27 +143,27 @@ class DecisionRecord(BaseModel):
     instrument: str
     timeframe: str
     environment: Literal["research", "paper", "live"]
-    
+
     # 1. Ingested Data Quality State
     data_quality_state: Literal["VALIDATED", "STALE", "QUARANTINED"]
-    
+
     # 2. Market Regime Context
     regime_classification: dict = Field(..., description="Trend, Volatility, Directional Bias, Liquidity")
-    
+
     # 3. Agent Roster Outputs
     agent_outputs: list[dict] = Field(..., description="List of AgentSignalOutput objects (direction, confidence, inputs)")
-    
+
     # 4. Aggregator Output
     trade_quality_score: float
     expected_value: Decimal
     disagreement_metric: float
-    
+
     # 5. Risk Engine Evaluation
     risk_check_passed: bool
     failed_check: str | None
     rtld_param_id: str | None
     risk_config_version: str
-    
+
     # 6. Final Decision & Execution Linkage
     final_decision: Literal["BUY", "SELL", "HOLD", "NO_TRADE"]
     decision_rationale: str
@@ -410,19 +410,19 @@ class DataValidationPipeline:
         if not (candle.low <= candle.open <= candle.high and candle.low <= candle.close <= candle.high):
             candle.quality_state = "QUARANTINED"
             return candle
-        
+
         # Rule 2: Non-negative volume
         if candle.volume < 0:
             candle.quality_state = "QUARANTINED"
             return candle
-            
+
         # Rule 3: Extreme price spike (e.g. >20% single-minute gap on cash equities)
         if previous_candle and previous_candle.close > 0:
             pct_change = abs(candle.close - previous_candle.close) / previous_candle.close
             if pct_change > Decimal("0.20"):
                 candle.quality_state = "QUARANTINED"
                 return candle
-                
+
         candle.quality_state = "VALIDATED"
         return candle
 ```

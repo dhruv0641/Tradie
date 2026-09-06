@@ -15,23 +15,23 @@ from docs.ddd import OHLCVCandle, MarketDepthQuote
 
 class DataSourceAdapter(Protocol):
     """Abstract interface for all market data providers (TRD-PIPE-1, HLD §9)."""
-    
+
     async def connect(self) -> None:
         """Establish streaming connection to vendor API."""
         ...
-        
+
     async def disconnect(self) -> None:
         """Gracefully disconnect."""
         ...
-        
+
     async def subscribe_candles(self, instruments: list[str], timeframe: str) -> AsyncIterator[OHLCVCandle]:
         """Stream real-time closed/updated OHLCV candles."""
         ...
-        
+
     async def subscribe_depth(self, instruments: list[str]) -> AsyncIterator[MarketDepthQuote]:
         """Stream real-time Level-2 market depth quotes."""
         ...
-        
+
     def fetch_historical_candles(
         self, instrument: str, timeframe: str, start_time: datetime, end_time: datetime
     ) -> list[OHLCVCandle]:
@@ -56,9 +56,9 @@ class AgentSignalOutput:
 
 class TradingAgent(Protocol):
     """Uniform contract for all trading intelligence agents (ADD §4, LLD §8.1)."""
-    
+
     agent_id: str
-    
+
     def evaluate(
         self,
         instrument: str,
@@ -80,7 +80,7 @@ from docs.ddd import CandidateTrade, CapitalState, StreakState, MarketState, Ris
 
 class RiskEngineInterface(Protocol):
     """Deterministic, fail-fast risk evaluation interface (HLD §8, LLD §5)."""
-    
+
     def evaluate(
         self,
         candidate: CandidateTrade,
@@ -102,7 +102,7 @@ from docs.ddd import CandidateTrade, CapitalState, StreakState, MarketState, Dec
 
 class SupervisorInterface(Protocol):
     """Master decision gating interface (HLD §7, LLD §7)."""
-    
+
     def decide(
         self,
         candidate: CandidateTrade | None,
@@ -126,11 +126,11 @@ from docs.ddd import OrderSubmission, Position
 
 class BrokerAdapter(Protocol):
     """Abstract interface for all broker integrations (TRD-EXEC-1/4, HLD §9, EDD §5)."""
-    
+
     def authenticate(self) -> bool:
         """Authenticate session with broker."""
         ...
-        
+
     def place_order(
         self,
         client_order_id: str,
@@ -142,15 +142,15 @@ class BrokerAdapter(Protocol):
     ) -> OrderSubmission:
         """Submit order with idempotent client_order_id."""
         ...
-        
+
     def cancel_order(self, client_order_id: str) -> bool:
         """Cancel working order."""
         ...
-        
+
     def get_positions(self) -> list[Position]:
         """Fetch broker-reported open positions for reconciliation."""
         ...
-        
+
     def get_order_status(self, client_order_id: str) -> OrderSubmission:
         """Query status of specific order."""
         ...
