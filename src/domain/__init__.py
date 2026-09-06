@@ -13,6 +13,7 @@ from src.domain.evaluation import TradeEvaluation
 from src.domain.execution import OrderFill, OrderSubmission, Position
 from src.domain.features import FeatureSet
 from src.domain.governance import ModelVersion
+from src.domain.governance_event import PromotionEvent, RollbackEvent
 from src.domain.market_data import (
     CorporateAction,
     MarketDepthLevel,
@@ -79,10 +80,12 @@ __all__ = [
     "OrderFill",
     "OrderSubmission",
     "Position",
+    "PromotionEvent",
     "RegimeClassification",
     "RegimeTransitionEvent",
     "RiskCheckResult",
     "RiskSentiment",
+    "RollbackEvent",
     "SignalDirection",
     "StreakState",
     "StressScenarioResult",

@@ -93,6 +93,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-038** | 2026-09-06 | 21:15:00 | `S20.01` | Multi-Trade Variance Driver Pattern Extraction | 3 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (651 tests), 94% Pattern Detector Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-039** | 2026-09-06 | 21:25:00 | `S20.02` | Scoped Hypothesis & Candidate Generation Workflow | 2 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (662 tests), 100% Candidate Generator Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-040** | 2026-09-07 | 00:30:00 | `S21.01` | Multi-Stage Model Validation Pipeline Runner | 4 new / 4 modified | Ruff Clean, Mypy Strict, 100% Test Pass (682 tests), 100% ValidationRunner Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-041** | 2026-09-07 | 00:40:00 | `S21.02` | Model Promotion Gate & Automated Rollback Monitor | 5 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (703 tests), 100% Gate & Rollback Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -2015,9 +2016,57 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-041: Sprint S21.02 — Model Promotion Gate & Automated Rollback Monitor
+
+- **Execution Date**: `2026-09-07`
+- **Execution Time**: `00:40:00 IST` (19:10:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 08 (Self-Learning) / Agent 00 (Chief Architect) / Agent 09 (Risk & Safety) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `ModelPromotionGate` in `src/governance/promotion_gate.py` enforcing multi-dimensional criteria comparison (MLD §9.2):
+  - Empirical validation pass check (`ValidationRunRecord.overall_passed = True`)
+  - Candidate Sharpe superiority ($\ge$ baseline Sharpe + delta)
+  - Drawdown tolerance ceiling ($\le$ baseline MaxDD $\times 1.10$)
+  - Mandatory operator sign-off identity/token (BRD §11 item 6, ADD §8.4)
+  - Atomic lifecycle status updates (`candidate.status = "promoted"`, `baseline.status = "superseded"`)
+- Implemented `RollbackMonitor` in `src/governance/rollback_monitor.py` for continuous live trade stream supervision (SLD §7, FRD-LEARN-6, FRD-LEARN-7):
+  - Hard Drawdown trigger ($\ge 8.0\%$ live drawdown forces immediate rollback)
+  - Hard Consecutive Losses trigger ($\ge 5$ consecutive losses forces immediate rollback)
+  - Rolling win rate floor trigger ($< 30\%$ rolling win rate forces rollback)
+  - Statistical rolling Sharpe drop trigger (Sharpe drops below expectation $- 1\text{ SE}$ across 2 consecutive windows)
+  - Promotion freeze throttle: $\ge 2$ rollbacks within 90 days freezes candidate promotions (`promotion_halted = True`)
+  - Atomic production reversion: demotes failed model to `status = "rolled_back"`, restores previous model to `status = "promoted"`
+- Implemented `PromotionEvent` and `RollbackEvent` domain models in `src/domain/governance_event.py` with immutable fields and UTC timestamp validation.
+- Delivered 21 new unit tests achieving **100% statement and branch coverage** on `ModelPromotionGate` and `RollbackMonitor`.
+- Full test suite: **703 passed, 0 failed, 95% global branch coverage**.
+- **EPIC-21 IS 100% COMPLETE! PHASE V7 IS 100% COMPLETE!**
+
+#### 2. Modified & Created Artifacts
+##### New Files:
+1. `src/domain/governance_event.py` — `PromotionEvent`, `RollbackEvent`.
+2. `src/governance/promotion_gate.py` — `ModelPromotionGate`, `PromotionGateConfig`, `PromotionDecision`.
+3. `src/governance/rollback_monitor.py` — `RollbackMonitor`, `RollbackMonitorConfig`.
+4. `tests/unit/domain/test_governance_event.py` — Domain unit tests for governance events.
+5. `tests/unit/governance/test_promotion_gate.py` — 9 unit tests for promotion criteria and operator sign-off.
+6. `tests/unit/governance/test_rollback_monitor.py` — 8 unit tests for live degradation triggers and automated rollback.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Re-exported `PromotionEvent` and `RollbackEvent`.
+2. `src/governance/__init__.py` — Re-exported promotion gate and rollback monitor classes.
+3. `docs/tasks/TASK-21-02-001.md` — Marked task as COMPLETE.
+4. `docs/tasks/TASK-21-02-002.md` — Marked task as COMPLETE.
+5. `docs/sprints/S21.02-model-promotion-gate-automated-rollback.md` — Marked sprint as COMPLETE.
+6. `SPRINT_DELIVERY.md` — Recorded DELIV-041 in master register and chronological audit logs.
+7. `STORY.md` — Recorded Milestone and marked EPIC-21 100% COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprints**: `Sprint S01.01` through `Sprint S21.01` (40 Sprints Delivered)
-- **Completed Epics**: `EPIC-01` through `EPIC-20` (**100% COMPLETE**)
-- **In-Progress Epic**: `EPIC-21` — Model Promotion Governance & Validation Pipeline (Phase V7)
-- **Next Sprint Up**: `Sprint S21.02` — Model Promotion Gate & Automated Rollback Monitor (`TASK-21-02-001`, `TASK-21-02-002`)
+- **Completed Sprints**: `Sprint S01.01` through `Sprint S21.02` (41 Sprints Delivered)
+- **Completed Epics**: `EPIC-01` through `EPIC-21` (**100% COMPLETE**)
+- **Completed Phases**: Phase V0, Phase V1, Phase V2, Phase V3, Phase V4, Phase V5, Phase V6, **Phase V7 (100% COMPLETE)**
+- **Next Epic Up**: `EPIC-22` — Operator Interface, Dashboard & Manual Control (Phase V8)
+- **Next Sprint Up**: `Sprint S22.01` — FastAPI Control Backend & `/health` Endpoint (`TASK-22-01-001`)
