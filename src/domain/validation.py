@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -151,4 +151,97 @@ class WalkForwardReport(BaseModel):
     )
     parameters: dict[str, Any] = Field(
         default_factory=dict, description="Configuration parameters for walk-forward run"
+    )
+
+
+StressScenarioType = Literal[
+    "HISTORICAL",
+    "GAP_DOWN",
+    "VOLATILITY_SPIKE",
+    "FEED_DROPOUT",
+    "SLIPPAGE_STRESS",
+]
+
+
+class StressScenarioResult(BaseModel):
+    """Execution metrics and drawdown impact of a single stress scenario run."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    scenario_name: str = Field(min_length=1, description="Unique scenario identifier")
+    scenario_type: StressScenarioType = Field(description="Category of stress test")
+    description: str = Field(description="Summary of simulated shock conditions")
+    initial_capital: Decimal = Field(gt=Decimal("0"), description="Starting capital in INR")
+    final_equity: Decimal = Field(description="Ending equity after stress period in INR")
+    net_profit: Decimal = Field(description="Net profit or loss in INR")
+    return_pct: Decimal = Field(description="Total percentage return during stress")
+    max_drawdown_pct: Decimal = Field(
+        ge=Decimal("0"), description="Peak-to-trough max drawdown percentage"
+    )
+    total_trades: int = Field(ge=0, description="Total trades executed during stress")
+    halt_8pct_breached: bool = Field(
+        description="Whether max drawdown reached or exceeded 8% intraday halt tier"
+    )
+    kill_switch_10pct_breached: bool = Field(
+        description="Whether max drawdown reached or exceeded 10% kill switch ceiling"
+    )
+
+
+class StressTestReport(BaseModel):
+    """Consolidated report across all historical and synthetic stress scenarios."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    strategy_id: str = Field(min_length=1, description="Evaluated strategy identifier")
+    scenarios_evaluated: list[StressScenarioResult] = Field(
+        min_length=1, description="List of scenario evaluation outcomes"
+    )
+    worst_drawdown_pct: Decimal = Field(
+        ge=Decimal("0"), description="Worst drawdown encountered across all stress scenarios"
+    )
+    passed_stress_test: bool = Field(
+        description="True if strategy survived all scenarios without breaching 10% kill switch"
+    )
+    summary: str = Field(
+        default="", description="High-level narrative summary of stress resilience"
+    )
+
+
+class MonteCarloSimulationResult(BaseModel):
+    """Statistical distribution of equity and drawdowns from bootstrap trade sequence resampling."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    simulation_count: int = Field(
+        ge=100, description="Number of bootstrap resample iterations (>= 1,000 per BTD-13)"
+    )
+    initial_capital: Decimal = Field(gt=Decimal("0"), description="Starting capital in INR")
+    trade_count: int = Field(ge=0, description="Number of realized trades resampled per path")
+    seed: int | None = Field(default=None, description="PRNG seed for deterministic execution")
+    equity_p5: Decimal = Field(description="5th percentile final equity (pessimistic)")
+    equity_p50: Decimal = Field(description="50th percentile (median) final equity")
+    equity_p95: Decimal = Field(description="95th percentile final equity (optimistic)")
+    max_drawdown_p5: Decimal = Field(description="5th percentile max drawdown percentage")
+    max_drawdown_p50: Decimal = Field(description="50th percentile max drawdown percentage")
+    max_drawdown_p95: Decimal = Field(description="95th percentile max drawdown percentage")
+    worst_case_drawdown: Decimal = Field(
+        description="Worst-case drawdown across all resampled paths"
+    )
+    prob_drawdown_halt_8pct: Decimal = Field(
+        ge=Decimal("0"),
+        le=Decimal("1"),
+        description="Estimated probability of touching 8% drawdown halt tier",
+    )
+    prob_kill_switch_10pct: Decimal = Field(
+        ge=Decimal("0"),
+        le=Decimal("1"),
+        description="Estimated probability of touching 10% extreme-loss kill switch",
+    )
+    prob_ruin: Decimal = Field(
+        ge=Decimal("0"),
+        le=Decimal("1"),
+        description="Estimated probability of equity dropping to zero or below",
+    )
+    sample_equity_curves: list[list[Decimal]] = Field(
+        default_factory=list, description="Representative sample of simulated equity trajectories"
     )

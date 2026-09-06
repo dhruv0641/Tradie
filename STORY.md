@@ -4,10 +4,10 @@
 |---|---|
 | **Project** | AI Trader — Autonomous Intelligent Trading System |
 | **Document Purpose** | Live context anchor for cross-model / cross-session continuity | **Current Delivery Phase** | **Phase V0: Research Foundation** (Capital: ₹0) |
-| **Current Target Gate** | Gate G0 Precondition | **Current Active Sprint** | **Sprint S03.01** — Data Ingestion Adapters (NSE Equities / Derivatives Bulk & REST) |
-| **Current Active Task** | **TASK-03-01-001** — Implement Unified Market Data Ingestion Adapter Interface |
+| **Current Target Gate** | Gate G1 Precondition | **Current Active Sprint** | **Sprint S08.01** — Rule-Based Momentum & Trend Following Baseline Strategy |
+| **Current Active Task** | **TASK-08-01-001** — Implement Rule-Based Trend Following Strategy (EMA Cross + ATR Breakout) |
 | **Last Updated** | 2026-09-06 |
-| **State** | **Ready for Code Execution** (Epic 02 & Sprint S02.02 Complete & Delivered) |
+| **State** | **Ready for Code Execution** (Epic 07 & Sprint S07.02 Complete & Delivered) |
 
 ---
 
@@ -118,6 +118,14 @@
 - Implemented `WalkForwardOptimizer` in `src/backtesting/walk_forward.py` parameterizing sliding window walk-forward evaluation, in-sample parameter optimization, locked out-of-sample testing, aggregate portfolio accumulation, duration-scaled metric normalization, and Walk-Forward Efficiency Ratio ($WFER \ge 0.50$) gating (BTD-12, MLD §9.2).
 - Delivered comprehensive test suites in `tests/unit/backtesting/test_splitter.py`, `tests/unit/backtesting/test_walk_forward.py`, and `tests/unit/domain/test_validation.py` (18 new tests), reaching 195 passing tests and 95% global repository coverage.
 
+### Milestone 18: Sprint S07.02 Stress Testing & Monte Carlo Resampling Engine (Complete — EPIC-07 100% Complete)
+- Implemented `StressTestRunner` and synthetic stress scenario generators (`generate_gap_down_shock`, `generate_volatility_spike`, `generate_feed_dropout`, `create_slippage_stress_config`, `create_covid_crash_scenario`) in `src/backtesting/stress_scenarios.py` and `src/backtesting/stress_test.py`.
+- Automated standardized stress test battery evaluating strategies across COVID crash, 5% gap-downs, 3x volatility spikes, feed dropouts, and 4x slippage stress, tracking peak drawdown against RTLD §8 hard thresholds (8% halt, 10% kill switch).
+- Implemented `MonteCarloSimulator` in `src/backtesting/monte_carlo.py` performing $\ge 1,000$ bootstrap resamples with replacement (BTD-13), deterministic PRNG seeding (BTD §10), calculating 5th, 50th, 95th percentiles of equity/drawdown, and exact breach probabilities for 8% halt, 10% kill switch, and capital ruin.
+- Implemented canonical domain entities `StressScenarioType`, `StressScenarioResult`, `StressTestReport`, and `MonteCarloSimulationResult` in `src/domain/validation.py`.
+- Delivered test suites in `tests/unit/backtesting/test_stress_test.py`, `tests/unit/backtesting/test_monte_carlo.py`, and `tests/unit/domain/test_validation.py` (16 new tests), raising repository total to 211 passing tests and 96% global coverage.
+- **EPIC-07: Bias Guardrails & Multi-Stage Testing Protocols is 100% COMPLETE.**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -144,7 +152,8 @@
 | **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
 | Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
 | **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
-| Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **UP NEXT** |
+| Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **COMPLETE** |
+| **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **UP NEXT** |
 
 ---
 
@@ -152,11 +161,11 @@
 
 When resuming execution:
 
-### Sprint S07.02: Stress Testing & Monte Carlo Resampling Engine
-Execute all deliverables for [Sprint S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md):
-- Implement Monte Carlo trade reshuffling and block bootstrapping engine.
-- Implement historical stress testing scenarios (e.g. COVID crash March 2020, demonetization, flash crash, severe slippage stress).
-- Deliver unit test suites in `tests/unit/backtesting/test_monte_carlo.py` and `tests/unit/backtesting/test_stress_test.py`.
+### Sprint S08.01: Rule-Based Momentum & Trend Following Baseline Strategy
+Execute all deliverables for [Sprint S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md):
+- Implement base strategy interface `Strategy(ABC)` with canonical signal generation contracts.
+- Implement rule-based trend-following strategy using EMA crossovers and ATR breakout volatility filters.
+- Backtest strategy through `BacktestEngine`, `WalkForwardOptimizer`, and `StressTestRunner`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -182,3 +191,4 @@ Execute all deliverables for [Sprint S07.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S06.01 Delivered | `src/backtesting/*`, `tests/unit/backtesting/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.01, 100% branch coverage on Indian market cost model & liquidity-scaled slippage model, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S06.02 Delivered | `src/backtesting/*`, `src/domain/backtest_result.py`, `tests/unit/backtesting/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.02 & Epic 06, Next-Bar Open fill simulator, intra-bar stop/target evaluation, conservative tie-breaking, 95% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S07.01 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.01, ChronologicalSplitter (70/30, 3-way, rolling), WalkForwardOptimizer, WFER >= 0.50 gating, 95% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S07.02 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.02 & Epic 07, StressTestRunner with 5 scenarios, MonteCarloSimulator with 1,000 resamples, drawdown halt & kill switch probabilities, 96% global coverage, pushed to implementation-develop. |

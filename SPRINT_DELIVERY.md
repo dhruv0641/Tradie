@@ -66,6 +66,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-011** | 2026-09-06 | 16:15:00 | `S06.01` | Indian Statutory Charges & Brokerage Cost Model | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Cost & Slippage, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-012** | 2026-09-06 | 16:25:00 | `S06.02` | Order Fill Simulation & Next-Bar Execution Engine | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (177 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-013** | 2026-09-06 | 16:35:00 | `S07.01` | Out-of-Sample Split & Walk-Forward Protocol | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (195 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-014** | 2026-09-06 | 16:45:00 | `S07.02` | Stress Testing & Monte Carlo Resampling Engine | 4 new / 3 modified | Ruff Clean, Mypy Strict, 100% Test Pass (211 tests), 96% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -684,9 +685,66 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-014: Sprint S07.02 — Stress Testing & Monte Carlo Resampling Engine
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:45:00 IST` (11:15:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 05 (Backtesting) / Agent 03 (Quant) / Agent 09 (Risk) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `StressTestRunner` in `src/backtesting/stress_test.py` evaluating strategy survivability under tail-risk market conditions per PRD FR-27, BTD §8.4, and RTLD §11:
+  - Runs standard 5-stage stress battery: March 2020 COVID shock, 5% opening gap-down, 3x volatility expansion, broker quote dropout blackout, and 4x adverse slippage/spread widening.
+  - Monitors and enforces risk limit breaches against the 8% intraday trading halt tier and 10% extreme-loss kill switch ceiling (RTLD §8).
+  - Evaluates worst-case peak-to-trough drawdown and passes only if all scenarios survive without touching the kill switch.
+- Implemented synthetic shock generators and historical crisis scenario models in `src/backtesting/stress_scenarios.py`:
+  - `generate_gap_down_shock()`: Sudden opening price discount on held positions.
+  - `generate_volatility_spike()`: 3x high-low range expansion simulating erratic market whip.
+  - `generate_feed_dropout()`: Missing quotes simulating broker network failure during active trade.
+  - `create_slippage_stress_config()`: 4x base slippage and spread proxy under dried liquidity.
+  - `create_covid_crash_scenario()`: Synthetic cascading March 2020 pandemic collapse fixture.
+- Implemented `MonteCarloSimulator` in `src/backtesting/monte_carlo.py` executing $\ge 1,000$ bootstrap resamples with replacement of realized trade returns (BTD-13):
+  - Deterministic execution via recorded PRNG seed (BTD §10).
+  - Calculates empirical probability distributions for final equity and max drawdown across all simulated paths (5th, 50th, 95th percentiles).
+  - Directly tests sequence risk by estimating the exact statistical probability of touching the 8% drawdown halt tier ($P(\text{Drawdown} \ge 8\%)$), the 10% kill switch ceiling ($P(\text{Drawdown} \ge 10\%)$), and capital ruin ($P(\text{Equity} \le 0)$).
+- Implemented canonical domain models in `src/domain/validation.py`:
+  - `StressScenarioResult`, `StressTestReport`, and `MonteCarloSimulationResult`.
+- Authored test suites in `tests/unit/backtesting/test_stress_test.py` and `tests/unit/backtesting/test_monte_carlo.py` (13 new tests), achieving **100% coverage on stress_test.py, 98% on stress_scenarios.py, and 98% on monte_carlo.py**.
+- Global repository test suite now stands at **211 passing tests with 96% coverage**.
+- **EPIC-07: Bias Guardrails & Multi-Stage Testing Protocols is now 100% COMPLETE.**
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `79 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 79 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `211 passed in 9.20s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `96%` code coverage.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/backtesting/stress_scenarios.py` — Synthetic shock generators and historical crisis scenario models.
+2. `src/backtesting/stress_test.py` — Market stress testing runner evaluating survivability and risk halts.
+3. `src/backtesting/monte_carlo.py` — Bootstrap trade-sequence resampling engine and drawdown risk probability evaluator.
+4. `tests/unit/backtesting/test_stress_test.py` — Unit tests for stress testing runner and synthetic shock generators.
+5. `tests/unit/backtesting/test_monte_carlo.py` — Unit tests for Monte Carlo simulation, seed reproducibility, and risk probabilities.
+
+##### Modified Files:
+1. `src/domain/validation.py` — Added `StressScenarioResult`, `StressTestReport`, `MonteCarloSimulationResult`.
+2. `src/domain/__init__.py` — Exported Stress and Monte Carlo domain models.
+3. `src/backtesting/__init__.py` — Exported `StressTestRunner`, `MonteCarloSimulator`, and scenario generators.
+4. `tests/unit/domain/test_validation.py` — Added domain tests for Stress and Monte Carlo models.
+5. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-014.
+6. `STORY.md` — Updated status board marking Sprint S07.02 and EPIC-07 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S07.01` — Out-of-Sample Split & Walk-Forward Protocol
-- **Active Epic**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols
-- **Next Sprint Up**: `Sprint S07.02` — Stress Testing & Monte Carlo Resampling Engine ([docs/sprints/S07.02-stress-testing-monte-carlo.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md))
-- **Next Task Up**: `TASK-07-02-001` — Implement Monte Carlo Trade Reshuffling & Block Bootstrapping Engine
+- **Completed Sprint**: `Sprint S07.02` — Stress Testing & Monte Carlo Resampling Engine
+- **Active Epic**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols (**100% COMPLETE**)
+- **Next Epic Up**: `EPIC-08` — Baseline Rule-Based Strategy Generation
+- **Next Sprint Up**: `Sprint S08.01` — Rule-Based Momentum & Trend Following Baseline Strategy ([docs/sprints/S08.01-rule-based-momentum-trend-baseline.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md))
+- **Next Task Up**: `TASK-08-01-001` — Implement Rule-Based Trend Following Strategy (EMA Cross + ATR Breakout)

@@ -11,6 +11,7 @@ from src.backtesting.engine import (
     BacktestEngine,
     OrderIntent,
 )
+from src.backtesting.monte_carlo import MonteCarloSimulator
 from src.backtesting.portfolio import (
     SimulatedPortfolio,
     SimulatedPosition,
@@ -21,6 +22,14 @@ from src.backtesting.slippage_model import (
     SlippageResult,
 )
 from src.backtesting.splitter import ChronologicalSplitter
+from src.backtesting.stress_scenarios import (
+    create_covid_crash_scenario,
+    create_slippage_stress_config,
+    generate_feed_dropout,
+    generate_gap_down_shock,
+    generate_volatility_spike,
+)
+from src.backtesting.stress_test import StressTestRunner
 from src.backtesting.walk_forward import (
     WalkForwardConfig,
     WalkForwardOptimizer,
@@ -33,6 +42,7 @@ __all__ = [
     "CostBreakdown",
     "CostModel",
     "CostModelConfig",
+    "MonteCarloSimulator",
     "OrderIntent",
     "RoundTripCostBreakdown",
     "SimulatedPortfolio",
@@ -40,6 +50,12 @@ __all__ = [
     "SlippageConfig",
     "SlippageModel",
     "SlippageResult",
+    "StressTestRunner",
     "WalkForwardConfig",
     "WalkForwardOptimizer",
+    "create_covid_crash_scenario",
+    "create_slippage_stress_config",
+    "generate_feed_dropout",
+    "generate_gap_down_shock",
+    "generate_volatility_spike",
 ]

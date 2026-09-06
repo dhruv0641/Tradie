@@ -20,6 +20,10 @@ from src.domain.market_data import (
 )
 from src.domain.validation import (
     ChronologicalSplit,
+    MonteCarloSimulationResult,
+    StressScenarioResult,
+    StressScenarioType,
+    StressTestReport,
     WalkForwardFold,
     WalkForwardReport,
 )
@@ -37,9 +41,13 @@ __all__ = [
     "MarketDepthQuote",
     "MarketTick",
     "ModelVersion",
+    "MonteCarloSimulationResult",
     "OHLCVCandle",
     "OrderSubmission",
     "Position",
+    "StressScenarioResult",
+    "StressScenarioType",
+    "StressTestReport",
     "TradeEvaluation",
     "WalkForwardFold",
     "WalkForwardReport",

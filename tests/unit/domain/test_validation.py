@@ -10,6 +10,9 @@ from src.domain.backtest_result import BacktestMetrics
 from src.domain.market_data import OHLCVCandle
 from src.domain.validation import (
     ChronologicalSplit,
+    MonteCarloSimulationResult,
+    StressScenarioResult,
+    StressTestReport,
     WalkForwardFold,
     WalkForwardReport,
 )
@@ -263,3 +266,57 @@ def test_walk_forward_report_creation() -> None:
     assert report.strategy_id == "momentum_strategy"
     assert report.passed_gate is True
     assert report.overfit_flag is False
+
+
+def test_stress_scenario_models() -> None:
+    """Verify StressScenarioResult and StressTestReport instantiation and fields."""
+    scenario = StressScenarioResult(
+        scenario_name="COVID_CRASH",
+        scenario_type="HISTORICAL",
+        description="March 2020 collapse",
+        initial_capital=Decimal("10000.00"),
+        final_equity=Decimal("9200.00"),
+        net_profit=Decimal("-800.00"),
+        return_pct=Decimal("-8.00"),
+        max_drawdown_pct=Decimal("8.50"),
+        total_trades=2,
+        halt_8pct_breached=True,
+        kill_switch_10pct_breached=False,
+    )
+    assert scenario.scenario_name == "COVID_CRASH"
+    assert scenario.halt_8pct_breached is True
+    assert scenario.kill_switch_10pct_breached is False
+
+    report = StressTestReport(
+        strategy_id="momentum_strategy",
+        scenarios_evaluated=[scenario],
+        worst_drawdown_pct=Decimal("8.50"),
+        passed_stress_test=True,
+        summary="Passed stress battery",
+    )
+    assert report.worst_drawdown_pct == Decimal("8.50")
+    assert report.passed_stress_test is True
+
+
+def test_monte_carlo_models() -> None:
+    """Verify MonteCarloSimulationResult validation and immutability."""
+    mc_res = MonteCarloSimulationResult(
+        simulation_count=1000,
+        initial_capital=Decimal("10000.00"),
+        trade_count=50,
+        seed=42,
+        equity_p5=Decimal("9500.00"),
+        equity_p50=Decimal("10800.00"),
+        equity_p95=Decimal("12500.00"),
+        max_drawdown_p5=Decimal("2.10"),
+        max_drawdown_p50=Decimal("4.50"),
+        max_drawdown_p95=Decimal("7.80"),
+        worst_case_drawdown=Decimal("9.20"),
+        prob_drawdown_halt_8pct=Decimal("0.0400"),
+        prob_kill_switch_10pct=Decimal("0.0000"),
+        prob_ruin=Decimal("0.0000"),
+        sample_equity_curves=[[Decimal("10000.00"), Decimal("10200.00")]],
+    )
+    assert mc_res.simulation_count == 1000
+    assert mc_res.equity_p50 == Decimal("10800.00")
+    assert mc_res.prob_kill_switch_10pct == Decimal("0.0000")
