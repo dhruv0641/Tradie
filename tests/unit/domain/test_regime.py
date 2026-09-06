@@ -11,6 +11,7 @@ from src.domain.regime import (
     DirectionalBias,
     LiquidityCondition,
     RegimeClassification,
+    RegimeTransitionEvent,
     RiskSentiment,
     TrendState,
     VolatilityLevel,
@@ -155,3 +156,74 @@ def test_regime_classification_json_serialization() -> None:
 
     reconstructed = RegimeClassification.model_validate_json(json_str)
     assert reconstructed == classification
+
+
+def test_regime_transition_event_instantiation_and_serialization() -> None:
+    """Verify RegimeTransitionEvent creation, UTC check, and JSON serialization."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    classification = RegimeClassification(
+        instrument="NSE:INFY",
+        timeframe="5m",
+        timestamp=now,
+        trend_state=TrendState.TRENDING_DOWN,
+        volatility_level=VolatilityLevel.HIGH,
+        directional_bias=DirectionalBias.BEARISH,
+        liquidity_condition=LiquidityCondition.DEGRADED,
+        risk_sentiment=RiskSentiment.RISK_OFF,
+        regime_label="TRENDING_DOWN_HIGH_VOL_DEGRADED_LIQ",
+        is_transition=True,
+        previous_regime="RANGING_NORMAL_VOL",
+    )
+
+    event = RegimeTransitionEvent(
+        instrument="NSE:INFY",
+        timeframe="5m",
+        timestamp=now,
+        previous_regime="RANGING_NORMAL_VOL",
+        current_regime="TRENDING_DOWN_HIGH_VOL_DEGRADED_LIQ",
+        transitioned_dimensions=["trend_state", "directional_bias"],
+        classification=classification,
+    )
+
+    assert event.instrument == "NSE:INFY"
+    assert event.previous_regime == "RANGING_NORMAL_VOL"
+    assert event.current_regime == "TRENDING_DOWN_HIGH_VOL_DEGRADED_LIQ"
+    assert event.transitioned_dimensions == ["trend_state", "directional_bias"]
+    assert event.classification == classification
+
+    # Immutability check
+    with pytest.raises(ValidationError):
+        event.previous_regime = "ANOTHER_REGIME"
+
+    # JSON round-trip
+    dumped = event.model_dump_json()
+    loaded = RegimeTransitionEvent.model_validate_json(dumped)
+    assert loaded == event
+
+
+def test_regime_transition_event_naive_timestamp_rejected() -> None:
+    """Verify naive timestamp without timezone raises validation error."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    naive = datetime(2026, 1, 1, 12, 0)
+    classification = RegimeClassification(
+        instrument="NSE:INFY",
+        timeframe="5m",
+        timestamp=now,
+        trend_state=TrendState.TRENDING_DOWN,
+        volatility_level=VolatilityLevel.HIGH,
+        directional_bias=DirectionalBias.BEARISH,
+        liquidity_condition=LiquidityCondition.DEGRADED,
+        risk_sentiment=RiskSentiment.RISK_OFF,
+        regime_label="TRENDING_DOWN_HIGH_VOL_DEGRADED_LIQ",
+    )
+
+    with pytest.raises(ValidationError, match="timezone-aware UTC"):
+        RegimeTransitionEvent(
+            instrument="NSE:INFY",
+            timeframe="5m",
+            timestamp=naive,
+            previous_regime="RANGING_NORMAL_VOL",
+            current_regime="TRENDING_DOWN_HIGH_VOL_DEGRADED_LIQ",
+            transitioned_dimensions=["trend_state"],
+            classification=classification,
+        )

@@ -147,7 +147,19 @@
 - Implemented `RegimeDetector` in `src/regime/detector.py` classifying market conditions across 5 canonical dimensions per MLD §5.1 and ADD §5, strictly enforcing `DirectionalBias.NEUTRAL` when `TrendState.RANGING` to prevent boundary flip-flops, and providing safe degradation to `UNKNOWN` on missing features.
 - Delivered test suites in `tests/unit/domain/test_regime.py` and `tests/unit/regime/test_detector.py` (18 new tests) achieving 100% coverage on domain models and 96% on detector, raising repository total to **255 passing tests and 96% global coverage**.
 
+### Milestone 22: Sprint S09.02 Regime Transition Detection & Hysteresis Filtering (Complete — EPIC-09 100% Complete)
+- Implemented `RegimeTransitionEvent` canonical domain event in `src/domain/regime.py` per MLD §5.2 and DDD §5.1 with timezone-aware UTC validation, event UUID, stream identification, prior/current regime labels, and transitioned dimension lineage.
+- Implemented `RegimeTransitionFilter` in `src/regime/transition.py` with 2-cycle hysteresis state machine per MLD §5.2 and FRD-REGIME-2:
+  - Suppresses 1-cycle threshold boundary oscillation noise (whipsaws), maintaining confirmed regime state until proposed candidate persists for $\ge 2$ consecutive cycles.
+  - Emits transition event (`is_transition=True`, `previous_regime` populated) only on confirmation cycles.
+  - Maintains isolated stream tracking per `(instrument, timeframe)` tuple.
+  - Enforces MLD §5.1 invariant: confirmed transition to `TrendState.RANGING` strictly forces `DirectionalBias.NEUTRAL`.
+  - Provides stream isolation, event querying, and state reset capabilities.
+- Delivered test suites in `tests/unit/regime/test_transition.py` and `tests/unit/domain/test_regime.py` (14 new tests) achieving 99% branch coverage on `transition.py` and 100% on domain entities, raising repository total to **269 passing tests and 96% global coverage**.
+- **EPIC-09: Market Regime Intelligence Subsystem is now 100% COMPLETE.**
+
 ---
+
 
 ## 3. Current Live State & Status Board
 
@@ -177,7 +189,8 @@
 | **Phase V1** | **EPIC-08** | [S08.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.01-rule-based-momentum-trend-baseline.md) | [TASK-08-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-01-001.md) | Rule-Based Momentum & Trend Following Baseline Strategy | **COMPLETE** |
 | Phase V1 | EPIC-08 | [S08.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S08.02-mean-reversion-baseline-strategy.md) | [TASK-08-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-08-02-001.md) | Mean-Reversion Baseline Strategy & Reporting | **COMPLETE** |
 | **Phase V2** | **EPIC-09** | [S09.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.01-statistical-volatility-regime-detection.md) | [TASK-09-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-01-001.md) | Statistical & Volatility Regime Detection | **COMPLETE** |
-| Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **UP NEXT** |
+| Phase V2 | EPIC-09 | [S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md) | [TASK-09-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-09-02-001.md) | Regime Transition Detection & Hysteresis Filtering | **COMPLETE** |
+| **Phase V2** | **EPIC-10** | [S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-multi-agent-trend-momentum.md) | [TASK-10-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-10-01-001.md) | Multi-Agent Roster (Trend & Momentum Agents) | **UP NEXT** |
 
 ---
 
@@ -185,10 +198,10 @@
 
 When resuming execution:
 
-### Sprint S09.02: Regime Transition Detection & Hysteresis Filtering
-Execute all deliverables for [Sprint S09.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S09.02-regime-transition-detection-hysteresis.md):
-- Implement `RegimeTransitionFilter` in `src/regime/transition.py` with 2-cycle hysteresis smoothing and transition flagging.
-- Deliver unit test suites in `tests/unit/regime/test_transition.py`.
+### Sprint S10.01: Multi-Agent Roster (Trend & Momentum Agents)
+Execute all deliverables for [Sprint S10.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S10.01-multi-agent-trend-momentum.md):
+- Implement `TrendAgent` and `MomentumAgent` in `src/agents/trend.py` and `src/agents/momentum.py` adhering to `subsystem-contracts.md` §3 and MLD §6.
+- Deliver unit test suites in `tests/unit/agents/`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -218,3 +231,4 @@ Execute all deliverables for [Sprint S09.02](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S08.01 Delivered | `src/strategies/*`, `src/backtesting/engine.py`, `tests/unit/strategies/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.01, BaseStrategy abstract interface, DualEMACrossoverStrategy, DonchianBreakoutStrategy, signal exit handling in BacktestEngine, 96% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S08.02 Delivered (Phase V1 Complete) | `src/strategies/*`, `src/backtesting/reporting.py`, `scripts/run_v1_baseline.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S08.02, BollingerBandsRSIMeanReversionStrategy, BacktestReporter with PRD §10 & BTD §12 caveats, CLI baseline runner, EPIC-08 100% complete, Phase V1 Gate G1 satisfied and unlocked. |
 | **2026-09-06** | Sprint S09.01 Delivered | `src/domain/regime.py`, `src/domain/__init__.py`, `src/config/models.py`, `src/regime/*`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.01, 5-dimensional RegimeDetector, canonical StrEnums & RegimeClassification domain entity, 255 tests passing, 96% global coverage. |
+| **2026-09-06** | Sprint S09.02 Delivered (EPIC-09 Complete) | `src/regime/transition.py`, `src/domain/regime.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S09.02, RegimeTransitionFilter with 2-cycle hysteresis, boundary noise suppression, RegimeTransitionEvent, 269 tests passing, 96% global coverage, EPIC-09 100% complete. |

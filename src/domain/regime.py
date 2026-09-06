@@ -105,3 +105,41 @@ class RegimeClassification(BaseModel):
             msg = "Regime classification timestamp must be timezone-aware UTC"
             raise ValueError(msg)
         return v
+
+
+class RegimeTransitionEvent(BaseModel):
+    """Immutable domain event emitted upon confirmed market regime transition (MLD §5.2)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    event_id: UUID = Field(
+        default_factory=uuid4,
+        description="Unique identifier for this regime transition event",
+    )
+    instrument: str = Field(min_length=1, description="Canonical instrument symbol")
+    timeframe: str = Field(min_length=1, description="Primary timeframe of underlying data")
+    timestamp: datetime = Field(description="Point-in-time confirmation timestamp in UTC")
+    previous_regime: str = Field(
+        min_length=1,
+        description="Composite canonical regime string of the prior confirmed regime",
+    )
+    current_regime: str = Field(
+        min_length=1,
+        description="Composite canonical regime string of the newly confirmed regime",
+    )
+    transitioned_dimensions: list[str] = Field(
+        min_length=1,
+        description="List of specific regime dimensions that transitioned (MLD §5.2)",
+    )
+    classification: RegimeClassification = Field(
+        description="Full confirmed RegimeClassification snapshot for this transition event",
+    )
+
+    @field_validator("timestamp")
+    @classmethod
+    def validate_utc_timestamp(cls, v: datetime) -> datetime:
+        """Enforce that timestamp is timezone-aware UTC."""
+        if v.tzinfo is None:
+            msg = "Regime transition event timestamp must be timezone-aware UTC"
+            raise ValueError(msg)
+        return v
