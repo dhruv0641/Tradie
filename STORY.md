@@ -112,6 +112,12 @@
 - Added comprehensive unit and known-answer synthetic test suites (28 new tests), reaching 177 passing tests and 95% global repository coverage.
 - EPIC-06 (Realistic Backtesting & Indian Market Cost Engine) is now 100% COMPLETE.
 
+### Milestone 17: Sprint S07.01 Out-of-Sample Split & Walk-Forward Protocol (Complete)
+- Implemented `ChronologicalSplitter` in `src/backtesting/splitter.py` enforcing strict chronological time-series partitioning: 70% In-Sample / 30% Out-of-Sample (BTD-10, BTD §8.2), 3-way train/val/test split, and rolling window generator with zero look-ahead leakage.
+- Implemented canonical domain entities `ChronologicalSplit`, `WalkForwardFold`, and `WalkForwardReport` in `src/domain/validation.py` with strict UTC validation and partition boundary leak prevention.
+- Implemented `WalkForwardOptimizer` in `src/backtesting/walk_forward.py` parameterizing sliding window walk-forward evaluation, in-sample parameter optimization, locked out-of-sample testing, aggregate portfolio accumulation, duration-scaled metric normalization, and Walk-Forward Efficiency Ratio ($WFER \ge 0.50$) gating (BTD-12, MLD §9.2).
+- Delivered comprehensive test suites in `tests/unit/backtesting/test_splitter.py`, `tests/unit/backtesting/test_walk_forward.py`, and `tests/unit/domain/test_validation.py` (18 new tests), reaching 195 passing tests and 95% global repository coverage.
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -137,7 +143,8 @@
 | Phase V1 | EPIC-05 | [S05.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S05.02-point-in-time-calculation-guarantees.md) | [TASK-05-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-05-02-001.md) | Point-in-Time Calculation Guarantees & Versioning | **COMPLETE** |
 | **Phase V1** | **EPIC-06** | [S06.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.01-indian-statutory-charges-brokerage-cost.md) | [TASK-06-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-01-001.md) | Indian Statutory Charges & Brokerage Cost Model | **COMPLETE** |
 | Phase V1 | EPIC-06 | [S06.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S06.02-order-fill-simulation-next-bar-engine.md) | [TASK-06-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-06-02-001.md) | Order Fill Simulation & Next-Bar Execution Engine | **COMPLETE** |
-| **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **UP NEXT** |
+| **Phase V1** | **EPIC-07** | [S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md) | [TASK-07-01-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-01-001.md) | Chronological Out-of-Sample Splitter | **COMPLETE** |
+| Phase V1 | EPIC-07 | [S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md) | [TASK-07-02-001](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/tasks/TASK-07-02-001.md) | Stress Testing & Monte Carlo Resampling Engine | **UP NEXT** |
 
 ---
 
@@ -145,11 +152,11 @@
 
 When resuming execution:
 
-### Sprint S07.01: Out-of-Sample Split & Walk-Forward Protocol
-Execute all deliverables for [Sprint S07.01](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md):
-- Implement chronological train/validation/test splitter enforcing 70/30 split (BTD §8.2, FR-27).
-- Implement rolling walk-forward protocol (train 6 months / test 1 month) and Walk-Forward Efficiency Ratio gating ($\ge 0.5$).
-- Deliver unit test suites in `tests/unit/backtesting/test_walk_forward.py`.
+### Sprint S07.02: Stress Testing & Monte Carlo Resampling Engine
+Execute all deliverables for [Sprint S07.02](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md):
+- Implement Monte Carlo trade reshuffling and block bootstrapping engine.
+- Implement historical stress testing scenarios (e.g. COVID crash March 2020, demonetization, flash crash, severe slippage stress).
+- Deliver unit test suites in `tests/unit/backtesting/test_monte_carlo.py` and `tests/unit/backtesting/test_stress_test.py`.
 - Run post-sprint delivery script `.\scripts\deliver_sprint.ps1` and push to `implementation-develop`.
 
 ---
@@ -174,3 +181,4 @@ Execute all deliverables for [Sprint S07.01](file:///c:/Users/dobar_zdc9vhh/OneD
 | **2026-09-06** | Sprint S05.02 Delivered | `src/features/engine.py`, `src/features/__init__.py`, `tests/unit/features/test_engine.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S05.02 & Epic 05, 100% branch coverage on FeatureEngine, zero look-ahead leak detection verified, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S06.01 Delivered | `src/backtesting/*`, `tests/unit/backtesting/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.01, 100% branch coverage on Indian market cost model & liquidity-scaled slippage model, 94% global coverage, pushed to implementation-develop. |
 | **2026-09-06** | Sprint S06.02 Delivered | `src/backtesting/*`, `src/domain/backtest_result.py`, `tests/unit/backtesting/*`, `tests/unit/domain/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S06.02 & Epic 06, Next-Bar Open fill simulator, intra-bar stop/target evaluation, conservative tie-breaking, 95% global coverage, pushed to implementation-develop. |
+| **2026-09-06** | Sprint S07.01 Delivered | `src/backtesting/*`, `src/domain/validation.py`, `tests/unit/backtesting/*`, `tests/unit/domain/test_validation.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S07.01, ChronologicalSplitter (70/30, 3-way, rolling), WalkForwardOptimizer, WFER >= 0.50 gating, 95% global coverage, pushed to implementation-develop. |

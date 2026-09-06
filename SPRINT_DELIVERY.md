@@ -65,6 +65,7 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 | **DELIV-010** | 2026-09-06 | 16:05:00 | `S05.02` | Point-in-Time Calculation Guarantees & Versioning | 2 new / 2 modified | Ruff Clean, Mypy Strict, 100% Branch Coverage on Engine, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-011** | 2026-09-06 | 16:15:00 | `S06.01` | Indian Statutory Charges & Brokerage Cost Model | 5 new files | Ruff Clean, Mypy Strict, 100% Branch Coverage on Cost & Slippage, 94% Global, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 | **DELIV-012** | 2026-09-06 | 16:25:00 | `S06.02` | Order Fill Simulation & Next-Bar Execution Engine | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (177 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
+| **DELIV-013** | 2026-09-06 | 16:35:00 | `S07.01` | Out-of-Sample Split & Walk-Forward Protocol | 6 new / 2 modified | Ruff Clean, Mypy Strict, 100% Test Pass (195 tests), 95% Global Coverage, Gitleaks Clean | Pushed to `origin/implementation-develop` |
 
 ---
 
@@ -634,10 +635,58 @@ To execute the entire post-sprint verification, logging, and Git push sequence w
 
 ---
 
+### DELIV-013: Sprint S07.01 — Out-of-Sample Split & Walk-Forward Protocol
+
+- **Execution Date**: `2026-09-06`
+- **Execution Time**: `16:35:00 IST` (11:05:00 UTC)
+- **Target Branch**: `implementation-develop`
+- **Assigned Agents**: Agent 05 (Backtesting) / Agent 03 (Quant) / Agent 07 (ML) / Agent 14 (QA) / Agent 16 (Code Review)
+- **Reviewer / Sign-off**: Agent 00 (Chief Architect) & Agent 09 (Risk & Safety Agent)
+
+#### 1. Scope & Technical Summary
+- Implemented `ChronologicalSplitter` in `src/backtesting/splitter.py` enforcing strict chronological time-series partitioning:
+  - **70% In-Sample / 30% Out-of-Sample (BTD-10, BTD §8.2)**: Structurally guarantees $\max(\text{train}) < \min(\text{test})$ with runtime invariant validation against forward-looking leakage.
+  - **3-Way Chronological Split**: Sequential train / validation / test partitioning ($60\% / 20\% / 20\%$) with non-overlapping window boundary enforcement.
+  - **Sliding Rolling Window Generator (BTD §8.3)**: Generates sliding chronological folds for walk-forward optimization with configurable train, test, and step sizes.
+- Implemented canonical domain models in `src/domain/validation.py`:
+  - `ChronologicalSplit`: Immutable Pydantic v2 entity holding partitioned candle series and validated UTC timestamp boundaries.
+  - `WalkForwardFold`: Single rolling fold record capturing train/test boundaries, in-sample and out-of-sample `BacktestMetrics`, locked parameters, and fold efficiency ratio.
+  - `WalkForwardReport`: Consolidated report across rolling folds evaluating aggregate performance, global Walk-Forward Efficiency Ratio ($WFER$), and promotion gating ($WFER \ge 0.50$).
+- Implemented `WalkForwardOptimizer` in `src/backtesting/walk_forward.py`:
+  - Configurable optimization parameterization via `WalkForwardConfig` (train bars, test bars, step bars, target metric key, capital, promotion threshold).
+  - Evaluates candidate parameters in-sample, locks top configuration, tests out-of-sample across unseen bars, accumulates out-of-sample trades into a unified portfolio, scales duration-dependent metrics (net profit, return pct), and evaluates $WFER \ge 0.50$ promotion gate per BTD-12 and MLD §9.2.
+- Authored test suites in `tests/unit/backtesting/test_splitter.py`, `tests/unit/backtesting/test_walk_forward.py`, and `tests/unit/domain/test_validation.py` (18 new tests), achieving **99% statement coverage on walk_forward.py, 98% on validation.py, and 92% on splitter.py**.
+- Global repository test suite now stands at **195 passing tests with 95% coverage**.
+
+#### 2. Verification Evidence & Quality Metrics
+- **Ruff Lint**: `uv run ruff check src tests scripts` → `All checks passed!` (0 errors)
+- **Ruff Format**: `uv run ruff format --check src tests scripts` → `74 files already formatted` (0 violations)
+- **Mypy Strict**: `uv run mypy src tests scripts` → `Success: no issues found in 74 source files` (0 errors)
+- **Pytest Suite**: `uv run pytest` → `195 passed in 8.96s` (Code 0, 0 warnings)
+- **Code Coverage**: Global `95%` code coverage.
+- **Pre-commit Scan**: `pre-commit run --all-files` passed cleanly (including `gitleaks` 0 secrets).
+
+#### 3. Exact File Inventory
+
+##### New Files Created:
+1. `src/domain/validation.py` — Domain models for ChronologicalSplit, WalkForwardFold, and WalkForwardReport.
+2. `src/backtesting/splitter.py` — Chronological time-series data partitioner and rolling window generator.
+3. `src/backtesting/walk_forward.py` — Rolling walk-forward optimizer and efficiency ratio gating engine.
+4. `tests/unit/domain/test_validation.py` — Unit tests for partition boundary validation and domain models.
+5. `tests/unit/backtesting/test_splitter.py` — Unit tests for 70/30 split, 3-way split, and rolling window generator.
+6. `tests/unit/backtesting/test_walk_forward.py` — Unit tests for walk-forward parameter tuning, gate passing, and overfit gating.
+
+##### Modified Files:
+1. `src/domain/__init__.py` — Exported `ChronologicalSplit`, `WalkForwardFold`, `WalkForwardReport`.
+2. `src/backtesting/__init__.py` — Exported `ChronologicalSplitter`, `WalkForwardConfig`, `WalkForwardOptimizer`.
+3. `SPRINT_DELIVERY.md` — Updated master register and chronological audit logs with DELIV-013.
+4. `STORY.md` — Updated status board marking Sprint S07.01 COMPLETE.
+
+---
+
 ## 5. Next Sprint Transition
 
-- **Completed Sprint**: `Sprint S06.02` — Order Fill Simulation & Next-Bar Execution Engine
-- **Active Epic**: `EPIC-06` — Realistic Backtesting & Indian Market Cost Engine (**100% COMPLETE**)
-- **Next Epic Up**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols
-- **Next Sprint Up**: `Sprint S07.01` — Out-of-Sample Split & Walk-Forward Protocol ([docs/sprints/S07.01-out-of-sample-split-walk-forward.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.01-out-of-sample-split-walk-forward.md))
-- **Next Task Up**: `TASK-07-01-001` — Implement Chronological Out-of-Sample Splitter (BTD §8.2, FR-27)
+- **Completed Sprint**: `Sprint S07.01` — Out-of-Sample Split & Walk-Forward Protocol
+- **Active Epic**: `EPIC-07` — Bias Guardrails & Multi-Stage Testing Protocols
+- **Next Sprint Up**: `Sprint S07.02` — Stress Testing & Monte Carlo Resampling Engine ([docs/sprints/S07.02-stress-testing-monte-carlo.md](file:///c:/Users/dobar_zdc9vhh/OneDrive/Desktop/AI%20Tradie/docs/sprints/S07.02-stress-testing-monte-carlo.md))
+- **Next Task Up**: `TASK-07-02-001` — Implement Monte Carlo Trade Reshuffling & Block Bootstrapping Engine

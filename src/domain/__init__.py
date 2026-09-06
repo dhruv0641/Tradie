@@ -18,11 +18,17 @@ from src.domain.market_data import (
     MarketTick,
     OHLCVCandle,
 )
+from src.domain.validation import (
+    ChronologicalSplit,
+    WalkForwardFold,
+    WalkForwardReport,
+)
 
 __all__ = [
     "BacktestMetrics",
     "BacktestResult",
     "BacktestTrade",
+    "ChronologicalSplit",
     "CorporateAction",
     "DecisionRecord",
     "EquityPoint",
@@ -35,4 +41,6 @@ __all__ = [
     "OrderSubmission",
     "Position",
     "TradeEvaluation",
+    "WalkForwardFold",
+    "WalkForwardReport",
 ]

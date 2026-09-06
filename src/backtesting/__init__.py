@@ -20,10 +20,16 @@ from src.backtesting.slippage_model import (
     SlippageModel,
     SlippageResult,
 )
+from src.backtesting.splitter import ChronologicalSplitter
+from src.backtesting.walk_forward import (
+    WalkForwardConfig,
+    WalkForwardOptimizer,
+)
 
 __all__ = [
     "BacktestConfig",
     "BacktestEngine",
+    "ChronologicalSplitter",
     "CostBreakdown",
     "CostModel",
     "CostModelConfig",
@@ -34,4 +40,6 @@ __all__ = [
     "SlippageConfig",
     "SlippageModel",
     "SlippageResult",
+    "WalkForwardConfig",
+    "WalkForwardOptimizer",
 ]
