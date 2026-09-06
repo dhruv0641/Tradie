@@ -18,6 +18,7 @@ from src.execution.idempotency import (
     IdempotentOrderDispatcher,
     generate_client_order_id,
 )
+from src.execution.live_broker_adapter import LiveBrokerAdapter
 from src.execution.order_manager import (
     TERMINAL_STATES,
     VALID_TRANSITIONS,
@@ -30,6 +31,12 @@ from src.execution.order_manager import (
 )
 from src.execution.paper_adapter import PaperBrokerAdapter, PaperBrokerConfig
 from src.execution.position_ledger import PositionLedger, PositionLedgerProtocol
+from src.execution.reconciliation import (
+    PositionDiscrepancy,
+    ReconciliationResult,
+    StartupReconciler,
+    StartupReconciliationMismatchError,
+)
 from src.execution.translator import (
     OrderTranslationConfig,
     OrderTranslationError,
@@ -54,6 +61,7 @@ __all__ = [
     "ConnectionState",
     "IdempotentOrderDispatcher",
     "InvalidStateTransitionError",
+    "LiveBrokerAdapter",
     "OrderLifecycleError",
     "OrderLifecycleEvent",
     "OrderManager",
@@ -65,7 +73,11 @@ __all__ = [
     "OrderTranslator",
     "PaperBrokerAdapter",
     "PaperBrokerConfig",
+    "PositionDiscrepancy",
     "PositionLedger",
     "PositionLedgerProtocol",
+    "ReconciliationResult",
+    "StartupReconciler",
+    "StartupReconciliationMismatchError",
     "generate_client_order_id",
 ]

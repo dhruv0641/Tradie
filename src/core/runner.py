@@ -159,11 +159,13 @@ class TradingBrainRunner:
         config: RunnerConfig | None = None,
         audit_service: Any | None = None,
         trade_evaluator: Any | None = None,
+        reconciler: Any | None = None,
     ) -> None:
         self.config = config or RunnerConfig()
         self.broker = broker
         self.audit_service = audit_service
         self.trade_evaluator = trade_evaluator
+        self.reconciler = reconciler
         self._evaluations: list[Any] = []
 
         self.feature_engine = feature_engine or FeatureEngine()
@@ -264,7 +266,16 @@ class TradingBrainRunner:
         except Exception as e:
             self._log.error("Failed to query broker positions", error=str(e))
 
-        # 3. Inform streak tracker of new session
+        # 3. Startup position & order reconciliation gate
+        if self.reconciler is not None:
+            rec_result = self.reconciler.reconcile()
+            if not rec_result.reconciled:
+                self._log.critical(
+                    "Pre-market startup reconciliation mismatch; live trading suppressed",
+                    discrepancies=len(rec_result.discrepancies),
+                )
+
+        # 4. Inform streak tracker of new session
         self.streak_tracker.on_session_start(ts.date())
 
     def post_market_reconciliation(
@@ -366,7 +377,20 @@ class TradingBrainRunner:
                 reason="Trading suppressed by connection monitor",
             )
 
-        # 6. Execute full evaluation pipeline
+        # 6. Check startup reconciliation lock
+        if self.reconciler is not None and not self.reconciler.can_submit_orders():
+            self._total_cycles += 1
+            return CycleResult(
+                timestamp=candle.timestamp,
+                instrument=candle.instrument,
+                candle=candle,
+                phase=phase,
+                equity=self.position_ledger.total_equity,
+                cash=self.position_ledger.cash,
+                reason="Trading suppressed: startup reconciliation failed or pending",
+            )
+
+        # 7. Execute full evaluation pipeline
         return self._evaluate_and_execute_cycle(candle, buf, phase)
 
     def run_session(self, candles: list[OHLCVCandle]) -> SessionSummary:

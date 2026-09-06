@@ -49,6 +49,18 @@ class BrokerConfig(BaseModel):
     api_secret: SecretStr = Field(
         default=SecretStr("mock_secret"), description="Broker API secret (masked)"
     )
+    base_url: str = Field(
+        default="https://api.kite.trade", description="Broker REST API base endpoint"
+    )
+    access_token: SecretStr | None = Field(
+        default=None, description="Active broker session access token (masked)"
+    )
+    totp_secret: SecretStr | None = Field(
+        default=None, description="Broker 2FA TOTP secret key (masked)"
+    )
+    timeout_seconds: float = Field(
+        default=10.0, ge=1.0, le=60.0, description="HTTP request timeout in seconds"
+    )
     paper_trading: bool = Field(
         default=True, description="Flag indicating simulated paper execution vs live execution"
     )

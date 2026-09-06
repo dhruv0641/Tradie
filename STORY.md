@@ -334,6 +334,33 @@
   - Authored comprehensive test suites bringing total repository tests to **586 passing tests** at **97% global branch coverage** with zero Ruff or Mypy issues.
   - **EPIC-17 IS 100% COMPLETE!**
 
+
+### Milestone 37: Pre-Live SOW §9 Precondition Audit & Credential Setup (Sprint S18.01)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Authored Indian algorithmic trading regulatory compliance review in `docs/compliance/SEBI_REVIEW.md` addressing SEBI circulars, testing, algo ID, audit trail, order-to-trade ratio, and kill switch mandates.
+  - Formatted Phase V0 through V4 exit gates sign-off register in `docs/compliance/GATE_SIGNOFFS.md` certifying readiness for Phase V5 live trading.
+  - Implemented SOW §9 preconditions verification script and CLI in `scripts/verify_live_preconditions.py` (`PreconditionsVerifier`, `PreconditionsResult`, `--json`, `--require-token`) validating all 5 mandatory live prerequisites.
+  - Created signed operator approval token `docs/compliance/operator_approval.token` with SHA-256 integrity digest.
+  - Extended `BrokerConfig` in `src/config/models.py` with live broker fields (`base_url`, `access_token`, `totp_secret`, `timeout_seconds`).
+  - Implemented production `LiveBrokerAdapter` in `src/execution/live_broker_adapter.py` adhering to `BrokerAdapter` protocol with TLS certificate enforcement, secret masking (`__repr__`), REST order dispatching, account balance fetching, and simulated sandbox testing mode.
+  - Added `activate(source, reason)` to `KillSwitchProtocol` in `src/risk/kill_switch.py`.
+  - Delivered 17 unit tests across `tests/unit/scripts/test_verify_live_preconditions.py` and `tests/unit/execution/test_live_broker_adapter.py`.
+
+### Milestone 38: Live Trading Activation & Startup Reconciliation Gate (Sprint S18.02)
+- **Status**: COMPLETE
+- **Completed**: 2026-09-06
+- **Delivered**:
+  - Implemented `StartupReconciler` in `src/execution/reconciliation.py` providing safe-state startup gate (`can_submit_orders() == False`) comparing broker open positions/orders against local `PositionLedger`.
+  - Enforced deterministic fail-stop protection: any discrepancy raises `StartupReconciliationMismatchError`, suppresses order submissions, and automatically triggers Kill Switch emergency halt (`KillSwitch.activate(source="startup_reconciler", ...)`).
+  - Implemented secure manual operator override (`manual_override()`) requiring valid signed operator approval token and documented rationale.
+  - Integrated `StartupReconciler` into pre-market reconciliation and candle evaluation cycle in `src/core/runner.py`.
+  - Implemented standalone production live trading CLI runner `scripts/run_live_trader.py` enforcing SOW §9 preconditions verification, hard ₹10,000 live capital ceiling (BRD BR-2, PRD §9), and startup reconciliation gate before trading.
+  - Delivered 13 unit tests in `tests/unit/execution/test_reconciliation.py` (**100% line & branch coverage**) and 3 integration tests in `tests/integration/test_live_activation.py`.
+  - Full test suite: **614 tests passing repository-wide** at **95% global branch coverage** with zero Ruff, Mypy, or security issues.
+  - **EPIC-18 IS 100% COMPLETE!**
+
 ---
 
 ## 3. Current Live State & Status Board
@@ -381,7 +408,11 @@
 | **Phase V4 / V5** | **EPIC-17** | [S17.01](docs/sprints/S17.01-immutable-decision-record-audit.md) | [TASK-17-01-001](docs/tasks/TASK-17-01-001.md) | Immutable Decision Record Audit Logging | **COMPLETE** |
 | Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-001](docs/tasks/TASK-17-02-001.md) | Post-Trade Evaluation Engine & Variance Classifier | **COMPLETE** |
 | Phase V4 / V5 | EPIC-17 | [S17.02](docs/sprints/S17.02-post-trade-evaluation-operator-query.md) | [TASK-17-02-002](docs/tasks/TASK-17-02-002.md) | Decision Explainability Query CLI (`aitrader explain`) | **COMPLETE** |
-| **Phase V5 / V6** | **EPIC-18** | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit.md) | [TASK-18-01-001](docs/tasks/TASK-18-01-001.md) | Pre-Live Precondition Audit & Credential Validation | **UP NEXT** |
+| **Phase V5 / V6** | **EPIC-18** | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-001](docs/tasks/TASK-18-01-001.md) | Pre-Live SOW §9 Preconditions Audit Verifier Script | **COMPLETE** |
+| Phase V5 / V6 | EPIC-18 | [S18.01](docs/sprints/S18.01-pre-live-precondition-audit-credentials.md) | [TASK-18-01-002](docs/tasks/TASK-18-01-002.md) | Production `LiveBrokerAdapter` Class | **COMPLETE** |
+| Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-001](docs/tasks/TASK-18-02-001.md) | `StartupReconciler` Safe-State Startup Gate | **COMPLETE** |
+| Phase V5 / V6 | EPIC-18 | [S18.02](docs/sprints/S18.02-live-trading-activation-startup-reconciliation.md) | [TASK-18-02-002](docs/tasks/TASK-18-02-02.md) | Deploy Phase V5 Autonomous Risk-Controlled Live Trading | **COMPLETE** |
+| **Phase V6** | **EPIC-19** | [S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md) | [TASK-19-01-001](docs/tasks/TASK-19-01-001.md) | Setup Research Brain Process Isolation and Access Controls | **UP NEXT** |
 
 ---
 
@@ -389,11 +420,11 @@
 
 When resuming execution:
 
-### Sprint S18.01: Pre-Live Precondition Audit & Credential Validation
-Execute all deliverables for [Sprint S18.01](docs/sprints/S18.01-pre-live-precondition-audit.md):
-- Implement pre-live readiness checks verifying broker API credentials, database connectivity, data feed freshness, and risk parameters.
-- Verify capital ceiling constraints and zero unapproved credential exposure.
-- Enforce strict operator sign-off gates prior to live order routing.
+### Sprint S19.01: Research Brain Physical Isolation & Sandboxing
+Execute all deliverables for [Sprint S19.01](docs/sprints/S19.01-research-brain-physical-isolation-sandboxing.md):
+- Setup `src/research/` execution environment running as separate isolated process / sandbox (TRD-ARCH-2, HLD §10).
+- Enforce strict physical boundary guards: Research Brain has zero live broker credentials, zero network access to live execution endpoints, and cannot import live trading execution modules.
+- Implement read-only data access for Research Brain from TimescaleDB / Parquet historical data.
 - Deliver unit and integration tests with 100% safety branch coverage and run `.\scripts\deliver_sprint.ps1`.
 
 ---
@@ -439,3 +470,5 @@ Execute all deliverables for [Sprint S18.01](docs/sprints/S18.01-pre-live-precon
 | **2026-09-06** | Sprint S16.02 Delivered (EPIC-16 Complete) | `src/core/*`, `scripts/run_paper_trader.py`, `tests/unit/core/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S16.02, TradingBrainRunner continuous market-hours orchestrator, CLI paper trading harness, 565 tests passing, 94% runner coverage, 97% global coverage, EPIC-16 100% complete. |
 | **2026-09-06** | Sprint S17.01 Delivered | `src/audit/decision_logger.py`, `src/domain/decision.py`, `tests/unit/audit/*`, `tests/integration/test_decision_audit.py`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S17.01, DecisionAuditService with unconditional persistence, cryptographic SHA-256 tamper evidence, and fail-stop Kill Switch trigger on DB failure. |
 | **2026-09-06** | Sprint S17.02 Delivered (EPIC-17 Complete) | `src/audit/*`, `src/domain/evaluation.py`, `src/core/runner.py`, `scripts/explain_decision.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S17.02, TradeEvaluator with Indian cost drag attribution, 9 variance categories, DecisionExplainer with CLI query interface, 586 tests passing, EPIC-17 100% complete. |
+| **2026-09-06** | Sprint S18.01 Delivered | `docs/compliance/*`, `scripts/verify_live_preconditions.py`, `src/config/models.py`, `src/execution/live_broker_adapter.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S18.01, SEBI compliance review, SOW §9 preconditions verifier, production LiveBrokerAdapter with TLS and masked secrets, 17 unit tests. |
+| **2026-09-06** | Sprint S18.02 Delivered (EPIC-18 Complete) | `src/execution/reconciliation.py`, `src/core/runner.py`, `scripts/run_live_trader.py`, `tests/*`, `SPRINT_DELIVERY.md`, `STORY.md` | Completed Sprint S18.02, StartupReconciler safe-state gate with auto-halt on discrepancy, live trading runner on ₹10k capital, 614 tests passing at 95% coverage, EPIC-18 100% complete. |

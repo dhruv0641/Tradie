@@ -19,10 +19,14 @@ class TriggerSource(StrEnum):
 
 @runtime_checkable
 class KillSwitchProtocol(Protocol):
-    """Protocol for checking kill switch status without heavyweight dependencies."""
+    """Protocol for checking kill switch status and activating emergency halts."""
 
     def is_active(self) -> bool:
         """Return True if kill switch is currently active; False otherwise."""
+        ...
+
+    def activate(self, source: TriggerSource | str, reason: str) -> None:
+        """Trigger emergency trading halt."""
         ...
 
 
