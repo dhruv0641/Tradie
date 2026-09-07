@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from src.api.auth import verify_operator_token
 from src.api.models import (
@@ -13,6 +13,8 @@ from src.api.models import (
     ControlStopRequest,
     ControlStopResponse,
     HealthResponse,
+    MarketStateResponse,
+    MarketSwitchRequest,
     RiskStateResponse,
     TradingResponse,
 )
@@ -151,3 +153,43 @@ async def reset_stop(
         operator=operator,
         reason=reset_request.reason,
     )
+
+
+@router.get(
+    "/market",
+    response_model=MarketStateResponse,
+    summary="Get Active Market State & Supported Markets",
+    description=(
+        "Returns the currently active market, active instrument, "
+        "and catalog of all supported markets."
+    ),
+)
+async def get_market(
+    system_state: Annotated[TradingSystemState, Depends(get_system_state)],
+) -> MarketStateResponse:
+    """Fetch active market and available markets catalog."""
+    return system_state.get_market_state()
+
+
+@router.post(
+    "/market/switch",
+    response_model=MarketStateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Switch Active Market / Instrument",
+    description="Switches the active trading market and instrument for the operator dashboard.",
+)
+async def switch_market(
+    switch_request: MarketSwitchRequest,
+    system_state: Annotated[TradingSystemState, Depends(get_system_state)],
+) -> MarketStateResponse:
+    """Switch the active market and symbol."""
+    try:
+        return system_state.switch_market(
+            market_id=switch_request.market_id,
+            symbol=switch_request.symbol,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc

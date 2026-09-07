@@ -12,6 +12,8 @@ from src.api.models import (
     AIStateResponse,
     ComponentHealth,
     HealthResponse,
+    MarketInfo,
+    MarketStateResponse,
     OrderItem,
     PositionItem,
     RiskStateResponse,
@@ -35,6 +37,49 @@ if TYPE_CHECKING:
     from src.domain.capital_state import CapitalState
 
 logger = structlog.get_logger("api.state")
+
+AVAILABLE_MARKETS: list[MarketInfo] = [
+    MarketInfo(
+        market_id="NSE_EQUITY",
+        name="Indian Equities (NSE)",
+        category="Equities",
+        currency="INR",
+        currency_symbol="₹",
+        trading_hours="09:15 - 15:30 IST",
+        instruments=["NSE:RELIANCE", "NSE:TCS", "NSE:INFY", "NSE:HDFCBANK", "NSE:TATAMOTORS"],
+        default_symbol="NSE:RELIANCE",
+    ),
+    MarketInfo(
+        market_id="NSE_FOREX",
+        name="Currency Derivatives (NSE)",
+        category="Forex (INR)",
+        currency="INR",
+        currency_symbol="₹",
+        trading_hours="09:00 - 17:00 IST",
+        instruments=["NSE:USDINR", "NSE:EURINR", "NSE:GBPINR", "NSE:JPYINR"],
+        default_symbol="NSE:USDINR",
+    ),
+    MarketInfo(
+        market_id="GLOBAL_FOREX",
+        name="Global Forex (Spot)",
+        category="Forex (Global)",
+        currency="USD",
+        currency_symbol="$",
+        trading_hours="24/5 (Sun 5PM - Fri 5PM EST)",
+        instruments=["FX:EUR_USD", "FX:GBP_USD", "FX:USD_JPY", "FX:AUD_USD"],
+        default_symbol="FX:EUR_USD",
+    ),
+    MarketInfo(
+        market_id="CRYPTO",
+        name="Crypto Spot",
+        category="Crypto",
+        currency="USDT",
+        currency_symbol="$",
+        trading_hours="24/7 Continuous",
+        instruments=["CRYPTO:BTC_USDT", "CRYPTO:ETH_USDT", "CRYPTO:SOL_USDT"],
+        default_symbol="CRYPTO:BTC_USDT",
+    ),
+]
 
 
 class TradingSystemState:
@@ -60,9 +105,49 @@ class TradingSystemState:
         self.runner: Any | None = runner
         self.active_model_version: str = active_model_version
         self.initial_capital: Decimal = initial_capital
+        self.active_market_id: str = "NSE_EQUITY"
+        self.active_symbol: str = "NSE:RELIANCE"
         self._last_regime: RegimeClassification | None = None
         self._last_agent_signals: list[AgentSignalItem] = []
         self._system_phase: str = "REGULAR_HOURS"
+
+    def get_market_state(self) -> MarketStateResponse:
+        """Fetch current active market and all supported markets."""
+        market = next(
+            (m for m in AVAILABLE_MARKETS if m.market_id == self.active_market_id),
+            AVAILABLE_MARKETS[0],
+        )
+        return MarketStateResponse(
+            active_market_id=market.market_id,
+            active_market_name=market.name,
+            active_symbol=self.active_symbol,
+            currency_symbol=market.currency_symbol,
+            trading_hours=market.trading_hours,
+            available_markets=AVAILABLE_MARKETS,
+        )
+
+    def switch_market(self, market_id: str, symbol: str | None = None) -> MarketStateResponse:
+        """Switch active market and optionally instrument symbol."""
+        market = next((m for m in AVAILABLE_MARKETS if m.market_id == market_id), None)
+        if market is None:
+            valid_ids = [m.market_id for m in AVAILABLE_MARKETS]
+            msg = f"Unknown market ID: '{market_id}'. Must be one of {valid_ids}"
+            raise ValueError(msg)
+
+        self.active_market_id = market.market_id
+        if symbol and symbol in market.instruments:
+            self.active_symbol = symbol
+        else:
+            self.active_symbol = market.default_symbol
+
+        logger.info(
+            "market_switched",
+            market_id=self.active_market_id,
+            market_name=market.name,
+            symbol=self.active_symbol,
+            currency=market.currency,
+        )
+        return self.get_market_state()
 
     def set_system_phase(self, phase: str) -> None:
         """Update the active market session phase."""

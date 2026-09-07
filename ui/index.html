@@ -15,10 +15,36 @@
   <!-- Sticky Header Bar -->
   <header>
     <div class="brand">
-      <div class="brand-icon">₹</div>
+      <div class="brand-icon" id="brand-currency-icon">₹</div>
       <div>
         <div class="brand-title">AI Trader // Control Center</div>
-        <div class="brand-subtitle">Autonomous Indian Equities Engine</div>
+        <div class="brand-subtitle" id="brand-market-subtitle">Autonomous Indian Equities Engine</div>
+      </div>
+    </div>
+
+    <!-- Interactive Market & Instrument Switcher (Sprint S22.02 Extension) -->
+    <div class="market-switcher-container">
+      <div class="market-control-card">
+        <span class="market-switcher-icon">🌐</span>
+        <label for="select-market" class="market-switcher-label">MARKET:</label>
+        <select id="select-market" class="market-dropdown" title="Switch active market environment">
+          <option value="NSE_EQUITY">🇮🇳 NSE Equities (INR)</option>
+          <option value="NSE_FOREX">💱 Currency (USD/INR)</option>
+          <option value="GLOBAL_FOREX">🌍 Global FX (EUR/USD)</option>
+          <option value="CRYPTO">🪙 Crypto (BTC/USDT)</option>
+        </select>
+      </div>
+
+      <div class="market-control-card">
+        <span class="market-switcher-icon">📈</span>
+        <label for="select-symbol" class="market-switcher-label">SYMBOL:</label>
+        <select id="select-symbol" class="symbol-dropdown" title="Select active trading instrument">
+          <option value="NSE:RELIANCE">NSE:RELIANCE</option>
+        </select>
+      </div>
+
+      <div class="market-hours-badge" id="badge-market-hours" title="Market Session Hours">
+        🕒 09:15 - 15:30 IST
       </div>
     </div>
 
@@ -112,9 +138,15 @@
           <span id="badge-model-version" class="badge badge-accent">v1.0.0</span>
         </div>
 
-        <div style="margin-bottom:0.75rem;">
-          <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.25rem;">Active Market Regime:</div>
-          <span id="badge-regime" class="badge badge-accent" style="font-size:0.85rem;">BULLISH_TREND_LOW_VOL</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.25rem;">Active Market Regime:</div>
+            <span id="badge-regime" class="badge badge-accent" style="font-size:0.85rem;">BULLISH_TREND_LOW_VOL</span>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.25rem;">Target Symbol:</div>
+            <span id="badge-target-symbol" class="badge" style="font-size:0.85rem; background:rgba(56,189,248,0.15); color:var(--color-accent); font-family:var(--font-mono);">NSE:RELIANCE</span>
+          </div>
         </div>
 
         <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.5rem;">Agent Roster Signals:</div>

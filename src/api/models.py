@@ -226,3 +226,44 @@ class ControlResetResponse(BaseModel):
         default_factory=lambda: datetime.now(UTC),
         description="Reset timestamp in UTC",
     )
+
+
+class MarketInfo(BaseModel):
+    """Metadata describing an available trading market."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    market_id: str = Field(description="Unique market identifier, e.g. NSE_EQUITY")
+    name: str = Field(description="Display name, e.g. Indian Equities (NSE)")
+    category: str = Field(description="Market category, e.g. Equities, Forex, Crypto")
+    currency: str = Field(description="Base currency code, e.g. INR, USD")
+    currency_symbol: str = Field(description="Currency display symbol, e.g. ₹, $")
+    trading_hours: str = Field(description="Active trading hours, e.g. 09:15 - 15:30 IST")
+    instruments: list[str] = Field(description="Available instrument symbols in this market")
+    default_symbol: str = Field(description="Default active symbol for this market")
+
+
+class MarketStateResponse(BaseModel):
+    """Current active market state and list of available markets."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    active_market_id: str = Field(description="Currently active market ID")
+    active_market_name: str = Field(description="Currently active market display name")
+    active_symbol: str = Field(description="Currently active instrument symbol")
+    currency_symbol: str = Field(description="Active currency symbol")
+    trading_hours: str = Field(description="Active trading hours")
+    available_markets: list[MarketInfo] = Field(description="List of all supported markets")
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        description="Response generation timestamp in UTC",
+    )
+
+
+class MarketSwitchRequest(BaseModel):
+    """Request payload to switch active market and symbol."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    market_id: str = Field(description="Target market identifier to switch to")
+    symbol: str | None = Field(default=None, description="Optional target symbol within market")

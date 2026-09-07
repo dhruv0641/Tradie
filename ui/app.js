@@ -18,15 +18,40 @@ function setOperatorToken(token) {
   }
 }
 
-// Utility: Format currency in INR (₹)
-function formatINR(amount) {
+// Active Market & Instrument State
+let currentMarketState = {
+  active_market_id: 'NSE_EQUITY',
+  active_market_name: 'Indian Equities (NSE)',
+  active_symbol: 'NSE:RELIANCE',
+  currency_symbol: '₹',
+  trading_hours: '09:15 - 15:30 IST',
+  available_markets: [],
+};
+
+// Utility: Format currency dynamically based on active market currency
+function formatCurrency(amount) {
   const num = parseFloat(amount || 0);
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 2,
-  }).format(num);
+  const symbol = currentMarketState.currency_symbol || '₹';
+  if (symbol === '₹') {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2,
+    }).format(num);
+  } else {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2,
+    }).format(num);
+  }
 }
+
+// Backward-compatible alias
+function formatINR(amount) {
+  return formatCurrency(amount);
+}
+
 
 // Utility: Fetch JSON with optional auth header
 async function apiFetch(endpoint, options = {}) {
@@ -292,8 +317,110 @@ function closeModal(id) {
   if (el) el.classList.remove('active');
 }
 
+// Market Switcher Management
+async function initMarketSwitcher() {
+  try {
+    const data = await apiFetch('/market');
+    currentMarketState = data;
+    updateMarketUI();
+
+    const selMarket = document.getElementById('select-market');
+    const selSymbol = document.getElementById('select-symbol');
+
+    if (selMarket && data.available_markets) {
+      selMarket.innerHTML = '';
+      data.available_markets.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m.market_id;
+        opt.textContent = m.name;
+        if (m.market_id === data.active_market_id) opt.selected = true;
+        selMarket.appendChild(opt);
+      });
+
+      selMarket.addEventListener('change', async (e) => {
+        await handleMarketChange(e.target.value);
+      });
+    }
+
+    populateSymbolsDropdown(data.active_market_id, data.active_symbol);
+
+    if (selSymbol) {
+      selSymbol.addEventListener('change', async (e) => {
+        await handleSymbolChange(e.target.value);
+      });
+    }
+  } catch (err) {
+    console.error('Failed initializing market switcher:', err);
+  }
+}
+
+function populateSymbolsDropdown(marketId, selectedSymbol) {
+  const selSymbol = document.getElementById('select-symbol');
+  if (!selSymbol || !currentMarketState.available_markets) return;
+
+  const market = currentMarketState.available_markets.find((m) => m.market_id === marketId);
+  if (!market || !market.instruments) return;
+
+  selSymbol.innerHTML = '';
+  market.instruments.forEach((inst) => {
+    const opt = document.createElement('option');
+    opt.value = inst;
+    opt.textContent = inst;
+    if (inst === selectedSymbol) opt.selected = true;
+    selSymbol.appendChild(opt);
+  });
+}
+
+async function handleMarketChange(marketId) {
+  try {
+    const res = await apiFetch('/market/switch', {
+      method: 'POST',
+      body: JSON.stringify({ market_id: marketId }),
+    });
+    currentMarketState = res;
+    populateSymbolsDropdown(res.active_market_id, res.active_symbol);
+    updateMarketUI();
+    await refreshDashboard();
+  } catch (err) {
+    console.error('Failed switching market:', err);
+    alert(`Failed to switch market: ${err.message}`);
+  }
+}
+
+async function handleSymbolChange(symbol) {
+  try {
+    const res = await apiFetch('/market/switch', {
+      method: 'POST',
+      body: JSON.stringify({
+        market_id: currentMarketState.active_market_id,
+        symbol: symbol,
+      }),
+    });
+    currentMarketState = res;
+    updateMarketUI();
+    await refreshDashboard();
+  } catch (err) {
+    console.error('Failed switching symbol:', err);
+  }
+}
+
+function updateMarketUI() {
+  const brandIcon = document.getElementById('brand-currency-icon');
+  const brandSub = document.getElementById('brand-market-subtitle');
+  const hoursBadge = document.getElementById('badge-market-hours');
+  const targetSymbol = document.getElementById('badge-target-symbol');
+
+  if (brandIcon) brandIcon.textContent = currentMarketState.currency_symbol || '₹';
+  if (brandSub) brandSub.textContent = `Autonomous ${currentMarketState.active_market_name} Engine`;
+  if (hoursBadge) hoursBadge.textContent = `🕒 ${currentMarketState.trading_hours}`;
+  if (targetSymbol) targetSymbol.textContent = currentMarketState.active_symbol;
+}
+
 // Event Listeners setup
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize dynamic market switcher
+  initMarketSwitcher();
+
   // Emergency STOP button triggers modal
   const btnEmergency = document.getElementById('btn-emergency-stop');
   if (btnEmergency) {

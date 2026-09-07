@@ -54,6 +54,12 @@ def test_ui_index_served_at_root_and_dashboard(ui_client: TestClient) -> None:
         assert 'id="tbody-orders"' in html
         assert 'id="grid-diagnostics"' in html
 
+        # Verify Market Switcher Components (Sprint S22.02 Extension)
+        assert 'id="select-market"' in html
+        assert 'id="select-symbol"' in html
+        assert 'id="badge-market-hours"' in html
+        assert 'id="badge-target-symbol"' in html
+
 
 def test_ui_static_assets_served_correctly(ui_client: TestClient) -> None:
     """Verify /static/style.css and /static/app.js are served correctly."""

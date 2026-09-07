@@ -13,6 +13,7 @@ from src.api.models import (
     AccountResponse,
     AIStateResponse,
     HealthResponse,
+    MarketStateResponse,
     RiskStateResponse,
     TradingResponse,
 )
@@ -337,3 +338,55 @@ def test_streak_state_and_fallback_token_coverage() -> None:
     risk_state = state.get_risk_state()
     assert risk_state.consecutive_losses == 5
     assert risk_state.session_paused is True
+
+
+def test_get_market_endpoint_nominal(client: TestClient) -> None:
+    """Verify GET /api/market returns initial market state and all supported markets."""
+    response = client.get("/api/market")
+    assert response.status_code == 200
+    data = response.json()
+    market_state = MarketStateResponse.model_validate(data)
+    assert market_state.active_market_id == "NSE_EQUITY"
+    assert market_state.active_market_name == "Indian Equities (NSE)"
+    assert market_state.currency_symbol == "₹"
+    assert len(market_state.available_markets) >= 4
+    market_ids = {m.market_id for m in market_state.available_markets}
+    assert "NSE_EQUITY" in market_ids
+    assert "NSE_FOREX" in market_ids
+    assert "GLOBAL_FOREX" in market_ids
+    assert "CRYPTO" in market_ids
+
+
+def test_switch_market_nominal(client: TestClient) -> None:
+    """Verify POST /api/market/switch successfully switches market to GLOBAL_FOREX."""
+    payload = {"market_id": "GLOBAL_FOREX"}
+    response = client.post("/api/market/switch", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    market_state = MarketStateResponse.model_validate(data)
+    assert market_state.active_market_id == "GLOBAL_FOREX"
+    assert market_state.active_market_name == "Global Forex (Spot)"
+    assert market_state.currency_symbol == "$"
+    assert market_state.active_symbol == "FX:EUR_USD"
+
+
+def test_switch_market_with_explicit_symbol(client: TestClient) -> None:
+    """Verify POST /api/market/switch supports switching to a specific instrument."""
+    payload = {"market_id": "CRYPTO", "symbol": "CRYPTO:BTC_USDT"}
+    response = client.post("/api/market/switch", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    market_state = MarketStateResponse.model_validate(data)
+    assert market_state.active_market_id == "CRYPTO"
+    assert market_state.active_symbol == "CRYPTO:BTC_USDT"
+    assert market_state.currency_symbol == "$"
+
+
+def test_switch_market_invalid_id_raises_400(client: TestClient) -> None:
+    """Verify POST /api/market/switch with unknown market ID returns HTTP 400."""
+    payload = {"market_id": "INVALID_UNKNOWN_MARKET"}
+    response = client.post("/api/market/switch", json=payload)
+    assert response.status_code == 400
+    data = response.json()
+    assert "detail" in data
+    assert "Unknown market ID" in data["detail"]
